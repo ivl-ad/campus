@@ -1,0 +1,6 @@
+category_id,category_title,category_badge,category_kicker,subcategory_title,subcategory_label,product_title,product_desc,product_price,tags,image_url
+tech-electronics,01 • Tech & Electronics,Devices • Audio • Power,Power through lectures and campus life,"Laptops, Tablets & Accessories",Performance and portability,"CampusBook 14"" Slim Laptop",Lightweight laptop with long battery life,$899,"14"" Display, Student Laptop",https://picsum.photos/seed/laptop1/400
+tech-electronics,01 • Tech & Electronics,Devices • Audio • Power,Power through lectures and campus life,"Laptops, Tablets & Accessories",Performance and portability,"StudyTab 11"" Tablet",Stylus ready tablet,$499,"Stylus, Wi-Fi",https://picsum.photos/seed/tablet1/400
+tech-electronics,01 • Tech & Electronics,Devices • Audio • Power,Power through lectures and campus life,Headphones & Audio,Library or hype mode,Focus+ Headphones,Noise cancelling headset,$199,"Noise Cancelling, Bluetooth",https://picsum.photos/seed/headphones1/400
+dorm-living,03 • Dorm & Living,Bedding & Storage,Make your space home,Bedding,Sleep better,Memory Foam Pillow,Neck support pillow,$49,"Soft, Ergonomic",https://picsum.photos/seed/pillow1/400
+dorm-living,03 • Dorm & Living,Bedding & Storage,Make your space home,Storage,Organize,Underbed Storage,Space saving bin,$25,"Storage, Foldable",https://picsum.photos/seed/bin1/400
