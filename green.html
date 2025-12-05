@@ -10,92 +10,93 @@
   
   
 
-:root {
-  /* ===== WAYNE STATE UNIVERSITY THEME (WARRIOR GREEN & GOLD) ===== */
+   :root {
+  /* ===== THEME TOKENS: BOOKSTORE / ACADEMIA RESKIN ===== */
 
-  /* Core brand anchors */
-  --wsu-green: #006241;       /* Wayne State Warrior Green */
-  --wsu-green-soft: #0b7a54;  /* lighter green for surfaces / hovers */
-  --wsu-gold: #fdb913;        /* Wayne State Gold */
-  --wsu-gold-soft: #ffe08b;   /* softer gold for glows / subtle accents */
+  /* 
+    Palette notes:
+    - Primary accent is now a deep “book cover” green.
+    - Secondary accent is a rich academic / graduation red.
+    - Warm gold used subtly for “success / highlight” moments.
+    - Backgrounds lean charcoal + very deep green instead of blue/indigo.
+  */
 
-  /* Core surfaces – dark shell with a subtle green lean */
-  --bg: #020705;                      /* base page bg – near-black with green hint */
-  --bg-elevated: #05120b;             /* elevated surfaces – deep forest charcoal */
-  --bg-soft: #071a10;                 /* soft panels & cards – muted green charcoal */
+  /* Core surfaces */
+  --bg: #05070b;                        /* legacy base bg (fallback) – deep ink */
+  --bg-elevated: #0b1114;               /* elevated surfaces – dark charcoal green */
+  --bg-soft: #101719;                   /* soft panels & cards – muted greenish charcoal */
 
-  /* Page & section backgrounds (library / campus-night gradient) */
-  --page-bg-start: #082417;           /* body gradient start – deep campus lawn at dusk */
-  --page-bg-mid: #020705;             /* body gradient middle */
-  --page-bg-end: #000000;             /* body gradient end */
+  /* Page & section backgrounds (subtle library gradient) */
+  --page-bg-start: #18211a;             /* body gradient start – deep olive green */
+  --page-bg-mid: #050709;               /* body gradient middle – neutral charcoal */
+  --page-bg-end: #020304;               /* body gradient end – near-black */
 
-  --hero-card-bg-top: #0a2d1c;        /* hero card top – rich study green */
-  --hero-card-bg-bottom: #020705;     /* hero card bottom */
+  --hero-card-bg-top: #1a2420;          /* hero card top – dark study-room green */
+  --hero-card-bg-bottom: #050608;       /* hero card bottom – blackish neutral */
 
-  --product-image-bg-top: #0a2d1c;    /* product image top */
-  --product-image-bg-bottom: #020705; /* product image bottom */
+  --product-image-bg-top: #1a2420;      /* product image top – matches hero */
+  --product-image-bg-bottom: #050608;   /* product image bottom */
 
-  /* Accent palette – GOLD as bright accent, GREEN as strong alt */
-  --accent: var(--wsu-gold);                      /* primary accent (buttons, badges) */
-  --accent-soft: rgba(253, 185, 19, 0.18);        /* soft gold wash */
-  --accent-strong: #e3a80f;                       /* deeper gold for hover / active */
+  /* Accent palette */
+  --accent: #15803d;                    /* primary: deep book green */
+  --accent-soft: rgba(21, 128, 61, 0.18);
+  --accent-strong: #166534;             /* stronger emerald/forest green */
 
-  --accent-alt: var(--wsu-green-soft);            /* alternative accent (links, outlines) */
-  --accent-warm: #f59e0b;                         /* warm gold/orange for warning-ish UI */
-  --accent-soft-warm: rgba(245, 158, 11, 0.16);   /* warm wash */
+  --accent-alt: #facc15;                /* secondary: scholastic gold (badges, highlights) */
+  --accent-warm: #b91c1c;               /* academic red (robes, seals, warnings) */
+  --accent-soft-warm: rgba(185, 28, 28, 0.16);
 
   /* Text */
-  --text: #e5e7eb;                      /* primary text */
+  --text: #e5e7eb;                      /* primary text – stays light for contrast */
   --text-soft: #9ca3af;                 /* muted text */
 
-  /* Borders (neutral slate that plays nice with green/gold) */
-  --border-subtle: rgba(148, 163, 184, 0.32);
-  --border-soft: rgba(148, 163, 184, 0.24);
-  --border-strong: rgba(148, 163, 184, 0.55);
-  --border-stronger: rgba(148, 163, 184, 0.66);
-  --border-tag: rgba(148, 163, 184, 0.4);
-  --border-light: rgba(148, 163, 184, 0.2);
-  --border-medium: rgba(148, 163, 184, 0.45);
-  --border-heavy: rgba(148, 163, 184, 0.52);
-  --border-dashed-strong: rgba(148, 163, 184, 0.8);
+  /* Borders (slightly warmer, less “techy”) */
+  --border-subtle: rgba(148, 163, 184, 0.30); 
+  --border-soft: rgba(148, 163, 184, 0.22);   
+  --border-strong: rgba(148, 163, 184, 0.52); 
+  --border-stronger: rgba(148, 163, 184, 0.62);
+  --border-tag: rgba(148, 163, 184, 0.38);
+  --border-light: rgba(148, 163, 184, 0.18);
+  --border-medium: rgba(148, 163, 184, 0.42);
+  --border-heavy: rgba(148, 163, 184, 0.48);
 
-  /* Brand-flavored special borders (reuse existing variable names) */
-  --border-warm-strong: rgba(253, 185, 19, 0.92);   /* strong gold border */
-  --border-indigo-strong: rgba(0, 98, 65, 0.85);    /* now WSU green border */
-  --border-indigo-stronger: rgba(0, 98, 65, 0.95);  /* stronger green */
-  --border-blue-strong: rgba(11, 122, 84, 0.75);    /* supporting tealish green */
+  /* Academic-tinted special borders */
+  --border-warm-strong: rgba(185, 28, 28, 0.9);       /* red accent border */
+  --border-indigo-strong: rgba(21, 128, 61, 0.85);    /* repurposed: strong green border */
+  --border-indigo-stronger: rgba(22, 101, 52, 0.95);  /* even stronger green */
+  --border-blue-strong: rgba(15, 118, 110, 0.75);     /* teal-ish option if needed */
 
-  /* Dark overlays (shifted from navy to green-leaning charcoal) */
-  --overlay-96: rgba(4, 12, 8, 0.96);   /* header top */
-  --overlay-84: rgba(4, 12, 8, 0.84);   /* header mid */
-  --overlay-90: rgba(4, 12, 8, 0.90);   /* strong panel / pills */
-  --overlay-95: rgba(4, 12, 8, 0.95);   /* subtle panel */
-  --overlay-85: rgba(4, 12, 8, 0.85);   /* controls */
-  --overlay-75: rgba(4, 12, 8, 0.75);   /* category strip mid */
-  --overlay-65: rgba(4, 12, 8, 0.65);
-  --overlay-60: rgba(4, 12, 8, 0.60);
-  --overlay-100: #040b06;               /* solid fallback */
+  /* Dark overlays (shifted from navy to charcoal/green) */
+  --overlay-96: rgba(7, 12, 14, 0.96);  /* header top */
+  --overlay-84: rgba(7, 12, 14, 0.84);  /* header mid */
+  --overlay-90: rgba(7, 12, 14, 0.90);  /* strong panel / pills */
+  --overlay-95: rgba(7, 12, 14, 0.95);  /* subtle panel */
+  --overlay-85: rgba(7, 12, 14, 0.85);  /* controls */
+  --overlay-75: rgba(7, 12, 14, 0.75);  /* category strip mid */
+  --overlay-65: rgba(7, 12, 14, 0.65);
+  --overlay-60: rgba(7, 12, 14, 0.60);
+  --overlay-100: #050708;               /* solid fallback */
 
-  /* Glows / special tints (Wayne State green & gold) */
-  --glow-online: rgba(253, 185, 19, 0.26);         /* gold presence halo */
-  --glow-hero-indigo: rgba(0, 98, 65, 0.34);       /* main hero green glow */
-  --glow-hero-sky: rgba(253, 185, 19, 0.20);       /* gold glow – top right */
-  --glow-hero-warm: rgba(255, 224, 139, 0.24);     /* soft gold at the bottom */
+  /* Glows / special tints (now green + red + gold) */
+  --glow-online: rgba(250, 204, 21, 0.28);  /* gold halo instead of neon green */
+  --glow-hero-indigo: rgba(21, 128, 61, 0.23);  /* main hero glow: book green */
+  --glow-hero-sky: rgba(45, 212, 191, 0.18);    /* teal glow – subtle modern touch */
+  --glow-hero-warm: rgba(185, 28, 28, 0.25);    /* academic red glow */
 
-  --glow-product-hover: rgba(253, 185, 19, 0.14);  /* gold hover aura */
+  --glow-product-hover: rgba(21, 128, 61, 0.16);
 
-  /* Shadows (tinted with deep green) */
-  --shadow-soft: 0 18px 45px rgba(2, 10, 6, 0.8);
-  --shadow-subtle: 0 12px 32px rgba(2, 10, 6, 0.65);
-  --shadow-primary: 0 12px 35px rgba(0, 98, 65, 0.65);
-  --shadow-primary-strong: 0 18px 45px rgba(0, 98, 65, 0.82);
-  --shadow-nav-link: 0 9px 22px rgba(2, 10, 6, 0.6);
-  --shadow-nav-pill: 0 11px 28px rgba(2, 10, 6, 0.9);
-  --shadow-product-hover: 0 20px 45px rgba(2, 10, 6, 0.95);
-  --shadow-subcat: 0 14px 35px rgba(2, 10, 6, 0.85);
-  --shadow-btn-ghost-hover: 0 16px 40px rgba(2, 10, 6, 0.85);
+  /* Shadows (kept similar, slightly warmer) */
+  --shadow-soft: 0 18px 45px rgba(5, 10, 12, 0.8);
+  --shadow-subtle: 0 12px 32px rgba(5, 10, 12, 0.65);
+  --shadow-primary: 0 12px 35px rgba(22, 101, 52, 0.65);
+  --shadow-primary-strong: 0 18px 45px rgba(20, 83, 45, 0.8);
+  --shadow-nav-link: 0 9px 22px rgba(5, 10, 12, 0.6);
+  --shadow-nav-pill: 0 11px 28px rgba(5, 10, 12, 0.9);
+  --shadow-product-hover: 0 20px 45px rgba(5, 10, 12, 0.95);
+  --shadow-subcat: 0 14px 35px rgba(5, 10, 12, 0.85);
+  --shadow-btn-ghost-hover: 0 16px 40px rgba(5, 10, 12, 0.85);
 
-  /* Compound gradients (campus-night green) */
+  /* Compound gradients (rebuilt on the new colors) */
   --gradient-page: radial-gradient(
     circle at top left,
     var(--page-bg-start) 0,
@@ -135,10 +136,10 @@
     var(--page-bg-end)
   );
 
-  /* Hero card overlay:
-     - top-left: Warrior Green glow
-     - top-right: Warrior Gold glow
-     - bottom: soft gold glow
+  /* Hero card overlay layer:
+     - left: green glow
+     - right: teal glow
+     - bottom: academic red glow
   */
   --hero-card-overlay-layer:
     radial-gradient(
@@ -157,7 +158,7 @@
       transparent 45%
     );
 
-  /* Radii / transitions / layout (unchanged from your original) */
+  /* Radii / transitions / layout (unchanged) */
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-pill: 999px;
@@ -173,8 +174,6 @@
   margin: 0;
   padding: 0;
 }
-
-
   
   
   

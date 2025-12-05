@@ -9,8 +9,7 @@
   
   
   
-  
-  
+
  :root {
   /* ===== UNIVERSITY OF MICHIGAN THEME (MAIZE & BLUE) ===== */
 
@@ -173,7 +172,6 @@
   margin: 0;
   padding: 0;
 }
-
 
   
   
@@ -1026,7 +1024,79 @@
       }
     }
   </style>
+  
+  
+  
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
+  const pills = document.querySelectorAll(".category-pill");
+  const scrollBtn = document.getElementById("heroScrollBtn");
+
+  let activeTarget = "curated-kits";
+
+  // SAFETY CHECK
+  if (!pills.length) {
+    console.error("No category pills found.");
+    return;
+  }
+
+  if (!scrollBtn) {
+    console.error("Scroll button not found.");
+    return;
+  }
+
+  // ACTIVATE PILLS
+  pills.forEach(pill => {
+
+    pill.style.cursor = "pointer";
+    pill.style.pointerEvents = "auto";
+
+    pill.addEventListener("click", function () {
+
+      const targetId = this.dataset.target;
+      if (!targetId) return;
+
+      // Remove previous highlight
+      pills.forEach(p => p.classList.remove("category-pill--highlight"));
+
+      // Highlight clicked
+      this.classList.add("category-pill--highlight");
+
+      // Set as active
+      activeTarget = targetId;
+
+      console.log("Selected:", activeTarget);
+    });
+  });
+
+  // CTA BUTTON — SCROLL ONLY WHEN CLICKED
+  scrollBtn.addEventListener("click", function () {
+
+    const section = document.getElementById(activeTarget);
+
+    if (!section) {
+      console.error("Missing section with ID:", activeTarget);
+      return;
+    }
+
+    const headerOffset = 90;
+    const y = section.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+    window.scrollTo({
+      top: y,
+      behavior: "smooth"
+    });
+  });
+
+});
+</script>
+
+
+  
+  
+  
+  
 </head>
 <body>
   <div class="page-shell">
@@ -1099,64 +1169,90 @@
             </div>
           </div>
 
-          <!-- HERO RIGHT CARD -->
-          <aside class="hero-card" aria-label="MyCampusKorner summary">
-            <div class="hero-card-inner">
-              <div class="pill-row">
-                <div class="pill pill-accent">
-                  <span class="pill-dot"></span>
-                  Live Campus Catalog
-                </div>
-                <span class="pill-badge">For Students &amp; Parents</span>
-              </div>
-              <div class="mini-title">Quick Glance</div>
-              <h2 class="hero-card-heading">10 Categories • 40+ Sub-Collections</h2>
-              <p class="hero-card-sub">
-                Built as a single HTML page with embedded CSS. Each section below
-                acts as a “subpage” with editable example products.
-              </p>
-              <div class="category-strip">
-                <div class="category-pill">
-                  <span class="label">Tech &amp; Electronics</span>
-                  <span class="meta">Laptops • Audio • Wearables</span>
-                </div>
-                <div class="category-pill">
-                  <span class="label">Dorm &amp; Living</span>
-                  <span class="meta">Bedding • Décor • Storage</span>
-                </div>
-                <div class="category-pill category-pill--highlight">
-                  <span class="label">Curated Kits</span>
-                  <span class="meta">Freshman • Wellness • Gifts</span>
-                </div>
-                <div class="category-pill">
-                  <span class="label">My Campus Corner</span>
-                  <span class="meta">Own-Brand Essentials</span>
-                </div>
-                <div class="category-pill">
-                  <span class="label">Digital Services</span>
-                  <span class="meta">E-Textbooks • Apps</span>
-                </div>
-                <div class="category-pill">
-                  <span class="label">Financial Resources</span>
-                  <span class="meta">Scholarships • Budgeting</span>
-                </div>
-              </div>
-              <div class="hero-card-footer">
-                <div class="hero-card-stat">
-                  <span>Editable in one file</span>
-                  <strong>Filler Text Goes Here</strong>
-                </div>
-                <div class="hero-card-stat">
-                  <span>Example SKUs</span>
-                  <strong>Ready to rename</strong>
-                </div>
-                <div class="hero-card-cta">
-                  <span>Scroll to a category below</span>
-                  <span class="btn-icon">↓</span>
-                </div>
-              </div>
-            </div>
-          </aside>
+        
+		
+	<!-- HERO RIGHT CARD (STATEFUL CATEGORY SELECTOR) -->
+<aside class="hero-card" aria-label="MyCampusKorner summary">
+  <div class="hero-card-inner">
+
+    <div class="pill-row">
+      <div class="pill pill-accent">
+        <span class="pill-dot"></span>
+        Live Campus Catalog
+      </div>
+      <span class="pill-badge">For Students &amp; Parents</span>
+    </div>
+
+    <div class="mini-title">Quick Glance</div>
+
+    <div class="hero-card-heading">
+      10 Categories • 40+ Sub-Collections
+    </div>
+
+    <p class="hero-card-sub">
+      Built as a single HTML page with embedded CSS. Each section below
+      acts as a “subpage” with editable example products.
+    </p>
+
+    <div class="category-strip" data-quick-nav>
+
+      <div class="category-pill" data-target="tech-electronics">
+        <span class="label">Tech &amp; Electronics</span>
+        <span class="meta">Laptops • Audio • Wearables</span>
+      </div>
+
+      <div class="category-pill" data-target="dorm-living">
+        <span class="label">Dorm &amp; Living</span>
+        <span class="meta">Bedding • Décor • Storage</span>
+      </div>
+
+      <div class="category-pill category-pill--highlight" data-target="curated-kits">
+        <span class="label">Curated Kits</span>
+        <span class="meta">Freshman • Wellness • Gifts</span>
+      </div>
+
+      <div class="category-pill" data-target="my-campus-corner">
+        <span class="label">My Campus Corner</span>
+        <span class="meta">Own-Brand Essentials</span>
+      </div>
+
+      <div class="category-pill" data-target="digital-services">
+        <span class="label">Digital Services</span>
+        <span class="meta">E-Textbooks • Apps</span>
+      </div>
+
+      <div class="category-pill" data-target="financial-resources">
+        <span class="label">Financial Resources</span>
+        <span class="meta">Scholarships • Budgeting</span>
+      </div>
+
+    </div>
+
+    <div class="hero-card-footer">
+      <div class="hero-card-stat">
+        <span>Editable in one file</span>
+        <strong>Filler Text Goes Here</strong>
+      </div>
+
+      <div class="hero-card-stat">
+        <span>Example SKUs</span>
+        <strong>Ready to rename</strong>
+      </div>
+
+      <button class="hero-card-cta" id="heroScrollBtn" type="button">
+        <span>Scroll to a category below</span>
+        <span class="btn-icon">↓</span>
+      </button>
+    </div>
+
+  </div>
+</aside>
+
+
+		
+		
+		
+		
         </div>
       </section>
 
