@@ -1,0 +1,3760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MyCampusKorner | Student Life Marketplace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+   
+   :root {
+  /* ===== THEME TOKENS: BOOKSTORE / ACADEMIA RESKIN ===== */
+
+  /* 
+    Palette notes:
+    - Primary accent is now a deep “book cover” green.
+    - Secondary accent is a rich academic / graduation red.
+    - Warm gold used subtly for “success / highlight” moments.
+    - Backgrounds lean charcoal + very deep green instead of blue/indigo.
+  */
+
+  /* Core surfaces */
+  --bg: #05070b;                        /* legacy base bg (fallback) – deep ink */
+  --bg-elevated: #0b1114;               /* elevated surfaces – dark charcoal green */
+  --bg-soft: #101719;                   /* soft panels & cards – muted greenish charcoal */
+
+  /* Page & section backgrounds (subtle library gradient) */
+  --page-bg-start: #18211a;             /* body gradient start – deep olive green */
+  --page-bg-mid: #050709;               /* body gradient middle – neutral charcoal */
+  --page-bg-end: #020304;               /* body gradient end – near-black */
+
+  --hero-card-bg-top: #1a2420;          /* hero card top – dark study-room green */
+  --hero-card-bg-bottom: #050608;       /* hero card bottom – blackish neutral */
+
+  --product-image-bg-top: #1a2420;      /* product image top – matches hero */
+  --product-image-bg-bottom: #050608;   /* product image bottom */
+
+  /* Accent palette */
+  --accent: #15803d;                    /* primary: deep book green */
+  --accent-soft: rgba(21, 128, 61, 0.18);
+  --accent-strong: #166534;             /* stronger emerald/forest green */
+
+  --accent-alt: #facc15;                /* secondary: scholastic gold (badges, highlights) */
+  --accent-warm: #b91c1c;               /* academic red (robes, seals, warnings) */
+  --accent-soft-warm: rgba(185, 28, 28, 0.16);
+
+  /* Text */
+  --text: #e5e7eb;                      /* primary text – stays light for contrast */
+  --text-soft: #9ca3af;                 /* muted text */
+
+  /* Borders (slightly warmer, less “techy”) */
+  --border-subtle: rgba(148, 163, 184, 0.30); 
+  --border-soft: rgba(148, 163, 184, 0.22);   
+  --border-strong: rgba(148, 163, 184, 0.52); 
+  --border-stronger: rgba(148, 163, 184, 0.62);
+  --border-tag: rgba(148, 163, 184, 0.38);
+  --border-light: rgba(148, 163, 184, 0.18);
+  --border-medium: rgba(148, 163, 184, 0.42);
+  --border-heavy: rgba(148, 163, 184, 0.48);
+
+  /* Academic-tinted special borders */
+  --border-warm-strong: rgba(185, 28, 28, 0.9);       /* red accent border */
+  --border-indigo-strong: rgba(21, 128, 61, 0.85);    /* repurposed: strong green border */
+  --border-indigo-stronger: rgba(22, 101, 52, 0.95);  /* even stronger green */
+  --border-blue-strong: rgba(15, 118, 110, 0.75);     /* teal-ish option if needed */
+
+  /* Dark overlays (shifted from navy to charcoal/green) */
+  --overlay-96: rgba(7, 12, 14, 0.96);  /* header top */
+  --overlay-84: rgba(7, 12, 14, 0.84);  /* header mid */
+  --overlay-90: rgba(7, 12, 14, 0.90);  /* strong panel / pills */
+  --overlay-95: rgba(7, 12, 14, 0.95);  /* subtle panel */
+  --overlay-85: rgba(7, 12, 14, 0.85);  /* controls */
+  --overlay-75: rgba(7, 12, 14, 0.75);  /* category strip mid */
+  --overlay-65: rgba(7, 12, 14, 0.65);
+  --overlay-60: rgba(7, 12, 14, 0.60);
+  --overlay-100: #050708;               /* solid fallback */
+
+  /* Glows / special tints (now green + red + gold) */
+  --glow-online: rgba(250, 204, 21, 0.28);  /* gold halo instead of neon green */
+  --glow-hero-indigo: rgba(21, 128, 61, 0.23);  /* main hero glow: book green */
+  --glow-hero-sky: rgba(45, 212, 191, 0.18);    /* teal glow – subtle modern touch */
+  --glow-hero-warm: rgba(185, 28, 28, 0.25);    /* academic red glow */
+
+  --glow-product-hover: rgba(21, 128, 61, 0.16);
+
+  /* Shadows (kept similar, slightly warmer) */
+  --shadow-soft: 0 18px 45px rgba(5, 10, 12, 0.8);
+  --shadow-subtle: 0 12px 32px rgba(5, 10, 12, 0.65);
+  --shadow-primary: 0 12px 35px rgba(22, 101, 52, 0.65);
+  --shadow-primary-strong: 0 18px 45px rgba(20, 83, 45, 0.8);
+  --shadow-nav-link: 0 9px 22px rgba(5, 10, 12, 0.6);
+  --shadow-nav-pill: 0 11px 28px rgba(5, 10, 12, 0.9);
+  --shadow-product-hover: 0 20px 45px rgba(5, 10, 12, 0.95);
+  --shadow-subcat: 0 14px 35px rgba(5, 10, 12, 0.85);
+  --shadow-btn-ghost-hover: 0 16px 40px rgba(5, 10, 12, 0.85);
+
+  /* Compound gradients (rebuilt on the new colors) */
+  --gradient-page: radial-gradient(
+    circle at top left,
+    var(--page-bg-start) 0,
+    var(--page-bg-mid) 40%,
+    var(--page-bg-end) 100%
+  );
+
+  --gradient-header: linear-gradient(
+    to bottom,
+    var(--overlay-96),
+    var(--overlay-84),
+    transparent
+  );
+
+  --gradient-category-nav: linear-gradient(
+    to right,
+    var(--overlay-90),
+    var(--overlay-75),
+    var(--overlay-90)
+  );
+
+  --gradient-hero-card: radial-gradient(
+    circle at top,
+    var(--hero-card-bg-top) 0,
+    var(--hero-card-bg-bottom) 60%
+  );
+
+  --gradient-product-image: radial-gradient(
+    circle at top,
+    var(--product-image-bg-top),
+    var(--product-image-bg-bottom)
+  );
+
+  --gradient-footer: radial-gradient(
+    circle at top,
+    var(--page-bg-mid),
+    var(--page-bg-end)
+  );
+
+  /* Hero card overlay layer:
+     - left: green glow
+     - right: teal glow
+     - bottom: academic red glow
+  */
+  --hero-card-overlay-layer:
+    radial-gradient(
+      circle at 0 0,
+      var(--glow-hero-indigo),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 100% 0,
+      var(--glow-hero-sky),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      var(--glow-hero-warm),
+      transparent 45%
+    );
+
+  /* Radii / transitions / layout (unchanged) */
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+  --transition-fast: 180ms ease-out;
+  --transition-med: 220ms ease-out;
+  --nav-h: 72px;
+  --section-max-w: 1200px;
+}
+
+/* Global reset (kept as you had it) */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: var(--gradient-page);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    /* Layout Shell */
+
+    .page-shell {
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    .content-width {
+      max-width: var(--section-max-w);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(28px);
+      background: var(--gradient-header);
+      border-bottom: 1px solid var(--border-soft);
+      height: var(--nav-h);
+    }
+
+    .nav-bar {
+      max-width: var(--section-max-w);
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 0 1.5rem;
+    }
+
+    .logo-lockup {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* NEW: logo uses local image logo.png */
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 0;
+      background-image: url("logo1.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: left center;
+      position: relative;
+      overflow: visible;
+      box-shadow: none;
+    }
+
+    .logo-mark::after {
+      content: none;
+    }
+
+    .logo-initials {
+      display: none;
+    }
+
+    .logo-text-main {
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+
+    .logo-text-sub {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .nav-link {
+      padding: 0.5rem 0.95rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid transparent;
+      color: var(--text-soft);
+      cursor: pointer;
+      background: transparent;
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      background: var(--overlay-90);
+      border-color: var(--border-medium);
+      color: var(--text);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-nav-link);
+    }
+
+    .nav-link--primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: var(--shadow-primary);
+    }
+
+    .nav-link--primary:hover {
+      transform: translateY(-1px) translateX(0.5px) scale(1.01);
+      box-shadow: var(--shadow-primary-strong);
+    }
+
+    .nav-slim-cta {
+      display: none;
+    }
+
+    /* Hero */
+
+    .hero {
+      padding: 2.75rem 0 2.25rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.28rem 0.65rem;
+      border-radius: 999px;
+      background: var(--overlay-90);
+      border: 1px solid var(--border-heavy);
+      color: var(--text-soft);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      margin-bottom: 0.75rem;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-alt);
+      box-shadow: 0 0 0 6px var(--glow-online);
+    }
+
+    .hero-title {
+      font-size: clamp(2.15rem, 3vw, 2.8rem);
+      line-height: 1.15;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.8rem;
+    }
+
+    .hero-title span.gradient {
+      background: linear-gradient(135deg, #a5b4fc, var(--accent-warm));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      max-width: 34rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .hero-chip {
+      font-size: 0.7rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      color: var(--text-soft);
+      background: var(--overlay-75);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn {
+      border-radius: var(--radius-pill);
+      padding: 0.7rem 1.4rem;
+      border: 1px solid transparent;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition:
+        background var(--transition-med),
+        border-color var(--transition-med),
+        transform var(--transition-med),
+        box-shadow var(--transition-med),
+        color var(--transition-med);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #ffffff;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 22px 55px rgba(79, 70, 229, 0.85);
+    }
+
+    .btn-ghost {
+      background: var(--overlay-90);
+      border-color: var(--border-medium);
+      color: var(--text-soft);
+    }
+
+    .btn-ghost:hover {
+      background: var(--overlay-100);
+      border-color: var(--border-stronger);
+      color: var(--text);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-btn-ghost-hover);
+    }
+
+    .btn-icon {
+      font-size: 1rem;
+    }
+
+    .hero-footnote {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .hero-footnote strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Hero right side */
+
+    .hero-card {
+      border-radius: 24px;
+      padding: 1.4rem 1.25rem;
+      background: var(--gradient-hero-card);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: var(--hero-card-overlay-layer);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .hero-card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 1.1rem;
+      font-size: 0.72rem;
+    }
+
+    .pill {
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: var(--overlay-85);
+      border: 1px solid var(--border-heavy);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--text-soft);
+    }
+
+    .pill-accent {
+      background: var(--accent-soft);
+      border-color: var(--border-indigo-strong);
+      color: var(--text);
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent-alt);
+    }
+
+    .pill-badge {
+      font-size: 0.65rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-heavy);
+      background: var(--overlay-85);
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .mini-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-card-heading {
+      font-size: 1.2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-card-sub {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-bottom: 1rem;
+    }
+
+    .category-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.55rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .category-pill {
+      padding: 0.5rem 0.55rem;
+      border-radius: 12px;
+      background: var(--overlay-90);
+      border: 1px solid var(--border-strong);
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .category-pill span.label {
+      color: var(--text);
+    }
+
+    .category-pill span.meta {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .category-pill--highlight {
+      background: var(--accent-soft-warm);
+      border-color: var(--border-warm-strong);
+    }
+
+    .hero-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    .hero-card-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      color: var(--text-soft);
+    }
+
+    .hero-card-stat strong {
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .hero-card-cta {
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px dashed var(--border-dashed-strong);
+      font-size: 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--overlay-90);
+      color: var(--text-soft);
+    }
+
+    /* Category Navigation */
+
+    .category-nav-shell {
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 2rem;
+      background: var(--gradient-category-nav);
+    }
+
+    .category-nav {
+      max-width: var(--section-max-w);
+      margin: 0 auto;
+      padding: 0.65rem 1.5rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .category-nav-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .category-nav-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-soft);
+    }
+
+    .category-nav-count {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .category-pill-row {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.35rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-medium) transparent;
+    }
+
+    .category-pill-row::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .category-pill-row::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .category-pill-row::-webkit-scrollbar-thumb {
+      background: var(--border-medium);
+      border-radius: 999px;
+    }
+
+    .cat-nav-pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      border: 1px solid var(--border-medium);
+      padding: 0.38rem 0.9rem;
+      font-size: 0.76rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-soft);
+      background: var(--overlay-95);
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .cat-nav-pill span.index {
+      font-size: 0.72rem;
+      opacity: 0.85;
+    }
+
+    .cat-nav-pill:hover {
+      background: var(--overlay-100);
+      border-color: var(--border-indigo-stronger);
+      color: var(--text);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-nav-pill);
+    }
+
+    .cat-nav-pill--primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 14px 35px rgba(79, 70, 229, 0.75);
+    }
+
+    /* Sections and Product Grid */
+
+    main {
+      padding-bottom: 3rem;
+    }
+
+    section.category-section {
+      padding: 2rem 0 1rem;
+      scroll-margin-top: calc(var(--nav-h) + 60px);
+    }
+
+    .section-header {
+      margin-bottom: 1.1rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: baseline;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title-badge {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-stronger);
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section-kicker {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      max-width: 26rem;
+    }
+
+    .section-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.4rem;
+    }
+
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-tag);
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .subcat-block {
+      margin-top: 1.4rem;
+      padding: 1.1rem 1rem 0.9rem;
+      border-radius: var(--radius-lg);
+      background: var(--overlay-90);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow-subcat);
+    }
+
+    .subcat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .subcat-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-soft);
+    }
+
+    .subcat-label {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .product-card {
+      border-radius: var(--radius-md);
+      background: radial-gradient(circle at top left, var(--bg-soft), var(--page-bg-mid));
+      border: 1px solid var(--border-medium);
+      padding: 0.75rem 0.75rem 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+      transition:
+        transform var(--transition-med),
+        box-shadow var(--transition-med),
+        border-color var(--transition-med),
+        background var(--transition-med);
+    }
+
+    .product-card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at 0 0, var(--glow-product-hover), transparent 55%);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-product-hover);
+      border-color: var(--border-indigo-stronger);
+      background: radial-gradient(circle at top left, var(--page-bg-mid), var(--page-bg-mid));
+    }
+
+    .product-card:hover::before {
+      opacity: 1;
+    }
+
+    .product-image {
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
+      background: var(--gradient-product-image);
+      border: 1px solid var(--border-blue-strong);
+      margin-bottom: 0.5rem;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .product-image::after {
+      content: "Image / Icon";
+      position: absolute;
+      bottom: 0.45rem;
+      right: 0.55rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 0.6rem;
+      background: var(--overlay-85);
+    }
+
+    .product-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.15rem;
+    }
+
+    .product-meta {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      margin-bottom: 0.35rem;
+    }
+
+    .product-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .product-tag {
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      font-size: 0.65rem;
+      color: var(--text-soft);
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      margin-top: auto;
+    }
+
+    .product-price {
+      font-weight: 500;
+    }
+
+    .product-price span {
+      color: var(--text-soft);
+      font-size: 0.7rem;
+      margin-left: 0.2rem;
+    }
+
+    .product-cta {
+      font-size: 0.7rem;
+      padding: 0.24rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-dashed-strong);
+      background: var(--overlay-95);
+      color: var(--text-soft);
+    }
+
+    /* Footer */
+
+    footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.3);
+      padding: 1.5rem 0 2rem;
+      background: var(--gradient-footer);
+    }
+
+    .footer-inner {
+      max-width: var(--section-max-w);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.25rem;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .footer-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .footer-meta span {
+      opacity: 0.85;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .footer-links a {
+      opacity: 0.85;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .hero-card {
+        max-width: 420px;
+        margin-inline: auto;
+      }
+      .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        height: auto;
+      }
+      .nav-bar {
+        padding-block: 0.6rem;
+      }
+      .nav-links {
+        display: none;
+      }
+      .nav-slim-cta {
+        display: inline-flex;
+      }
+      .hero {
+        padding-top: 1.7rem;
+      }
+      .category-nav {
+        padding-inline: 1rem;
+      }
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .product-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .subcat-block {
+        padding-inline: 0.85rem;
+      }
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        justify-content: center;
+      }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="page-shell">
+    <header>
+      <div class="nav-bar">
+        <div class="logo-lockup">
+          <div class="logo-mark">
+            <div class="logo-initials">MCK</div>
+          </div>
+          <div>
+            <div class="logo-text-main">MyCampusKorner</div>
+            <div class="logo-text-sub">Student Life • All-In-One</div>
+          </div>
+        </div>
+
+        <nav class="nav-links">
+          <a href="#tech-electronics" class="nav-link">Tech</a>
+          <a href="#study-supplies" class="nav-link">Study</a>
+          <a href="#dorm-living" class="nav-link">Dorm</a>
+          <a href="#apparel-lifestyle" class="nav-link">Apparel</a>
+          <a href="#health-wellness" class="nav-link">Wellness</a>
+          <a href="#digital-services" class="nav-link">Digital</a>
+          <a href="#financial-resources" class="nav-link nav-link--primary">
+            Student Resources
+          </a>
+        </nav>
+
+        <a href="#tech-electronics" class="nav-link nav-slim-cta nav-link--primary">
+          Shop Categories
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="content-width hero-grid">
+          <div>
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              MyCampusKorner • Beta Campus Shop
+            </div>
+            <h1 class="hero-title">
+              Everything your <span class="gradient">campus life</span> needs, in one curated corner.
+            </h1>
+            <p class="hero-subtitle">
+              From day-one dorm essentials to exam-week survival kits, MyCampusKorner
+              keeps tech, study tools, wellness, and campus style in one modern
+              student-friendly storefront. Edit the sample products below to create
+              your live catalog.
+            </p>
+            <div class="hero-chips">
+              <div class="hero-chip">10 Major Categories</div>
+              <div class="hero-chip">Curated Campus-Ready Kits</div>
+              <div class="hero-chip">Digital & Financial Resources</div>
+              <div class="hero-chip">My Campus Corner Brand</div>
+            </div>
+            <div class="hero-actions">
+              <a href="#tech-electronics" class="btn btn-primary">
+                Browse All Categories
+                <span class="btn-icon">↗</span>
+              </a>
+              <a href="#curated-kits" class="btn btn-ghost">
+                View Starter Kits
+              </a>
+            </div>
+            <div class="hero-footnote">
+              <span><strong>Tip:</strong> Replace item names &amp; prices to launch.</span>
+              <span>Sample images are placeholders for product photos or icons.</span>
+            </div>
+          </div>
+
+          <!-- HERO RIGHT CARD -->
+          <aside class="hero-card" aria-label="MyCampusKorner summary">
+            <div class="hero-card-inner">
+              <div class="pill-row">
+                <div class="pill pill-accent">
+                  <span class="pill-dot"></span>
+                  Live Campus Catalog
+                </div>
+                <span class="pill-badge">For Students &amp; Parents</span>
+              </div>
+              <div class="mini-title">Quick Glance</div>
+              <h2 class="hero-card-heading">10 Categories • 40+ Sub-Collections</h2>
+              <p class="hero-card-sub">
+                Built as a single HTML page with embedded CSS. Each section below
+                acts as a “subpage” with editable example products.
+              </p>
+              <div class="category-strip">
+                <div class="category-pill">
+                  <span class="label">Tech &amp; Electronics</span>
+                  <span class="meta">Laptops • Audio • Wearables</span>
+                </div>
+                <div class="category-pill">
+                  <span class="label">Dorm &amp; Living</span>
+                  <span class="meta">Bedding • Décor • Storage</span>
+                </div>
+                <div class="category-pill category-pill--highlight">
+                  <span class="label">Curated Kits</span>
+                  <span class="meta">Freshman • Wellness • Gifts</span>
+                </div>
+                <div class="category-pill">
+                  <span class="label">My Campus Corner</span>
+                  <span class="meta">Own-Brand Essentials</span>
+                </div>
+                <div class="category-pill">
+                  <span class="label">Digital Services</span>
+                  <span class="meta">E-Textbooks • Apps</span>
+                </div>
+                <div class="category-pill">
+                  <span class="label">Financial Resources</span>
+                  <span class="meta">Scholarships • Budgeting</span>
+                </div>
+              </div>
+              <div class="hero-card-footer">
+                <div class="hero-card-stat">
+                  <span>Editable in one file</span>
+                  <strong>Filler Text Goes Here</strong>
+                </div>
+                <div class="hero-card-stat">
+                  <span>Example SKUs</span>
+                  <strong>Ready to rename</strong>
+                </div>
+                <div class="hero-card-cta">
+                  <span>Scroll to a category below</span>
+                  <span class="btn-icon">↓</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- CATEGORY NAV -->
+      <div class="category-nav-shell">
+        <div class="category-nav">
+          <div class="category-nav-top">
+            <div>
+              <div class="category-nav-label">Browse by Category</div>
+              <div class="category-nav-count">10 main categories • 40+ sub-collections</div>
+            </div>
+          </div>
+          <div class="category-pill-row">
+            <a href="#tech-electronics" class="cat-nav-pill cat-nav-pill--primary">
+              <span class="index">01</span> Tech &amp; Electronics
+            </a>
+            <a href="#study-supplies" class="cat-nav-pill">
+              <span class="index">02</span> Study &amp; Supplies
+            </a>
+            <a href="#dorm-living" class="cat-nav-pill">
+              <span class="index">03</span> Dorm &amp; Living
+            </a>
+            <a href="#apparel-lifestyle" class="cat-nav-pill">
+              <span class="index">04</span> Apparel &amp; Lifestyle
+            </a>
+            <a href="#health-wellness" class="cat-nav-pill">
+              <span class="index">05</span> Health &amp; Wellness
+            </a>
+            <a href="#beauty-grooming" class="cat-nav-pill">
+              <span class="index">06</span> Beauty &amp; Grooming
+            </a>
+            <a href="#digital-services" class="cat-nav-pill">
+              <span class="index">07</span> Digital Services
+            </a>
+            <a href="#curated-kits" class="cat-nav-pill">
+              <span class="index">08</span> Curated Kits
+            </a>
+            <a href="#my-campus-corner" class="cat-nav-pill">
+              <span class="index">09</span> My Campus Corner Brand
+            </a>
+            <a href="#financial-resources" class="cat-nav-pill">
+              <span class="index">10</span> Financial &amp; Student Resources
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. TECH & ELECTRONICS -->
+      <section id="tech-electronics" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              01 • Tech &amp; Electronics
+              <span class="section-title-badge">Devices • Audio • Power</span>
+            </h2>
+            <div class="section-kicker">
+              Power through lectures, late-night editing sessions, and campus commutes
+              with student-ready devices and accessories. Replace these sample items
+              with your own SKUs, specs, and price points.
+            </div>
+          </div>
+
+          <!-- Laptops, Tablets & Accessories -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Laptops, Tablets &amp; Accessories</h3>
+              <p class="subcat-label">Everyday performance, campus-friendly carrying, and protection.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">CampusBook 14" Slim Laptop</h4>
+                <p class="product-meta">
+                  Lightweight 14" study laptop with all-day battery life, ideal for note-taking,
+                  research, and video calls. (Replace with your real model.)
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">14" Display</span>
+                  <span class="product-tag">Student Laptop</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$899 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">StudyTab 11" Note-Taking Tablet</h4>
+                <p class="product-meta">
+                  Versatile tablet with stylus support for digital notes, e-textbooks,
+                  and lecture streaming.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Stylus-Ready</span>
+                  <span class="product-tag">Wi-Fi</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$499 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Essential Laptop Sleeve 14"</h4>
+                <p class="product-meta">
+                  Slim padded sleeve with accessory pocket, designed to slide into any campus backpack.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Water-Resistant</span>
+                  <span class="product-tag">Padded</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Headphones & Audio -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Headphones &amp; Audio</h3>
+              <p class="subcat-label">Focus mode for libraries, hype mode for walk to class.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Focus+ Noise-Canceling Headphones</h4>
+                <p class="product-meta">
+                  Over-ear wireless headphones tuned for studying, with active noise
+                  cancellation and 30-hour battery life.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Noise Cancelling</span>
+                  <span class="product-tag">Bluetooth</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$199 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">CampusPods True Wireless Earbuds</h4>
+                <p class="product-meta">
+                  Compact earbuds with secure fit for walking between classes,
+                  gym sessions, and quick calls home.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Charging Case</span>
+                  <span class="product-tag">Sweat-Resistant</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$89 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Mini Bluetooth Study Speaker</h4>
+                <p class="product-meta">
+                  Desk-sized speaker for podcasts, background playlists, and group
+                  listening sessions.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Portable</span>
+                  <span class="product-tag">USB-C</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Smart Devices & Wearables -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Smart Devices &amp; Wearables</h3>
+              <p class="subcat-label">Stay on time, on track, and connected.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">CampusTrack Smartwatch</h4>
+                <p class="product-meta">
+                  Smartwatch for class reminders, steps, sleep, and quick notifications
+                  without pulling out your phone.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Fitness Tracking</span>
+                  <span class="product-tag">Water-Resistant</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$149 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Smart Desk Clock with Wireless Charger</h4>
+                <p class="product-meta">
+                  Multi-function clock with alarm, ambient light, and integrated
+                  wireless charging pad.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Wireless Charging</span>
+                  <span class="product-tag">Alarm &amp; Nightlight</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$59 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Smart LED Strip Lights</h4>
+                <p class="product-meta">
+                  App-controlled LED strip for dorm mood lighting, study mode, or
+                  game-night color themes.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Color-Changing</span>
+                  <span class="product-tag">Remote/App</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$34 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Chargers, Cables & Power Banks -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Chargers, Cables &amp; Power Banks</h3>
+              <p class="subcat-label">Keep every device charged from dorm to lecture hall.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">CampusPower 10,000 mAh Power Bank</h4>
+                <p class="product-meta">
+                  Compact power bank with dual USB outputs and USB-C input for all-day
+                  charging on campus.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">10,000 mAh</span>
+                  <span class="product-tag">Fast Charge</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">3-in-1 Multi-Device Charging Cable</h4>
+                <p class="product-meta">
+                  Single cable with USB-C, Lightning, and Micro-USB connectors for shared
+                  dorm charging stations.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">1.5 m Length</span>
+                  <span class="product-tag">Tangle-Resistant</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$19 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dual-Port 65W USB-C Wall Charger</h4>
+                <p class="product-meta">
+                  Compact wall charger for powering both your laptop and phone from a
+                  single outlet.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">65W</span>
+                  <span class="product-tag">GaN Charger</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$49 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Protective Gear -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">
+                Protective Gear (Camera/Laptop Covers, Screen Protectors, Cases)
+              </h3>
+              <p class="subcat-label">Guard your tech from commutes, coffee, and crowded desks.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Universal Privacy Webcam Cover Pack</h4>
+                <p class="product-meta">
+                  Slim sliding covers for laptop and tablet cameras, offering quick
+                  privacy between calls.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">3-Pack</span>
+                  <span class="product-tag">Ultra-Thin</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$9 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Tempered Glass Screen Protector (13"–14")</h4>
+                <p class="product-meta">
+                  Edge-to-edge tempered glass for laptops, protecting from scratches and
+                  accidental spills.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Anti-Glare</span>
+                  <span class="product-tag">13–14"</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Shock-Guard Phone Case (Campus Edition)</h4>
+                <p class="product-meta">
+                  Clear protective case with subtle campus-inspired accents. Swap with
+                  your own designs.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Drop Protection</span>
+                  <span class="product-tag">Wireless-Charge Friendly</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Dorm Tech -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Dorm Tech (Speakers, Mini-Appliances, Lighting)</h3>
+              <p class="subcat-label">Small-space gadgets built for shared living.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Compact Desk Fan with USB-C</h4>
+                <p class="product-meta">
+                  Quiet dorm-friendly fan that plugs into your laptop or wall adapter
+                  for better airflow.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">3 Speeds</span>
+                  <span class="product-tag">Tilt Adjustable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$25 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Mini Snack &amp; Drink Fridge</h4>
+                <p class="product-meta">
+                  Personal-size fridge for late-night study snacks, drinks, and quick
+                  breakfast essentials.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Portable</span>
+                  <span class="product-tag">Dorm-Sized</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$129 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dual-Mode Desk Lamp</h4>
+                <p class="product-meta">
+                  Adjustable LED desk lamp with warm and cool light settings for focus
+                  or wind-down time.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">USB-C</span>
+                  <span class="product-tag">Dimmable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. STUDY & SUPPLIES -->
+      <section id="study-supplies" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              02 • Study &amp; Supplies
+              <span class="section-title-badge">Notebooks • Planners • Desk Tools</span>
+            </h2>
+            <p class="section-kicker">
+              Analog, digital, and everything in between—this section covers the
+              essentials that keep lectures, deadlines, and creative projects organized.
+            </p>
+          </div>
+
+          <!-- Notebooks & Planners -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Notebooks &amp; Planners</h3>
+              <p class="subcat-label">Track every lecture, assignment, and campus event.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Academic Year Weekly Planner</h4>
+                <p class="product-meta">
+                  Dated planner with weekly spreads, assignment trackers, and exam-prep
+                  pages tailored for college schedules.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Aug–Jul Layout</span>
+                  <span class="product-tag">Hardcover</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Grid Notebook 3-Pack</h4>
+                <p class="product-meta">
+                  Three soft-cover notebooks with grid pages for math, engineering, or
+                  tidy note layouts.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">A5 Size</span>
+                  <span class="product-tag">80 Pages Each</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$15 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Professor Meeting Notepad</h4>
+                <p class="product-meta">
+                  Tear-off notepad with prompts for office-hours notes, action items,
+                  and follow-ups.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Perforated</span>
+                  <span class="product-tag">50 Sheets</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$9 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Pens, Markers & Writing Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Pens, Markers &amp; Writing Tools</h3>
+              <p class="subcat-label">Color-code classes, highlight key concepts, and annotate readings.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">SmoothWrite Gel Pen Set (10-Pack)</h4>
+                <p class="product-meta">
+                  Medium-point gel pens with fast-drying ink for quick notes
+                  and left-handed writers.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">10 Colors</span>
+                  <span class="product-tag">0.7 mm</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$12 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Soft-Hue Study Highlighters</h4>
+                <p class="product-meta">
+                  Pastel highlighters designed to be gentle on the eyes during
+                  long reading sessions.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">6-Pack</span>
+                  <span class="product-tag">Smear-Resistant</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$10 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Mechanical Pencil Starter Set</h4>
+                <p class="product-meta">
+                  Classroom-ready pack with mechanical pencils, extra lead, and erasers
+                  for problem-heavy courses.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">0.5 mm</span>
+                  <span class="product-tag">Refill Pack</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$11 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Desk & Organization Items -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Desk &amp; Organization Items</h3>
+              <p class="subcat-label">Turn a small dorm desk into a productivity hub.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Tiered Desk Organizer Tray</h4>
+                <p class="product-meta">
+                  Multi-level tray for pens, sticky notes, and small tech to keep
+                  your desk clutter-free.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Non-Slip Base</span>
+                  <span class="product-tag">Compact</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$18 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Under-Shelf Notebook Holder</h4>
+                <p class="product-meta">
+                  Clip-on holder that uses vertical space to store notebooks, folders,
+                  or tablets.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Tool-Free Install</span>
+                  <span class="product-tag">Fits Most Desks</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$22 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Cable Clip &amp; Label Set</h4>
+                <p class="product-meta">
+                  Keep laptop, phone, and headphone cables labeled and anchored
+                  along your desk edge.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">12 Clips</span>
+                  <span class="product-tag">Reusable Labels</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$9 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Art & Design Supplies -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Art &amp; Design Supplies</h3>
+              <p class="subcat-label">For studio majors, doodlers, and creative breaks alike.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Sketch &amp; Concept Pad</h4>
+                <p class="product-meta">
+                  Heavy-weight drawing pad suited for pencil, charcoal, and light ink work.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">A4 Size</span>
+                  <span class="product-tag">Smooth Surface</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$17 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Color Marker Set</h4>
+                <p class="product-meta">
+                  Dual-tip markers with fine and brush tips for projects, posters,
+                  and visual note-taking.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">24 Colors</span>
+                  <span class="product-tag">Low Odor</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Portable Supply Pouch</h4>
+                <p class="product-meta">
+                  Zippered pouch designed to hold markers, pens, and small tools
+                  in your backpack.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Lay-Flat</span>
+                  <span class="product-tag">Campus Colors</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$14 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Paper & Digital Note-Taking Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Paper &amp; Digital Note-Taking Tools</h3>
+              <p class="subcat-label">Bridge traditional notebooks with digital workflows.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Reusable Smart Notebook</h4>
+                <p class="product-meta">
+                  Wipe-clean pages that pair with a companion app to scan and store
+                  your notes digitally.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">App-Enabled</span>
+                  <span class="product-tag">Includes Pen</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Stylus Pen for Tablets</h4>
+                <p class="product-meta">
+                  Rechargeable stylus for note-taking tablets and touchscreen devices.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Palm Rejection</span>
+                  <span class="product-tag">USB-C Charge</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Lecture Capture Sticky Tabs</h4>
+                <p class="product-meta">
+                  Pre-printed sticky tabs for marking digital or paper notes by week,
+                  topic, and exam.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Color-Coded</span>
+                  <span class="product-tag">96 Tabs</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$8 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. DORM & LIVING -->
+      <section id="dorm-living" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              03 • Dorm &amp; Living
+              <span class="section-title-badge">Bedding • Storage • Kitchen</span>
+            </h2>
+            <p class="section-kicker">
+              Turn a basic dorm room into a livable, cozy, and functional base for
+              sleep, study, and everything in between.
+            </p>
+          </div>
+
+          <!-- Bedding & Comfort -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Bedding &amp; Comfort</h3>
+              <p class="subcat-label">Everything for a good night’s sleep in a twin XL world.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Twin XL Comforter Set</h4>
+                <p class="product-meta">
+                  Soft comforter and pillow sham designed specifically for dorm-size beds.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Twin XL</span>
+                  <span class="product-tag">Machine Washable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$69 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Memory Foam Mattress Topper</h4>
+                <p class="product-meta">
+                  Adds extra comfort to standard dorm mattresses for better sleep.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Twin XL</span>
+                  <span class="product-tag">2" Thick</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$89 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Cozy Throw Blanket</h4>
+                <p class="product-meta">
+                  Lightweight throw for naps, movie nights, and study breaks.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">50" x 60"</span>
+                  <span class="product-tag">Soft Knit</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Furniture & Storage -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Furniture &amp; Storage</h3>
+              <p class="subcat-label">Space-saving pieces that pack flat and fit tight spaces.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Foldable Cube Storage Organizer</h4>
+                <p class="product-meta">
+                  Modular cubes for books, shoes, and extras that fit easily under lofted beds.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">4-Cube</span>
+                  <span class="product-tag">Tool-Free</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Over-Door Organizer</h4>
+                <p class="product-meta">
+                  Multi-pocket organizer for snacks, toiletries, or accessories
+                  that hangs over your door.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">15 Pockets</span>
+                  <span class="product-tag">Fits Most Doors</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Collapsible Storage Ottoman</h4>
+                <p class="product-meta">
+                  Storage, seating, and footrest in one compact piece, perfect for guests.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Hidden Storage</span>
+                  <span class="product-tag">Weight-Rated</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$49 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Décor & Lighting -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Décor &amp; Lighting</h3>
+              <p class="subcat-label">Make your dorm feel like your own space.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Pin-Friendly Fabric Wall Tapestry</h4>
+                <p class="product-meta">
+                  Large tapestry that covers blank walls without heavy mounting hardware.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">60" x 40"</span>
+                  <span class="product-tag">Lightweight</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$32 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Clip-On Photo Light String</h4>
+                <p class="product-meta">
+                  String lights with clips to display photos, postcards, and keepsakes.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Battery/USB</span>
+                  <span class="product-tag">Warm White</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$19 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Soft Glow Bedside Lamp</h4>
+                <p class="product-meta">
+                  Small lamp with touch controls and adjustable brightness for late-night reading.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Touch Control</span>
+                  <span class="product-tag">LED</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$27 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Kitchen & Small Appliances -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Kitchen &amp; Small Appliances</h3>
+              <p class="subcat-label">Quick meals and snacks in shared or small kitchens.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Microwave-Safe Meal Prep Set</h4>
+                <p class="product-meta">
+                  Reusable containers sized for mini-fridges and microwave reheating.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">3-Piece</span>
+                  <span class="product-tag">BPA-Free</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Compact Electric Kettle</h4>
+                <p class="product-meta">
+                  Boils water for ramen, tea, or instant coffee in minutes.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Auto Shut-Off</span>
+                  <span class="product-tag">1 L</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dorm-Safe Dish Set</h4>
+                <p class="product-meta">
+                  Unbreakable plates, bowls, and cups that stack neatly and wash easily.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">8-Piece</span>
+                  <span class="product-tag">Dishwasher-Safe</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$34 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Cleaning & Personal Care Items -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Cleaning &amp; Personal Care Items</h3>
+              <p class="subcat-label">Stay organized, fresh, and dorm-clean without a full supply closet.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dorm Cleaning Starter Kit</h4>
+                <p class="product-meta">
+                  Includes surface wipes, mini broom, dustpan, and multi-surface spray.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Compact</span>
+                  <span class="product-tag">Shared-Space Ready</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Shower Caddy &amp; Towel Hook Set</h4>
+                <p class="product-meta">
+                  Carry toiletries to shared bathrooms and keep towels off the floor.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Quick-Dry</span>
+                  <span class="product-tag">Hooks Included</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$22 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Laundry Essentials Bag</h4>
+                <p class="product-meta">
+                  Laundry bag with pockets for detergent, dryer sheets, and apartment keys.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Drawstring</span>
+                  <span class="product-tag">Shoulder Strap</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$27 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. APPAREL & LIFESTYLE -->
+      <section id="apparel-lifestyle" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              04 • Apparel &amp; Lifestyle
+              <span class="section-title-badge">Campus Gear • Footwear • Accessories</span>
+            </h2>
+            <p class="section-kicker">
+              From lecture-hall layers to game-day outfits, these pieces keep students
+              comfortable, on-brand, and ready for any campus day.
+            </p>
+          </div>
+
+          <!-- Campus & Licensed Apparel -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Campus &amp; Licensed Apparel</h3>
+              <p class="subcat-label">Show school pride from move-in to graduation photos.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Official Campus Hoodie</h4>
+                <p class="product-meta">
+                  Heavyweight fleece hoodie with campus logo. Swap with your official
+                  licensed designs.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Unisex</span>
+                  <span class="product-tag">Sizes XS–XXL</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$59 <span>Sample price</span></div>
+                  <div class="product-cta">View Colors</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Game Day Tee</h4>
+                <p class="product-meta">
+                  Soft cotton t-shirt with campus graphic, perfect for events and sports.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Short Sleeve</span>
+                  <span class="product-tag">Printed Design</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">Add Size</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Beanie</h4>
+                <p class="product-meta">
+                  Knit beanie with embroidered crest for cold walk-to-class mornings.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">One Size</span>
+                  <span class="product-tag">Multiple Colors</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$22 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Athleisure & Footwear -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Athleisure &amp; Footwear</h3>
+              <p class="subcat-label">For walking to class, rec center sessions, and chill weekends.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Everyday Jogger Pants</h4>
+                <p class="product-meta">
+                  Comfortable joggers that work for the library, lounge, and light workouts.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Unisex</span>
+                  <span class="product-tag">Side Pockets</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$49 <span>Sample price</span></div>
+                  <div class="product-cta">Choose Size</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Walk Sneaker</h4>
+                <p class="product-meta">
+                  Lightweight sneaker made for full days of walking between classes.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Cushioned</span>
+                  <span class="product-tag">Breathable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$79 <span>Sample price</span></div>
+                  <div class="product-cta">View Sizes</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Slip-On Dorm Slides</h4>
+                <p class="product-meta">
+                  Water-resistant slides for showers, quick trips, and lounging.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Unisex</span>
+                  <span class="product-tag">Fast Dry</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Bags & Backpacks -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Bags &amp; Backpacks</h3>
+              <p class="subcat-label">Carry laptops, books, and gym gear with ease.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Daypack</h4>
+                <p class="product-meta">
+                  Structured backpack with laptop sleeve, side water bottle pocket,
+                  and organizer panel.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Fits 15" Laptop</span>
+                  <span class="product-tag">Padded Straps</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$69 <span>Sample price</span></div>
+                  <div class="product-cta">View Colors</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Convertible Tote-Backpack</h4>
+                <p class="product-meta">
+                  Converts from shoulder tote to backpack for class-to-weekend flexibility.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Padded Sleeve</span>
+                  <span class="product-tag">Water-Repellent</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$79 <span>Sample price</span></div>
+                  <div class="product-cta">Choose Style</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Compact Crossbody Campus Bag</h4>
+                <p class="product-meta">
+                  Small bag for ID, phone, and keys on quick campus runs.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Adjustable Strap</span>
+                  <span class="product-tag">RFID Pocket</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$35 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Reusable Bottles & Everyday Accessories -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Reusable Bottles &amp; Everyday Accessories</h3>
+              <p class="subcat-label">Hydration and small essentials that go everywhere with you.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Insulated Campus Bottle</h4>
+                <p class="product-meta">
+                  Stainless steel bottle to keep drinks cold between dorm, class, and gym.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">20 oz</span>
+                  <span class="product-tag">Leak-Proof Lid</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">View Colors</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Lanyard &amp; ID Holder</h4>
+                <p class="product-meta">
+                  Transparent ID holder with detachable lanyard for key cards and transit passes.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Clear Front</span>
+                  <span class="product-tag">Quick-Release</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$12 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Everyday Campus Cap</h4>
+                <p class="product-meta">
+                  Adjustable cap for sunny days and low-effort hair days alike.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">One Size</span>
+                  <span class="product-tag">Embroidered Logo</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$25 <span>Sample price</span></div>
+                  <div class="product-cta">View Styles</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Jewelry, Watches & Seasonal Wear -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Jewelry, Watches &amp; Seasonal Wear</h3>
+              <p class="subcat-label">Small style upgrades and weather-ready layers.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Minimalist Campus Watch</h4>
+                <p class="product-meta">
+                  Simple wristwatch with clean dial ideal for interviews and presentations.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Analog</span>
+                  <span class="product-tag">Adjustable Strap</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$59 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Layer-Ready Knit Scarf</h4>
+                <p class="product-meta">
+                  Soft scarf to layer with campus outerwear for colder months.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Unisex</span>
+                  <span class="product-tag">Machine Washable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Simple Pendant Necklace</h4>
+                <p class="product-meta">
+                  Everyday necklace that pairs easily with campus outfits.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Adjustable Length</span>
+                  <span class="product-tag">Hypoallergenic</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$35 <span>Sample price</span></div>
+                  <div class="product-cta">View Styles</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. HEALTH & WELLNESS -->
+      <section id="health-wellness" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              05 • Health &amp; Wellness
+              <span class="section-title-badge">Fitness • Self-Care • Safety</span>
+            </h2>
+            <p class="section-kicker">
+              Small routines make a big difference. This section highlights everyday
+              items that support students’ physical and mental well-being.
+            </p>
+          </div>
+
+          <!-- Fitness & Yoga Gear -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Fitness &amp; Yoga Gear</h3>
+              <p class="subcat-label">Dorm-friendly gear for stretching, workouts, and rec-center days.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Foldable Yoga Mat</h4>
+                <p class="product-meta">
+                  Lightweight mat that folds into a backpack or stores under your bed.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Non-Slip</span>
+                  <span class="product-tag">Travel-Ready</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$34 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Resistance Band Set</h4>
+                <p class="product-meta">
+                  Set of bands for strength workouts without bulky equipment.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">3 Levels</span>
+                  <span class="product-tag">Carry Pouch</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$19 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Stainless Steel Gym Lock</h4>
+                <p class="product-meta">
+                  Combination lock for campus lockers and rec-center storage.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Resettable Code</span>
+                  <span class="product-tag">Weather-Resistant</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$14 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Self-Care & Hygiene -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Self-Care &amp; Hygiene</h3>
+              <p class="subcat-label">Small rituals to reset after long days and late nights.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Self-Care Sunday Kit</h4>
+                <p class="product-meta">
+                  Includes face mask, eye patches, and mini lotion for weekly reset routines.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Travel-Size</span>
+                  <span class="product-tag">Giftable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$22 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dorm Shower Essentials Set</h4>
+                <p class="product-meta">
+                  Shampoo, body wash, and travel-friendly toiletry bottles for shared bathrooms.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">TSA-Friendly</span>
+                  <span class="product-tag">Leak-Resistant</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$26 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Compact Grooming Kit</h4>
+                <p class="product-meta">
+                  Basic grooming tools in a small case for on-the-go upkeep.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Travel Case</span>
+                  <span class="product-tag">Multi-Use</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$18 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Supplements & Energy Aids -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Supplements &amp; Energy Aids</h3>
+              <p class="subcat-label">
+                Everyday wellness and focus helpers. Replace sample names with products
+                that meet your local guidelines and regulations.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Daily Multivitamin Gummies</h4>
+                <p class="product-meta">
+                  General wellness vitamins formulated for adult students.
+                  Consult product labels for full details.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">30-Day Supply</span>
+                  <span class="product-tag">Assorted Flavor</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$19 <span>Sample price</span></div>
+                  <div class="product-cta">View Label</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Study Session Energy Drink Mix</h4>
+                <p class="product-meta">
+                  Powder drink mix with moderate caffeine and electrolytes for long study sessions.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Single-Serve Packets</span>
+                  <span class="product-tag">Assorted Flavors</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$16 <span>Sample price</span></div>
+                  <div class="product-cta">View Info</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- First-Aid & Safety -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">First-Aid &amp; Safety</h3>
+              <p class="subcat-label">Be prepared for minor scrapes, colds, and late-night walks.</p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dorm First-Aid Kit</h4>
+                <p class="product-meta">
+                  Compact kit with bandages, antiseptic wipes, and basic first-aid items.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Travel-Size</span>
+                  <span class="product-tag">Refillable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Personal Safety Keychain Alarm</h4>
+                <p class="product-meta">
+                  Small alarm with loud alert and built-in light for late-night campus walks.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Keyring Clip</span>
+                  <span class="product-tag">LED Light</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$17 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+                   <!-- Mental Wellness Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Mental Wellness Tools</h3>
+              <p class="subcat-label">
+                Support stress management and reflection while encouraging use of campus health resources.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Guided Reflection Journal</h4>
+                <p class="product-meta">
+                  Prompts for gratitude, check-ins, and planning around busy weeks.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Hardcover</span>
+                  <span class="product-tag">Undated</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$22 <span>Sample price</span></div>
+                  <div class="product-cta">View Inside</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Desk Fidget &amp; Focus Set</h4>
+                <p class="product-meta">
+                  Discreet focus tools like stress balls and fidget rings for study sessions.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">3-Piece</span>
+                  <span class="product-tag">Quiet</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$18 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Mindful Break Card Deck</h4>
+                <p class="product-meta">
+                  Compact deck of quick breathing exercises, mini stretches, and reflection prompts for on-the-go resets.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">52 Cards</span>
+                  <span class="product-tag">Pocket-Friendly</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$20 <span>Sample price</span></div>
+                  <div class="product-cta">View Prompts</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	            <!-- 6. BEAUTY & GROOMING -->
+      <section id="beauty-grooming" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              06 &bull; Beauty &amp; Grooming
+              <span class="section-title-badge">Skincare &bull; Hair &bull; Tools</span>
+            </h2>
+            <p class="section-kicker">
+              Everyday routines that help students feel polished, confident, and ready to take on campus life.
+            </p>
+          </div>
+
+          <!-- Skincare & Makeup -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Skincare &amp; Makeup</h3>
+              <p class="subcat-label">
+                Campus-ready basics for fresh, low-maintenance looks from morning classes to late-night events.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Daily Glow Skincare Set</h4>
+                <p class="product-meta">
+                  Simple 3-step routine with cleanser, lightweight moisturizer, and SPF for busy student schedules.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Travel-Size</span>
+                  <span class="product-tag">All-Skin Types</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$29 <span>Sample price</span></div>
+                  <div class="product-cta">View Routine</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus-Ready Makeup Essentials</h4>
+                <p class="product-meta">
+                  Mascara, tinted balm, and concealer for quick, natural looks that fit dorm-mirror time.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Natural Finish</span>
+                  <span class="product-tag">On-the-Go</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$32 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Overnight Recovery Mask</h4>
+                <p class="product-meta">
+                  Hydrating sleep mask to help reset skin after late-night study sessions and long days.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Hydrating</span>
+                  <span class="product-tag">Fragrance-Free</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$21 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Hair Care & Styling -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Hair Care &amp; Styling</h3>
+              <p class="subcat-label">
+                Low-fuss hair care and styling tools that fit small bathrooms and shared spaces.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Dorm-Friendly Haircare Trio</h4>
+                <p class="product-meta">
+                  Shampoo, conditioner, and leave-in treatment in shower-caddy-ready bottles.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Moisturizing</span>
+                  <span class="product-tag">Color-Safe</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$27 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Compact Styling Tool</h4>
+                <p class="product-meta">
+                  Multi-use hot tool for straightening and soft waves with foldable cord for easy storage.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Dual Voltage</span>
+                  <span class="product-tag">Travel Case</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Everyday Hair Accessories Set</h4>
+                <p class="product-meta">
+                  Scrunchies, clips, and headbands designed for quick styles before class or workouts.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">20-Piece</span>
+                  <span class="product-tag">No-Slip</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$16 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Fragrances & Beauty Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Fragrances &amp; Beauty Tools</h3>
+              <p class="subcat-label">
+                Subtle scents and practical tools that fit campus policies and shared-room life.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Mini Fragrance Sampler</h4>
+                <p class="product-meta">
+                  Set of travel-size body mists designed for light, dorm-friendly scent options.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">4-Piece</span>
+                  <span class="product-tag">Campus-Friendly</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">View Scents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Essential Beauty Tools Kit</h4>
+                <p class="product-meta">
+                  Includes tweezers, lash curler, blending sponge, and brushes in a compact pouch.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Travel Pouch</span>
+                  <span class="product-tag">Multi-Use</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$26 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Refillable Perfume Atomizer</h4>
+                <p class="product-meta">
+                  Pocket-sized spray bottle for taking your favorite scent to class, work, or travel.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Leak-Resistant</span>
+                  <span class="product-tag">Carry-On Friendly</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$12 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Men’s Grooming & Essentials -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Men&rsquo;s Grooming &amp; Essentials</h3>
+              <p class="subcat-label">
+                Streamlined grooming options designed for shared bathrooms, lockers, and overnight trips.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Everyday Grooming Set</h4>
+                <p class="product-meta">
+                  Includes face wash, moisturizer, and deodorant selected for all-day campus routines.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">All-in-One</span>
+                  <span class="product-tag">Travel-Ready</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$28 <span>Sample price</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Shave &amp; Beard Care Kit</h4>
+                <p class="product-meta">
+                  Razor, shave cream, and beard oil for clean-shaven days or well-kept facial hair.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Sensitive-Skin</span>
+                  <span class="product-tag">Giftable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$30 <span>Sample price</span></div>
+                  <div class="product-cta">View Kit</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Gym &amp; Travel Dopp Kit</h4>
+                <p class="product-meta">
+                  Compact toiletry bag with compartments sized for campus gym and weekend trips.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Water-Resistant</span>
+                  <span class="product-tag">Carry Handle</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$22 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. DIGITAL SERVICES & SUBSCRIPTIONS -->
+      <section id="digital-services" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              07 &bull; Digital Services &amp; Subscriptions
+              <span class="section-title-badge">E-Textbooks &bull; Apps &bull; Storage</span>
+            </h2>
+            <p class="section-kicker">
+              Highlight digital tools and subscriptions that support learning, productivity, and secure campus life.
+            </p>
+          </div>
+
+          <!-- E-Textbooks & Learning Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">E-Textbooks &amp; Learning Tools</h3>
+              <p class="subcat-label">
+                Digital course materials and study aids that travel with students across lectures and labs.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Intro Course E-Textbook Bundle</h4>
+                <p class="product-meta">
+                  Pack of core first-year e-textbooks with search, highlighting, and offline access features.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Multi-Device</span>
+                  <span class="product-tag">Access Code</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$129 <span>Sample price</span></div>
+                  <div class="product-cta">View Bundle</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Interactive Study Tool Subscription</h4>
+                <p class="product-meta">
+                  Flashcards, practice quizzes, and progress tracking tailored to common campus courses.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Annual Plan</span>
+                  <span class="product-tag">Student Discount</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$49 <span>Sample price</span></div>
+                  <div class="product-cta">View Plan</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Software & Productivity Apps -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Software &amp; Productivity Apps</h3>
+              <p class="subcat-label">
+                Must-have tools for writing, organizing, and collaborating on assignments and group projects.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Student Office Suite License</h4>
+                <p class="product-meta">
+                  Word processing, spreadsheets, and presentation tools licensed for personal student devices.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">1-Year Access</span>
+                  <span class="product-tag">Multi-Device</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$59 <span>Sample price</span></div>
+                  <div class="product-cta">View License</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Task &amp; Study Planner App</h4>
+                <p class="product-meta">
+                  Cross-platform planner with assignment reminders, schedule views, and collaboration tools.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Mobile &amp; Desktop</span>
+                  <span class="product-tag">Sync Included</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">View Plan</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Streaming, Storage & Security -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Streaming, Storage &amp; Security</h3>
+              <p class="subcat-label">
+                Cloud storage, security tools, and select streaming perks tailored to student life.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Student Cloud Storage Upgrade</h4>
+                <p class="product-meta">
+                  Extra space for projects, photos, and backups with simple sharing and version history.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Secure Sync</span>
+                  <span class="product-tag">Annual Plan</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$35 <span>Sample price</span></div>
+                  <div class="product-cta">View Options</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Device Security &amp; VPN Bundle</h4>
+                <p class="product-meta">
+                  Antivirus and secure VPN access for safer browsing on residence hall and campus Wi-Fi.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Multi-Device</span>
+                  <span class="product-tag">1-Year Coverage</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$48 <span>Sample price</span></div>
+                  <div class="product-cta">View Coverage</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Printing & Photo Services -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Printing &amp; Photo Services</h3>
+              <p class="subcat-label">
+                On-campus and partner services for printing assignments, posters, and keepsake photos.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Print Credit Pack</h4>
+                <p class="product-meta">
+                  Preloaded credits for on-campus printers and copiers, ideal for papers and lab reports.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Digital Code</span>
+                  <span class="product-tag">Instant Use</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$20 <span>Sample price</span></div>
+                  <div class="product-cta">Add Credits</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Photo &amp; Poster Print Service</h4>
+                <p class="product-meta">
+                  Upload images for dorm wall prints, team posters, and event signage with campus pickup.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Custom Sizes</span>
+                  <span class="product-tag">Pickup or Ship</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$12 <span>Sample starting price</span></div>
+                  <div class="product-cta">Start Order</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. CURATED KITS -->
+      <section id="curated-kits" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              08 &bull; Curated Kits
+              <span class="section-title-badge">Starter &bull; Wellness &bull; Gifts</span>
+            </h2>
+            <p class="section-kicker">
+              Bundle your most-loved campus items into thoughtful kits for move-in, exams, and care packages.
+            </p>
+          </div>
+
+          <!-- Starter Kits (Freshman, Tech, Study) -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Starter Kits (Freshman, Tech, Study)</h3>
+              <p class="subcat-label">
+                One-click bundles that help new students and commuters get set up from day one.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Freshman Dorm Starter Kit</h4>
+                <p class="product-meta">
+                  Mix of dorm staples like hangers, storage bins, power strip, and basic desk supplies.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Bundle</span>
+                  <span class="product-tag">Best Value</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$89 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Tech Essentials Bundle</h4>
+                <p class="product-meta">
+                  Includes charging cables, surge protector, USB hub, and microfiber cleaning cloths.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Dorm-Friendly</span>
+                  <span class="product-tag">Giftable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$54 <span>Sample price</span></div>
+                  <div class="product-cta">View Bundle</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Study Night Starter Kit</h4>
+                <p class="product-meta">
+                  Highlighters, sticky notes, notecards, and a desk lamp bulb for late-night study sessions.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Study-Ready</span>
+                  <span class="product-tag">Multi-Item</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$32 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Wellness & Beauty Boxes -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Wellness &amp; Beauty Boxes</h3>
+              <p class="subcat-label">
+                Curated self-care boxes designed for reset weekends, midterms, and care-package gifting.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Weekend Wellness Care Box</h4>
+                <p class="product-meta">
+                  Includes herbal tea bags, cozy socks, face mask, and journal for recharge days.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Bundle</span>
+                  <span class="product-tag">Gift-Ready</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$42 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Beauty &amp; Self-Care Box</h4>
+                <p class="product-meta">
+                  Mix of skincare minis, hair accessories, and a small cosmetic bag for campus routines.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Limited Edition</span>
+                  <span class="product-tag">Sample Sizes</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$39 <span>Sample price</span></div>
+                  <div class="product-cta">View Box</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Seasonal & Gift Bundles -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Seasonal &amp; Gift Bundles</h3>
+              <p class="subcat-label">
+                Holiday, game-day, and milestone bundles designed for gifting or treating yourself.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Exam Week Survival Pack</h4>
+                <p class="product-meta">
+                  Snack mix, energy drink mix, stress ball, and sticky-note pack in a reusable tote.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Exam Season</span>
+                  <span class="product-tag">Care Package</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$36 <span>Sample price</span></div>
+                  <div class="product-cta">View Contents</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Game Day Spirit Bundle</h4>
+                <p class="product-meta">
+                  Includes a campus-color scarf, face stickers, and reusable drink tumbler for game days.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Seasonal</span>
+                  <span class="product-tag">School Spirit</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$34 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Holiday &amp; Celebration Gift Box</h4>
+                <p class="product-meta">
+                  Curated mix of treats, stationery, and cozy items for birthdays or seasonal gifting.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Gift Box</span>
+                  <span class="product-tag">Customizable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$45 <span>Sample price</span></div>
+                  <div class="product-cta">Customize Box</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. MY CAMPUS CORNER BRAND -->
+      <section id="my-campus-corner" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              09 &bull; My Campus Corner Brand
+              <span class="section-title-badge">In-House &bull; Branded &bull; Signature</span>
+            </h2>
+            <p class="section-kicker">
+              Showcase signature MyCampusKorner items that bring your campus-inspired brand to life.
+            </p>
+          </div>
+
+          <!-- Stationery & Study Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Stationery &amp; Study Tools</h3>
+              <p class="subcat-label">
+                MyCampusKorner-branded notebooks, planners, and desk tools designed for campus hustle.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Signature Notebook Set</h4>
+                <p class="product-meta">
+                  Pack of lined notebooks featuring the MyCampusKorner logo and subtle campus motifs.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">3-Pack</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$18 <span>Sample price</span></div>
+                  <div class="product-cta">View Designs</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Academic Planner</h4>
+                <p class="product-meta">
+                  Dated planner with semester layouts, goal pages, and campus-tip callouts.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">Hardcover</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$24 <span>Sample price</span></div>
+                  <div class="product-cta">View Inside</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Lifestyle & Dorm Essentials -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Lifestyle &amp; Dorm Essentials</h3>
+              <p class="subcat-label">
+                Branded dorm and lifestyle pieces that make any room feel like a campus corner.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Cozy Throw Blanket</h4>
+                <p class="product-meta">
+                  Soft throw featuring campus-inspired patterns and a small embroidered MCK tag.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">Machine-Washable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$34 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Storage Cube Set</h4>
+                <p class="product-meta">
+                  Collapsible fabric bins sized for shelves and under-bed storage, with branded tabs.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">3-Pack</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$28 <span>Sample price</span></div>
+                  <div class="product-cta">View Set</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Tech Accessories -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Tech Accessories</h3>
+              <p class="subcat-label">
+                Branded cases and sleeves that protect devices while keeping the MCK identity front and center.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Laptop Sleeve</h4>
+                <p class="product-meta">
+                  Padded sleeve with a slim profile for backpacks, featuring the MyCampusKorner logo patch.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">13&quot;/15&quot; Sizes</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$32 <span>Sample price</span></div>
+                  <div class="product-cta">Choose Size</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Cable &amp; Tech Pouch</h4>
+                <p class="product-meta">
+                  Compact organizer for chargers, earbuds, and adapters branded with the MCK mark.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">Travel-Ready</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$19 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Beauty & Apparel Items -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Beauty &amp; Apparel Items</h3>
+              <p class="subcat-label">
+                On-brand apparel and small beauty accessories that celebrate the MyCampusKorner look.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Logo Hoodie</h4>
+                <p class="product-meta">
+                  Cozy unisex hoodie featuring the MyCampusKorner logo for library days and weekend hangs.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">Multiple Colors</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$46 <span>Sample price</span></div>
+                  <div class="product-cta">Select Size</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">MCK Beauty Pouch</h4>
+                <p class="product-meta">
+                  Branded cosmetic and self-care pouch sized for backpacks, lockers, or overnight bags.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">MCK</span>
+                  <span class="product-tag">Zip Closure</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$18 <span>Sample price</span></div>
+                  <div class="product-cta">Add to Cart</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. FINANCIAL & STUDENT RESOURCES -->
+      <section id="financial-resources" class="category-section">
+        <div class="content-width">
+          <div class="section-header">
+            <h2 class="section-title">
+              10 &bull; Financial &amp; Student Resources
+              <span class="section-title-badge">Budgeting &bull; Scholarships &bull; Safety</span>
+            </h2>
+            <p class="section-kicker">
+              Use this area for informational resources only: highlight campus-approved financial tools,
+              scholarships, safety programs, and trusted partner links.
+            </p>
+          </div>
+
+          <!-- Student Credit & Banking Options -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Student Credit &amp; Banking Options</h3>
+              <p class="subcat-label">
+                Overview cards for campus-partnered banks and student-friendly checking or credit options.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Partner Checking Overview</h4>
+                <p class="product-meta">
+                  Learn about student checking accounts, ATM access, and campus branch services. Information only&mdash;no sign-ups here.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Resource</span>
+                  <span class="product-tag">Info Only</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Info <span>Non-Commercial</span></div>
+                  <div class="product-cta">Learn More</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Student Credit Basics Guide</h4>
+                <p class="product-meta">
+                  High-level overview of how student credit works, key terms, and links to official campus counseling resources.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Education</span>
+                  <span class="product-tag">Campus-Verified</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Guide <span>Informational</span></div>
+                  <div class="product-cta">View Guide</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Budgeting & Financial Literacy Tools -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Budgeting &amp; Financial Literacy Tools</h3>
+              <p class="subcat-label">
+                Promote workshops, calculators, and campus-approved budgeting resources for smarter money habits.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Student Budget Template</h4>
+                <p class="product-meta">
+                  Downloadable monthly budget worksheet for tracking housing, food, books, and personal spending.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Free Resource</span>
+                  <span class="product-tag">Printable</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">$0 <span>Informational</span></div>
+                  <div class="product-cta">Download</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Campus Financial Workshop Series</h4>
+                <p class="product-meta">
+                  List of upcoming sessions on budgeting, credit basics, and planning ahead for loan repayment.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Events</span>
+                  <span class="product-tag">Campus-Hosted</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Info <span>Registration Off-Site</span></div>
+                  <div class="product-cta">View Schedule</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Savings, Scholarships & Loan Resources -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Savings, Scholarships &amp; Loan Resources</h3>
+              <p class="subcat-label">
+                Central hub for official scholarship listings, loan information, and savings tips.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Scholarship &amp; Grant Finder Links</h4>
+                <p class="product-meta">
+                  Curated list of campus and external scholarship portals approved by your financial aid office.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Scholarships</span>
+                  <span class="product-tag">Verified Links</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Links <span>Informational</span></div>
+                  <div class="product-cta">View Resources</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Loan Literacy Overview</h4>
+                <p class="product-meta">
+                  High-level explanations of student loans with direct links to your campus financial aid site.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Education</span>
+                  <span class="product-tag">Campus-Verified</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Guide <span>Info Only</span></div>
+                  <div class="product-cta">Learn More</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Insurance & Safety Information -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Insurance &amp; Safety Information</h3>
+              <p class="subcat-label">
+                Share campus-approved information about health, renter&rsquo;s, and device coverage plus safety programs.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Student Health Insurance Overview</h4>
+                <p class="product-meta">
+                  Summaries of campus health plan options with links to official enrollment and benefit details.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Health</span>
+                  <span class="product-tag">Info Only</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Info <span>Campus Resource</span></div>
+                  <div class="product-cta">View Details</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Safety &amp; Emergency Contacts</h4>
+                <p class="product-meta">
+                  Quick list of campus police, escort services, and emergency contacts for students and families.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Safety</span>
+                  <span class="product-tag">Important Info</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Resource <span>Non-Commercial</span></div>
+                  <div class="product-cta">View Contacts</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Affiliate Partner Offers (informational only) -->
+          <div class="subcat-block">
+            <div class="subcat-header">
+              <h3 class="subcat-title">Affiliate Partner Offers (Informational Only)</h3>
+              <p class="subcat-label">
+                Clearly labeled, informational cards for approved partner offers. Direct sign-ups remain on partner sites.
+              </p>
+            </div>
+            <div class="product-grid">
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Verified Student Discount Hub</h4>
+                <p class="product-meta">
+                  Summary of partner discount programs for students. Links redirect to external, campus-approved partner pages.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Affiliate</span>
+                  <span class="product-tag">Labeled Offer</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">Info <span>Affiliate Notice</span></div>
+                  <div class="product-cta">View Partners</div>
+                </div>
+              </article>
+              <article class="product-card">
+                <div class="product-image"></div>
+                <h4 class="product-title">Money Management App Listing</h4>
+                <p class="product-meta">
+                  Overview of select student-focused apps with clear affiliate labeling and off-site sign-up links.
+                </p>
+                <div class="product-tags">
+                  <span class="product-tag">Affiliate</span>
+                  <span class="product-tag">Disclosure Included</span>
+                </div>
+                <div class="product-footer">
+                  <div class="product-price">List <span>Informational</span></div>
+                  <div class="product-cta">View Apps</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+    </main>
+
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-meta">
+          <span>&copy; 2025 MyCampusKorner</span>
+          <span>Student Life • All-In-One Marketplace</span>
+        </div>
+        <div class="footer-links">
+          <a href="#tech-electronics">Shop Tech</a>
+          <a href="#study-supplies">Study Essentials</a>
+          <a href="#dorm-living">Dorm &amp; Living</a>
+          <a href="#apparel-lifestyle">Apparel</a>
+          <a href="#health-wellness">Wellness</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
