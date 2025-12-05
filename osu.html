@@ -1096,7 +1096,13 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.product-image').forEach(function (img) {
+      img.style.background = `url("https://picsum.photos/200/300?rand=${Math.random()}") center / cover no-repeat`;
+    });
+  });
+</script>
   
   
   
