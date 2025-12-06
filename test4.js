@@ -198,25 +198,53 @@ style.innerHTML=`
 document.head.appendChild(style);
 
 // ================= SHOW MORE =================
-function initShowMore(){
-const MAX_VISIBLE=3;
-document.querySelectorAll(".subcat-block").forEach(b=>{
-  const grid=b.querySelector(".product-grid");
-  const items=[...grid.children];
-  if(items.length<=MAX_VISIBLE)return;
-  items.slice(MAX_VISIBLE).forEach(i=>i.style.display="none");
-  const btn=document.createElement("button");
-  btn.className="show-more-btn";
-  btn.textContent=`Show More (${items.length-MAX_VISIBLE})`;
-  let open=false;
-  btn.onclick=()=>{
-    open=!open;
-    items.forEach((i,x)=>i.style.display=open||x<MAX_VISIBLE?"block":"none");
-    btn.textContent=open?"Show Less":`Show More (${items.length-MAX_VISIBLE})`;
-  };
-  grid.after(btn);
-});
+function initShowMore() {
+
+  // Remove existing buttons first
+  document.querySelectorAll(".show-more-btn").forEach(b => b.remove());
+
+  document.querySelectorAll(".subcat-block").forEach(block => {
+
+    const grid = block.querySelector(".product-grid");
+    const items = [...grid.children];
+
+    if (!items.length) return;
+
+    // RESET VISIBILITY FIRST (IMPORTANT)
+    items.forEach(i => i.style.display = "block");
+
+    // Allow layout to settle before reading rows
+    requestAnimationFrame(() => {
+
+      const firstTop = items[0].offsetTop;
+      const visibleCount = items.filter(i => i.offsetTop === firstTop).length;
+
+      if (items.length <= visibleCount) return;
+
+      // Hide overflow
+      items.slice(visibleCount).forEach(i => i.style.display = "none");
+
+      const btn = document.createElement("button");
+      btn.className = "show-more-btn";
+      btn.textContent = `Show More (${items.length - visibleCount})`;
+
+      let open = false;
+
+      btn.onclick = () => {
+        open = !open;
+        items.forEach((i, idx) => {
+          i.style.display = open || idx < visibleCount ? "block" : "none";
+        });
+        btn.textContent = open ? "Show Less" : `Show More (${items.length - visibleCount})`;
+      };
+
+      grid.after(btn);
+    });
+
+  });
 }
+
+
 
 // ================= EVENTS =================
 const popup=document.getElementById("productPopup");
@@ -265,5 +293,38 @@ buy.onclick=e=>{
   buy.textContent="Added ✅";
   setTimeout(()=>buy.textContent="Add to Cart",1000);
 };
+
+
+// ========= DESKTOP WIDTH TOGGLE =========
+// ========= DESKTOP WIDTH TOGGLE (WITH REFRESH) =========
+const toggle = document.getElementById("widthToggle");
+
+if (toggle) {
+
+  // Load state on startup
+  const saved = localStorage.getItem("wideLayout");
+  if (saved === "on") {
+    document.body.classList.add("wide-layout");
+    toggle.innerHTML = "⤡ Focused View";
+  }
+
+  toggle.onclick = () => {
+
+    const nowWide = !document.body.classList.contains("wide-layout");
+    localStorage.setItem("wideLayout", nowWide ? "on" : "off");
+
+    // Force reload so layout + grid + show-more re-measure correctly
+    location.reload();
+  };
+}
+
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(initShowMore, 200);
+});
+
+
 
 });
