@@ -63,6 +63,88 @@ function csvToRows(text){
     );
 }
 
+
+
+// ================= LEGAL (MODAL): open on click / hash =================
+const legalModal = document.getElementById("legalModal");
+
+function openLegalModal(which) {
+  if (!legalModal) return;
+
+  const docs = legalModal.querySelectorAll("[data-legal-doc]");
+  docs.forEach(d => d.style.display = (d.dataset.legalDoc === which) ? "block" : "none");
+
+  const titleEl = document.getElementById("legalModalTitle");
+  if (titleEl) {
+    titleEl.textContent = (which === "privacy") ? "Privacy Policy" : "Affiliate Disclosure";
+  }
+
+  legalModal.classList.add("is-open");
+  legalModal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLegalModal() {
+  if (!legalModal) return;
+  legalModal.classList.remove("is-open");
+  legalModal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+function openLegalFromHash() {
+  const hash = window.location.hash;
+  if (hash === "#privacy-policy") openLegalModal("privacy");
+  if (hash === "#affiliate-disclosure") openLegalModal("affiliate");
+}
+
+// Click handlers (buttons + any anchor links to the hashes)
+document.addEventListener("click", (e) => {
+  const openBtn = e.target.closest("[data-legal-open]");
+  if (openBtn) {
+    e.preventDefault();
+    const which = openBtn.getAttribute("data-legal-open");
+    window.location.hash = (which === "privacy") ? "privacy-policy" : "affiliate-disclosure";
+    openLegalModal(which);
+    return;
+  }
+
+  const a = e.target.closest('a[href^="#"]');
+  if (a) {
+    const href = a.getAttribute("href");
+    if (href === "#privacy-policy") {
+      e.preventDefault();
+      window.location.hash = "privacy-policy";
+      openLegalModal("privacy");
+      return;
+    }
+    if (href === "#affiliate-disclosure") {
+      e.preventDefault();
+      window.location.hash = "affiliate-disclosure";
+      openLegalModal("affiliate");
+      return;
+    }
+  }
+
+  if (e.target.closest("[data-legal-close]")) {
+    e.preventDefault();
+    closeLegalModal();
+  }
+});
+
+// Escape key to close
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && legalModal?.classList.contains("is-open")) {
+    closeLegalModal();
+  }
+});
+
+// Support direct loads with hash
+openLegalFromHash();
+window.addEventListener("hashchange", openLegalFromHash);
+
+
+
+
 function buildCatalogFromCSV(csv){
   const rows = csvToRows(csv);
   const catalogMap = {};
@@ -152,7 +234,7 @@ ${sc.products.map(p=>`
 <div class="product-price">${p[2]}</div>
 <div class="cta-group">
 <button class="product-cta actionBtn">View Details</button>
-<a class="product-cta purchaseBtn" href="${p[6] || '#'}" target="_blank" rel="noopener noreferrer">
+<a class="product-cta purchaseBtn" href="${p[6] || '#'}" target="_blank" rel="noopener noreferrer sponsored">
   Purchase ↗
 </a>
 </div>
@@ -181,7 +263,7 @@ document.body.insertAdjacentHTML("beforeend",`
 <div class="popup-footer">
 <div><div class="mini-title">Price</div><div id="popupPrice" class="product-price"></div></div>
 <div class="cta-group">
-<a id="popupBuy" class="product-cta" href="#" target="_blank" rel="noopener noreferrer">Purchase ↗</a>
+<a id="popupBuy" class="product-cta" href="#" target="_blank" rel="noopener noreferrer sponsored">Purchase ↗</a>
 <button id="popupClose" class="product-cta">Close</button>
 </div>
 </div></div></div></div>

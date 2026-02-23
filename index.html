@@ -1,222 +1,349 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MyCampusKorner | Student Life Marketplace</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="index.css">
+  <meta charset="UTF-8">
+  <title>MyCampusKorner | Student Life Marketplace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
-<script src="index.js" defer></script>
-
-
+  <link rel="stylesheet" href="index.css">
+  <script src="index.js" defer></script>
 </head>
+
 <body>
-<div class="page-shell">
+  <div class="page-shell">
 
-<header>
-<div class="nav-bar">
-<a href="#" class="logo-lockup back-to-top">
-  <div class="logo-mark">
-    <div class="logo-initials">MCK</div>
-  </div>
-  <div>
-    <div class="logo-text-main">MyCampusKorner</div>
-    <div class="logo-text-sub">Student Life • All-In-One</div>
-  </div>
-</a>
+    <header>
+      <div class="nav-bar">
+        <a href="#" class="logo-lockup back-to-top">
+          <div class="logo-mark">
+            <div class="logo-initials">MCK</div>
+          </div>
+          <div>
+            <div class="logo-text-main">MyCampusKorner</div>
+            <div class="logo-text-sub">Student Life • All-In-One</div>
+          </div>
+        </a>
 
+        <nav class="nav-links" aria-label="Primary navigation">
+          <button id="widthToggle" class="layout-toggle" title="Toggle Desktop Width" aria-label="Toggle desktop width">
+            ⤢ Wide View
+          </button>
 
-<nav class="nav-links">
-<button id="widthToggle" class="layout-toggle" title="Toggle Desktop Width">
-  ⤢ Wide View
-</button>
+          <a href="#tech-electronics" class="nav-link">Tech</a>
+          <a href="#study-supplies" class="nav-link">Study</a>
+          <a href="#dorm-living" class="nav-link">Dorm</a>
+          <a href="#apparel-lifestyle" class="nav-link">Apparel</a>
+          <a href="#health-wellness" class="nav-link">Wellness</a>
+          <a href="#beauty-grooming" class="nav-link">Beauty</a>
+          <a href="#digital-services" class="nav-link">Digital</a>
+          <a href="#curated-kits" class="nav-link">Kits</a>
+          <a href="#my-campus-corner" class="nav-link">Brand</a>
+          <a href="#financial-resources" class="nav-link nav-link--primary">Student Resources</a>
 
-<a href="#tech-electronics" class="nav-link">Tech</a>
-<a href="#study-supplies" class="nav-link">Study</a>
-<a href="#dorm-living" class="nav-link">Dorm</a>
-<a href="#apparel-lifestyle" class="nav-link">Apparel</a>
-<a href="#health-wellness" class="nav-link">Wellness</a>
-<a href="#beauty-grooming" class="nav-link">Beauty</a>
-<a href="#digital-services" class="nav-link">Digital</a>
-<a href="#curated-kits" class="nav-link">Kits</a>
-<a href="#my-campus-corner" class="nav-link">Brand</a>
-<a href="#financial-resources" class="nav-link nav-link--primary">Student Resources</a>
-</nav>
+          <!-- NEW: Legal links -->
+          <a href="#privacy-policy" class="nav-link">Privacy</a>
+          <a href="#affiliate-disclosure" class="nav-link">Disclosure</a>
+        </nav>
 
-<a href="#tech-electronics" class="nav-link nav-slim-cta nav-link--primary">Shop Categories</a>
+        <div class="nav-slim-ctas">
+  <a href="#tech-electronics" class="nav-link nav-slim-cta nav-link--primary">Shop</a>
+  <a href="#affiliate-disclosure" class="nav-link nav-slim-cta nav-link--ghost">Legal</a>
 </div>
-</header>
+      </div>
+    </header>
 
-<main>
+    <main>
 
-<section class="hero">
-<div class="content-width hero-grid">
+      <section class="hero">
+        <div class="content-width hero-grid">
 
-<div>
-<div class="eyebrow"><span class="eyebrow-dot"></span> MyCampusKorner • Campus Shop</div>
-<h1 class="hero-title">Everything your <span class="gradient">campus life</span> needs, in one curated corner.</h1>
-<p class="hero-subtitle">From day-one dorm essentials to exam-week survival kits, MyCampusKorner keeps tech, study tools, wellness, and campus style in one modern student-friendly storefront. Edit the sample products below to create your live catalog.</p>
+          <div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> MyCampusKorner • Campus Shop</div>
+            <h1 class="hero-title">Everything your <span class="gradient">campus life</span> needs, in one curated corner.</h1>
+            <p class="hero-subtitle">From day-one dorm essentials to exam-week survival kits, MyCampusKorner keeps tech, study tools, wellness, and campus style in one modern student-friendly storefront. Edit the sample products below to create your live catalog.</p>
 
-<div class="hero-chips">
-<div class="hero-chip">10 Major Categories</div>
-<div class="hero-chip">Curated Campus-Ready Kits</div>
-<div class="hero-chip">Digital & Financial Resources</div>
-<div class="hero-chip">My Campus Corner Brand</div>
-</div>
+            <div class="hero-chips">
+              <div class="hero-chip">10 Major Categories</div>
+              <div class="hero-chip">Curated Campus-Ready Kits</div>
+              <div class="hero-chip">Digital & Financial Resources</div>
+              <div class="hero-chip">My Campus Corner Brand</div>
+            </div>
 
-<div class="hero-actions">
-<a href="#tech-electronics" class="btn btn-primary">Browse All Categories <span class="btn-icon">↗</span></a>
-<a href="#curated-kits" class="btn btn-ghost">View Starter Kits</a>
-</div>
+            <div class="hero-actions">
+              <a href="#tech-electronics" class="btn btn-primary">Browse All Categories <span class="btn-icon">↗</span></a>
+              <a href="#curated-kits" class="btn btn-ghost">View Starter Kits</a>
+            </div>
 
-<div class="hero-footnote">
-<span><strong>Tip:</strong> Buy all your school essentials here!</span>
-<span>Sample images are placeholders for product photos or icons.</span>
-</div>
-</div>
+            <div class="hero-footnote">
+              <span><strong>Tip:</strong> Buy all your school essentials here!</span>
+              
+            </div>
+          </div>
 
-<aside class="hero-card">
-<div class="hero-card-inner">
+          <aside class="hero-card">
+            <div class="hero-card-inner">
 
-<div class="pill-row">
-<div class="pill pill-accent"><span class="pill-dot"></span>Live Campus Catalog</div>
-<span class="pill-badge">For Students & Parents</span>
-</div>
+              <div class="pill-row">
+                <div class="pill pill-accent"><span class="pill-dot"></span>Live Campus Catalog</div>
+                <span class="pill-badge">For Students & Parents</span>
+              </div>
 
-<div class="mini-title">Quick Glance</div>
-<div class="hero-card-heading">Everything to meet your student needs!</div>
-<p class="hero-card-sub">We have a wide selection of products and student resources:</p>
+              <div class="mini-title">Quick Glance</div>
+              <div class="hero-card-heading">Everything to meet your student needs!</div>
+              <p class="hero-card-sub">We have a wide selection of products and student resources:</p>
 
-<div class="category-strip">
-<div class="category-pill" data-target="tech-electronics"><span class="label">Tech & Electronics</span><span class="meta">Laptops • Audio • Wearables</span></div>
-<div class="category-pill" data-target="study-supplies"><span class="label">Study & Supplies</span><span class="meta">Planners • Notes</span></div>
-<div class="category-pill" data-target="dorm-living"><span class="label">Dorm & Living</span><span class="meta">Décor • Storage</span></div>
-<div class="category-pill category-pill--highlight" data-target="apparel-lifestyle"><span class="label">Apparel & Lifestyle</span><span class="meta">Campus Wear</span></div>
-<div class="category-pill" data-target="health-wellness"><span class="label">Health & Wellness</span><span class="meta">Fitness • Care</span></div>
-<div class="category-pill" data-target="beauty-grooming"><span class="label">Beauty & Grooming</span><span class="meta">Skin • Hair</span></div>
-<div class="category-pill" data-target="digital-services"><span class="label">Digital Services</span><span class="meta">Apps • Tools</span></div>
-<div class="category-pill" data-target="curated-kits"><span class="label">Curated Kits</span><span class="meta">Starter • Gifts</span></div>
-<div class="category-pill" data-target="my-campus-corner"><span class="label">My Campus Corner</span><span class="meta">Own Brand</span></div>
-</div>
+              <div class="category-strip">
+                <div class="category-pill" data-target="tech-electronics"><span class="label">Tech & Electronics</span><span class="meta">Laptops • Audio • Wearables</span></div>
+                <div class="category-pill" data-target="study-supplies"><span class="label">Study & Supplies</span><span class="meta">Planners • Notes</span></div>
+                <div class="category-pill" data-target="dorm-living"><span class="label">Dorm & Living</span><span class="meta">Décor • Storage</span></div>
+                <div class="category-pill category-pill--highlight" data-target="apparel-lifestyle"><span class="label">Apparel & Lifestyle</span><span class="meta">Campus Wear</span></div>
+                <div class="category-pill" data-target="health-wellness"><span class="label">Health & Wellness</span><span class="meta">Fitness • Care</span></div>
+                <div class="category-pill" data-target="beauty-grooming"><span class="label">Beauty & Grooming</span><span class="meta">Skin • Hair</span></div>
+                <div class="category-pill" data-target="digital-services"><span class="label">Digital Services</span><span class="meta">Apps • Tools</span></div>
+                <div class="category-pill" data-target="curated-kits"><span class="label">Curated Kits</span><span class="meta">Starter • Gifts</span></div>
+                <div class="category-pill" data-target="my-campus-corner"><span class="label">My Campus Corner</span><span class="meta">Own Brand</span></div>
+              </div>
 
-<div class="hero-card-footer">
-<div class="hero-card-stat"><span>Everything students need</span><strong>For classes, dorms, and daily life</strong></div>
-<div class="hero-card-stat"><span>Popular items</span><strong>Ready to browse</strong></div>
-<button id="heroScrollBtn" class="hero-card-cta">Scroll to a category below <span class="btn-icon">↓</span></button>
-</div>
+              <div class="hero-card-footer">
+                <div class="hero-card-stat"><span>Everything students need</span><strong>For classes, dorms, and daily life</strong></div>
+                <div class="hero-card-stat"><span>Popular items</span><strong>Ready to browse</strong></div>
+                <button id="heroScrollBtn" class="hero-card-cta">Scroll to a category below <span class="btn-icon">↓</span></button>
+              </div>
 
-</div>
-</aside>
+            </div>
+          </aside>
 
-</div>
-</section>
+        </div>
+      </section>
 
-<section class="trust-section">
-  <div class="content-width">
+      <section class="trust-section">
+        <div class="content-width">
+          <div class="trust-header">
+            <h2 class="trust-title">Trusted by students and families nationwide</h2>
+            <p class="trust-sub">Built for real campus life. Backed by students and parents.</p>
+          </div>
 
-    <div class="trust-header">
-      <h2 class="trust-title">Trusted by students and families nationwide</h2>
-      <p class="trust-sub">Built for real campus life. Backed by students and parents.</p>
-    </div>
+          <div class="trust-grid">
+            <!-- Testimonials intentionally omitted -->
+          </div>
 
-    <div class="trust-grid">
+          <div class="trust-badge-row">
+            <span>⭐ Student Approved</span>
+            <span>🎓 Campus-Ready</span>
+            <span>📦 Curated Kits</span>
+            <span>🔒 Secure Checkout</span>
+          </div>
+        </div>
+      </section>
 
-      <!--div class="trust-card">
-        <p class="trust-quote">“Move-in weekend used to be chaos. Now everything just arrives in one box.”</p>
-        <div class="trust-person">— Parent of Freshman, Michigan</div>
+      <section id="catalog-root"></section>
+
+      <br><br>
+
+      
+
+
+<!-- =========================
+     LEGAL (micro bar)
+     Replace the previous <section id="legal" ...> block with this.
+========================== -->
+
+
+<!-- ===== Modal Overlay (hidden until opened) ===== -->
+<div id="legalModal" class="legal-modal" aria-hidden="true">
+  <div class="legal-modal-backdrop" data-legal-close></div>
+
+  <div class="legal-modal-panel" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle">
+    <div class="legal-modal-top">
+      <div>
+        <div class="mini-title">Legal</div>
+        <h2 id="legalModalTitle" class="legal-modal-title">Title</h2>
       </div>
 
-      <div class="trust-card trust-card--featured">
-        <p class="trust-quote">“This feels like it was made by students, not just for students.”</p>
-        <div class="trust-person">— Junior, Computer Science</div>
+      <button class="legal-modal-close" type="button" data-legal-close aria-label="Close legal modal">
+        ✕
+      </button>
+    </div>
+
+    <div class="legal-modal-body">
+      <!-- Privacy -->
+      <article id="privacy-policy" class="legal-doc" data-legal-doc="privacy">
+        <p class="legal-updated">Last updated: <strong>February 22, 2026</strong></p>
+
+        <h3>Overview</h3>
+        <p>
+          This Privacy Policy explains how MyCampusKorner ("MyCampusKorner", "we", "us") collects, uses, and shares information
+          when you visit or make a purchase from our website (the "Site") or otherwise interact with us.
+        </p>
+
+        <h3>Information We Collect</h3>
+        <ul>
+          <li><strong>Contact & Account Info:</strong> name, email, phone, shipping/billing address.</li>
+          <li><strong>Order & Payment Info:</strong> items purchased, order history, transaction details (payment processing handled by our payment providers).</li>
+          <li><strong>Device & Usage Info:</strong> IP address, browser type, pages viewed, and interactions (often via cookies or similar technologies).</li>
+          <li><strong>Support Communications:</strong> messages you send to us (e.g., email support).</li>
+        </ul>
+
+        <h3>How We Use Information</h3>
+        <ul>
+          <li>Process orders, payments, shipping, and returns.</li>
+          <li>Provide customer support and communicate about your orders.</li>
+          <li>Improve the Site, product catalog, and user experience.</li>
+          <li>Detect, prevent, and investigate fraud or security incidents.</li>
+          <li>Send updates and marketing messages where permitted (you can opt out anytime).</li>
+        </ul>
+
+        <h3>Cookies & Analytics</h3>
+        <p>
+          We may use cookies, pixels, and similar technologies to remember preferences, understand usage, and improve performance.
+          You can control cookies through your browser settings. Some features may not function properly if cookies are disabled.
+        </p>
+
+        <h3>How We Share Information</h3>
+        <p>
+          We may share information with service providers that help us operate the Site and fulfill orders (e.g., payment processors,
+          shipping carriers, analytics providers). We may also share information to comply with legal obligations, enforce our policies,
+          or protect rights and safety.
+        </p>
+
+        <h3>Your Choices & Rights</h3>
+        <ul>
+          <li><strong>Access / Correction:</strong> you may request access to or correction of your personal information.</li>
+          <li><strong>Deletion:</strong> you may request deletion, subject to legal and operational requirements.</li>
+          <li><strong>Marketing Opt-Out:</strong> unsubscribe links may be included in marketing emails.</li>
+        </ul>
+        <p class="legal-note">To submit a request, contact us using the details below.</p>
+
+        <h3>Data Security & Retention</h3>
+        <p>
+          We use reasonable safeguards to protect information. No method of transmission or storage is 100% secure.
+          We retain information as needed to provide services, comply with law, resolve disputes, and enforce agreements.
+        </p>
+
+        <h3>Children’s Privacy</h3>
+        <p>
+          The Site is not intended for children under 13 (or under 16 in certain regions). If you believe a child has provided
+          personal information, please contact us to request deletion.
+        </p>
+
+        <h3>Changes to This Policy</h3>
+        <p>
+          We may update this Privacy Policy from time to time. We will update the “Last updated” date above when changes are made.
+        </p>
+
+        <div class="legal-contact">
+          <strong>Questions?</strong>
+          <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a>
+        </div>
+      </article>
+
+      <!-- Affiliate -->
+      <article id="affiliate-disclosure" class="legal-doc" data-legal-doc="affiliate">
+        <h3>Affiliate Disclosure</h3>
+        <p class="legal-note">We may earn commissions from qualifying purchases.</p>
+
+        <h3>Plain-English Disclosure</h3>
+        <p>
+          MyCampusKorner may include affiliate links to products or services. If you click an affiliate link and make a purchase,
+          we may earn a small commission at no additional cost to you.
+        </p>
+        <p class="legal-note">
+          We only recommend items we believe are useful for student life, and commissions help support the upkeep of this site.
+        </p>
+
+        <h3>How Affiliate Links Work</h3>
+        <ul>
+          <li>Affiliate relationships may apply to certain products, categories, or “curated kits.”</li>
+          <li>Prices and availability are subject to change and are controlled by the merchant.</li>
+          <li>Product claims, warranties, and support are handled by the merchant/manufacturer unless otherwise stated.</li>
+        </ul>
+
+        <h3>Sponsored Content</h3>
+        <p>
+          If we publish sponsored content or paid placements, we will label it clearly (e.g., “Sponsored” or “Ad”).
+        </p>
+      </article>
+    </div>
+  </div>
+</div>
+
+
+
+    </main>
+	
+	
+	<div class="category-nav-shell">
+        <div class="category-nav">
+          <div class="category-nav-top">
+            <div>
+              <div class="category-nav-label">Browse by Category</div>
+              <div class="category-nav-count">10 main categories • 40+ sub-collections</div>
+            </div>
+          </div>
+
+          <div class="category-pill-row">
+            <a href="#tech-electronics" class="cat-nav-pill cat-nav-pill--primary"><span class="index">01</span> Tech & Electronics</a>
+            <a href="#study-supplies" class="cat-nav-pill"><span class="index">02</span> Study & Supplies</a>
+            <a href="#dorm-living" class="cat-nav-pill"><span class="index">03</span> Dorm & Living</a>
+            <a href="#apparel-lifestyle" class="cat-nav-pill"><span class="index">04</span> Apparel & Lifestyle</a>
+            <a href="#health-wellness" class="cat-nav-pill"><span class="index">05</span> Health & Wellness</a>
+            <a href="#beauty-grooming" class="cat-nav-pill"><span class="index">06</span> Beauty & Grooming</a>
+            <a href="#digital-services" class="cat-nav-pill"><span class="index">07</span> Digital Services</a>
+            <a href="#curated-kits" class="cat-nav-pill"><span class="index">08</span> Curated Kits</a>
+            <a href="#my-campus-corner" class="cat-nav-pill"><span class="index">09</span> My Campus Corner Brand</a>
+            <a href="#financial-resources" class="cat-nav-pill"><span class="index">10</span> Financial & Student Resources</a>
+          </div>
+        </div>
       </div>
 
-      <div class="trust-card">
-        <p class="trust-quote">“I stopped ordering from five sites… this has it all.”</p>
-        <div class="trust-person">— First-Year Student, Illinois</div>
-      </div-->
 
-    </div>
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-meta">
+          <!-- NEW: current year is set via the small script at the bottom -->
+          <span>&copy; <span id="copyrightYear">2026</span> MyCampusKorner</span>
+          <span>Student Life • All-In-One Marketplace</span>
+        </div>
 
-    <div class="trust-badge-row">
-      <span>⭐ Student Approved</span>
-      <span>🎓 Campus-Ready</span>
-      <span>📦 Curated Kits</span>
-      <span>🔒 Secure Checkout</span>
-    </div>
+        <div class="footer-links">
+          <a href="#tech-electronics">Tech</a>
+          <a href="#study-supplies">Study</a>
+          <a href="#dorm-living">Dorm</a>
+          <a href="#apparel-lifestyle">Apparel</a>
+          <a href="#health-wellness">Wellness</a>
+          <a href="#beauty-grooming">Beauty</a>
+          <a href="#digital-services">Digital</a>
+          <a href="#curated-kits">Kits</a>
+          <a href="#my-campus-corner">Brand</a>
+          <a href="#financial-resources">Resources</a>
+
+          <!-- NEW: Legal footer links -->
+          <a href="#privacy-policy">Privacy Policy</a>
+          <a href="#affiliate-disclosure">Affiliate Disclosure</a>
+        </div>
+
+        <div class="footer-contact">
+          <strong>Contact Us</strong><br>
+          Email: <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a><br><br>
+
+          <!-- NEW: Quick disclosure in footer (common pattern) -->
+          <small>
+            <strong>Disclosure:</strong> Some links on this site may be affiliate links. If you purchase through them,
+            we may earn a commission at no extra cost to you.
+          </small>
+        </div>
+      </div>
+    </footer>
 
   </div>
-</section>
 
-
-<section id="catalog-root"></section>
-
-
-<br><br>
-
-
-<div class="category-nav-shell">
-<div class="category-nav">
-<div class="category-nav-top">
-<div>
-<div class="category-nav-label">Browse by Category</div>
-<div class="category-nav-count">10 main categories • 40+ sub-collections</div>
-</div>
-</div>
-
-<div class="category-pill-row">
-<a href="#tech-electronics" class="cat-nav-pill cat-nav-pill--primary"><span class="index">01</span> Tech & Electronics</a>
-<a href="#study-supplies" class="cat-nav-pill"><span class="index">02</span> Study & Supplies</a>
-<a href="#dorm-living" class="cat-nav-pill"><span class="index">03</span> Dorm & Living</a>
-<a href="#apparel-lifestyle" class="cat-nav-pill"><span class="index">04</span> Apparel & Lifestyle</a>
-<a href="#health-wellness" class="cat-nav-pill"><span class="index">05</span> Health & Wellness</a>
-<a href="#beauty-grooming" class="cat-nav-pill"><span class="index">06</span> Beauty & Grooming</a>
-<a href="#digital-services" class="cat-nav-pill"><span class="index">07</span> Digital Services</a>
-<a href="#curated-kits" class="cat-nav-pill"><span class="index">08</span> Curated Kits</a>
-<a href="#my-campus-corner" class="cat-nav-pill"><span class="index">09</span> My Campus Corner Brand</a>
-<a href="#financial-resources" class="cat-nav-pill"><span class="index">10</span> Financial & Student Resources</a>
-</div>
-</div>
-</div>
-
-
-
-</main>
-
-<footer>
-<div class="footer-inner">
-<div class="footer-meta">
-<span>&copy; 2025 MyCampusKorner</span>
-<span>Student Life • All-In-One Marketplace</span>
-</div>
-
-
-
-<div class="footer-links">
-<a href="#tech-electronics">Tech</a>
-<a href="#study-supplies">Study</a>
-<a href="#dorm-living">Dorm</a>
-<a href="#apparel-lifestyle">Apparel</a>
-<a href="#health-wellness">Wellness</a>
-<a href="#beauty-grooming">Beauty</a>
-<a href="#digital-services">Digital</a>
-<a href="#curated-kits">Kits</a>
-<a href="#my-campus-corner">Brand</a>
-<a href="#financial-resources">Resources</a>
-</div>
-
-<div class="footer-contact">
-  <strong>Contact Us</strong><br>
-  Email: <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a><br>
-
-</div>
-
-
-</div>
-</footer>
-
-</div>
+  <!-- NEW: small inline script to always show the current year -->
+  <script>
+    (function () {
+      var y = new Date().getFullYear();
+      var el = document.getElementById("copyrightYear");
+      if (el) el.textContent = String(y);
+    })();
+  </script>
 </body>
-
 </html>

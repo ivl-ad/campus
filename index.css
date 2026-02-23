@@ -1205,6 +1205,216 @@ body.wide-layout .product-grid {
 
 
 
+/* ==========================
+   LEGAL (micro bar)
+=========================== */
+
+.legal-micro {
+  /* very small vertical footprint */
+  padding: 0.55rem 0;
+  margin: 0.75rem 0 0.25rem;
+
+  /* matches your site language */
+  background: var(--gradient-category-nav);
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.legal-micro-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.legal-micro-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.legal-micro-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.legal-micro-meta {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legal-micro-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+
+.legal-micro-pill {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--border-medium);
+  padding: 0.38rem 0.85rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  background: var(--overlay-95);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  white-space: nowrap;
+}
+
+.legal-micro-pill:hover {
+  background: var(--overlay-100);
+  border-color: var(--border-indigo-stronger);
+  color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-nav-pill);
+}
+
+.legal-micro-pill--primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: var(--shadow-primary);
+}
+
+/* Mobile: stack label/meta above buttons, still compact */
+@media (max-width: 640px) {
+  .legal-micro-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .legal-micro-meta {
+    white-space: normal;
+  }
+}
+
+
+
+
+
+
+/* Modal */
+.legal-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 10000;
+}
+
+.legal-modal.is-open {
+  display: block;
+}
+
+.legal-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+}
+
+.legal-modal-panel {
+  position: relative;
+  max-width: 920px;
+  width: min(92vw, 920px);
+  max-height: 82vh;
+  margin: 8vh auto 0;
+  border-radius: 16px;
+  background: var(--overlay-96);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.legal-modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: linear-gradient(to bottom, rgba(2, 13, 28, 0.95), rgba(2, 13, 28, 0.75));
+}
+
+.legal-modal-title {
+  margin-top: 0.2rem;
+  font-size: 1.25rem;
+}
+
+.legal-modal-close {
+  border: 1px solid var(--border-medium);
+  background: var(--overlay-90);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+}
+
+.legal-modal-body {
+  padding: 1rem 1.1rem 1.2rem;
+  overflow: auto;
+  max-height: calc(82vh - 70px);
+}
+
+.legal-doc {
+  display: none;
+}
+
+.legal-doc h3 {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.legal-doc p,
+.legal-doc li {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.legal-doc ul {
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.legal-updated {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.legal-contact {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.legal-contact a {
+  text-decoration: underline;
+}
+
+
+
+
+
 @media (max-width: 768px) {
   .footer-inner {
     grid-template-columns: 1fr;
