@@ -339,6 +339,7 @@ html {
       text-transform: uppercase;
       letter-spacing: 0.11em;
       margin-bottom: 0.75rem;
+	  
     }
 
     .eyebrow-dot {
@@ -347,6 +348,7 @@ html {
       border-radius: 50%;
       background: var(--accent-alt);
       box-shadow: 0 0 0 6px var(--glow-online);
+	  margin-right: 0.5rem;
     }
 
     .hero-title {
