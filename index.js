@@ -71,11 +71,11 @@ function buildCatalogFromCSV(csv){
     if(r.length < 10) return;
 
     let [
-      cid, ctitle, cbadge, ckicker,
-      stitle, slabel,
-      ptitle, pdesc,
-      price, tags, img
-    ] = r;
+  cid, ctitle, cbadge, ckicker,
+  stitle, slabel,
+  ptitle, pdesc,
+  price, tags, img, product_url
+] = r;
 
     // SAFETY FILTERS
     cid = cid.toLowerCase().replace(/\s+/g,"-");
@@ -100,13 +100,14 @@ function buildCatalogFromCSV(csv){
     }
 
     catalogMap[cid].subs[stitle].products.push([
-      ptitle || "Untitled Product",
-      pdesc || "No description.",
-      price || "$0",
-      "View Details",
-      tags ? tags.split(",").map(t=>t.trim()) : [],
-      img || "https://picsum.photos/400"
-    ]);
+  ptitle || "Untitled Product",
+  pdesc || "No description.",
+  price || "$0",
+  "View Details",
+  tags ? tags.split(",").map(t=>t.trim()) : [],
+  img || "https://picsum.photos/400",
+  product_url || ""
+]);
   });
 
   const catalogData = Object.values(catalogMap)
@@ -140,7 +141,7 @@ ${sec.subs.map(sc=>`
 </div>
 <div class="product-grid">
 ${sc.products.map(p=>`
-<article class="product-card" data-title="${p[0]}" data-desc="${p[1]}" data-price="${p[2]}" data-tags="${p[4].join('|')}">
+<article class="product-card" data-title="${p[0]}" data-desc="${p[1]}" data-price="${p[2]}" data-tags="${p[4].join('|')}" data-url="${p[6] || ''}">
 <div class="product-image">
 <img src="${p[5]}" alt="${p[0]}" onerror="this.src='https://picsum.photos/400'">
 </div>
@@ -151,7 +152,9 @@ ${sc.products.map(p=>`
 <div class="product-price">${p[2]}</div>
 <div class="cta-group">
 <button class="product-cta actionBtn">View Details</button>
-<button class="product-cta cardAddBtn">Add to Cart</button>
+<a class="product-cta purchaseBtn" href="${p[6] || '#'}" target="_blank" rel="noopener noreferrer">
+  Purchase ↗
+</a>
 </div>
 </div>
 </article>`).join("")}
@@ -178,7 +181,7 @@ document.body.insertAdjacentHTML("beforeend",`
 <div class="popup-footer">
 <div><div class="mini-title">Price</div><div id="popupPrice" class="product-price"></div></div>
 <div class="cta-group">
-<button id="popupBuy" class="product-cta">Add to Cart</button>
+<a id="popupBuy" class="product-cta" href="#" target="_blank" rel="noopener noreferrer">Purchase ↗</a>
 <button id="popupClose" class="product-cta">Close</button>
 </div>
 </div></div></div></div>
@@ -266,14 +269,24 @@ if(e.target.classList.contains("actionBtn")){
   d.textContent=c.dataset.desc;
   pr.textContent=c.dataset.price;
   tags.innerHTML=c.dataset.tags.split("|").map(x=>`<span class="product-tag">${x}</span>`).join("");
+
+  // Set popup purchase link
+  const url = c.dataset.url || "#";
+  buy.setAttribute("href", url);
+
   popup.style.display="flex";
   document.body.style.overflow="hidden";
 }
 
-if(e.target.classList.contains("cardAddBtn")){
-  const b=e.target,txt=b.textContent;
-  b.textContent="Added ✅";b.disabled=true;
-  setTimeout(()=>{b.textContent=txt;b.disabled=false},1000);
+if(e.target.classList.contains("purchaseBtn")){
+  const a = e.target;
+  const url = a.getAttribute("href");
+
+  // Prevent dead links
+  if(!url || url === "#" ){
+    e.preventDefault();
+    alert("Purchase link unavailable for this item.");
+  }
 }
 
 if(e.target===popup){
@@ -288,10 +301,12 @@ close.onclick=e=>{
   document.body.style.overflow="";
 };
 
-buy.onclick=e=>{
-  e.preventDefault();
-  buy.textContent="Added ✅";
-  setTimeout(()=>buy.textContent="Add to Cart",1000);
+buy.onclick = (e) => {
+  const url = buy.getAttribute("href");
+  if(!url || url === "#"){
+    e.preventDefault();
+    alert("Purchase link unavailable for this item.");
+  }
 };
 
 
