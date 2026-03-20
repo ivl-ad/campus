@@ -1676,6 +1676,104 @@ body.wide-layout .product-grid {
 
 
 
+
+/* Styling for the product table layout */
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.product-item {
+  border-bottom: 1px solid #ddd;
+}
+
+.product-title,
+.product-image {
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.product-title {
+  width: 60%;
+  font-size: 1rem;
+  color: var(--text); /* Use site text color */
+}
+
+.product-image {
+  width: 30%;
+  text-align: center;
+}
+
+.product-image img {
+  max-width: 120px; /* Ensure images are uniform in size */
+  height: auto;
+}
+
+.view-product-btn {
+  background-color: #2d87f0; /* Change to your site's blue color */
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  display: inline-block;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.view-product-btn:hover {
+  background-color: #1a6fb0; /* Slightly darker blue on hover */
+}
+
+.show-more-btn {
+  margin: 18px auto 0;
+  display: block;
+  padding: 10px 18px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #161616;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.show-more-btn:hover {
+  background: #222;
+}
+
+/* Responsive Design for smaller screens */
+@media (max-width: 768px) {
+  .product-table {
+    display: block;
+    width: 100%;
+  }
+
+  .product-title,
+  .product-image {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  .product-title {
+    padding-top: 10px;
+  }
+
+  .product-image img {
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .view-product-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+
 @media (max-width: 768px) {
   .footer-inner {
     grid-template-columns: 1fr;

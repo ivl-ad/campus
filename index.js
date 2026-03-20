@@ -1,3 +1,12 @@
+function toggleBlogPost(postId) {
+    var post = document.getElementById(postId);
+    if (post.style.display === "none") {
+        post.style.display = "block"; // Show content
+    } else {
+        post.style.display = "none"; // Hide content
+    }
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
 
 // ================= HERO CATEGORY PILLS =================
@@ -692,6 +701,7 @@ window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(initShowMore, 200);
 });
+
 
 
 
