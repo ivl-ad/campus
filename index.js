@@ -34,7 +34,7 @@ document.addEventListener("click", function (e) {
     return;
   }
 
-  const hardcodedBlogCard = e.target.closest("section#blog-reviews .blog-card");
+  const hardcodedBlogCard = e.target.closest(".blog-review-section .blog-card");
 
   if (hardcodedBlogCard) {
     const body = hardcodedBlogCard.querySelector(".blog-card-body");
@@ -629,7 +629,7 @@ document.head.appendChild(style);
 function initShowMore() {
 
   // Remove existing buttons first
-  document.querySelectorAll(".show-more-btn").forEach(b => b.remove());
+  document.querySelectorAll(".subcat-block > .show-more-btn").forEach(b => b.remove());
 
   document.querySelectorAll(".subcat-block").forEach(block => {
 
