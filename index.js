@@ -2,6 +2,10 @@ function toggleBlogPost(postId, triggerEl) {
   var post = document.getElementById(postId);
   if (!post) return;
 
+  if (!triggerEl) {
+    triggerEl = document.querySelector('[data-blog-toggle="' + postId + '"]');
+  }
+
   var isHidden = window.getComputedStyle(post).display === "none";
 
   if (isHidden) {
