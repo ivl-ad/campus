@@ -1,13 +1,54 @@
-function toggleBlogPost(postId) {
-    var post = document.getElementById(postId);
-    if (post.style.display === "none") {
-        post.style.display = "block"; // Show content
-    } else {
-        post.style.display = "none"; // Hide content
+function toggleBlogPost(postId, triggerEl) {
+  var post = document.getElementById(postId);
+  if (!post) return;
+
+  var isHidden = window.getComputedStyle(post).display === "none";
+
+  if (isHidden) {
+    post.style.display = "block";
+    if (triggerEl) {
+      triggerEl.textContent = "Hide";
+      triggerEl.setAttribute("aria-expanded", "true");
     }
+  } else {
+    post.style.display = "none";
+    if (triggerEl) {
+      triggerEl.textContent = "Expand";
+      triggerEl.setAttribute("aria-expanded", "false");
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
+
+// ================= HARDCODED BLOG CARD TOGGLES =================
+document.addEventListener("click", function (e) {
+  const toggleBtn = e.target.closest(".show-more-btn");
+
+  if (toggleBtn && toggleBtn.hasAttribute("data-blog-toggle")) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const postId = toggleBtn.getAttribute("data-blog-toggle");
+    toggleBlogPost(postId, toggleBtn);
+    return;
+  }
+
+  const hardcodedBlogCard = e.target.closest("section#blog-reviews .blog-card");
+
+  if (hardcodedBlogCard) {
+    const body = hardcodedBlogCard.querySelector(".blog-card-body");
+    const post = hardcodedBlogCard.querySelector(".blog-modal-bodytext");
+    const btn = hardcodedBlogCard.querySelector(".show-more-btn[data-blog-toggle]");
+
+    if (!body || !post || !btn) return;
+
+    // Don't double-trigger if user clicked the button itself
+    if (e.target.closest(".show-more-btn[data-blog-toggle]")) return;
+
+    toggleBlogPost(post.id, btn);
+  }
+});
 
 // ================= HERO CATEGORY PILLS =================
 const pills=document.querySelectorAll(".category-pill");
@@ -538,7 +579,49 @@ style.innerHTML=`
 .popup-body{padding:24px;display:flex;flex-direction:column;justify-content:space-between}
 .popup-footer{display:flex;justify-content:space-between;margin-top:15px}
 .cta-group{display:flex;gap:10px}
-.show-more-btn{margin:18px auto;display:block;padding:10px 18px;border-radius:30px;background:#161616;color:white;cursor:pointer}
+
+.show-more-btn{
+  margin:18px auto 0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:12px 18px;
+  border:1px solid #161616;
+  border-radius:30px;
+  background:#161616;
+  color:#fff;
+  cursor:pointer;
+  font:inherit;
+  line-height:1;
+  text-align:center;
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+.show-more-btn:hover{
+  opacity:.92;
+}
+
+.show-more-btn:focus-visible{
+  outline:2px solid #000;
+  outline-offset:2px;
+}
+
+section#blog-reviews .blog-card{
+  cursor:pointer;
+}
+
+section#blog-reviews .blog-card .blog-modal-bodytext{
+  cursor:default;
+}
+
+@media (max-width: 768px){
+  .show-more-btn{
+    width:100%;
+    max-width:100%;
+  }
+}
 `;
 document.head.appendChild(style);
 
