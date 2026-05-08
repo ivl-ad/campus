@@ -52,16 +52,48 @@ campus resources to support academic success and personal growth.">
 
 <style>
   .page-section.section-height--small > .content-wrapper {
-    padding-top: 150px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
+  #mckhighlightedproducts20260507 > .content-wrapper {
+    padding-top: 0 !important;
+  }
+
+  /* Blog post body text -> BLACK (keep h3 headers, "Published:" date, and expand button green) */
+  #mckblogssection20260507 [id^="mck-blog-"] p:not(:has(> strong)):not(:has(.mck-expand-btn)),
+  #mckblogssection20260507 [id^="mck-blog-"] [id$="-full"] p,
+  #mckblogssection20260507 [id^="mck-blog-"] [id$="-full"] li {
+    color: #000 !important;
+  }
+
+  /* Shop by Category sub-blocks: paragraph text -> BLACK (h3 headers stay green) */
+  #mckcategories20260507 div[id^="cat-"] p {
+    color: #000 !important;
+  }
+
+  /* Highlighted Products: product excerpt paragraph -> BLACK
+     (label/uppercase line, h3 title, and "Read full review" button stay green) */
+  #mckhighlightedproducts20260507 .mck-product-card > p:not(:first-of-type):not(:has(.mck-product-btn)) {
+    color: #000 !important;
+  }
+</style>
+
+
+<style>
+  .page-section.section-height--small > .content-wrapper {
+    padding-top: 0px !important;
     padding-bottom: 150px !important;
   }
   #mckhighlightedproducts20260507 > .content-wrapper {
     padding-top: 150 !important;
   }
   [data-section-id="67ec19aca9660533d9ece276"] {
-    --divider-height: 0 !important;
+    --divider-height: 150 !important;
   }
 </style>
+
+
+
 </head>
 
   
@@ -2388,13 +2420,6 @@ campus resources to support academic success and personal growth.">
   </div>
 </section>
 
-<!-- Modal overlay (hidden until a Read full review button is clicked) -->
-<div id="mck-product-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:99999;padding:20px;overflow-y:auto;">
-  <div id="mck-product-modal-panel" style="background:#fff;color:#222;max-width:760px;width:100%;margin:40px auto;padding:36px 32px;border-radius:14px;position:relative;font-family:inherit;line-height:1.55;">
-    <button class="mck-modal-close" type="button" aria-label="Close" style="position:absolute;top:14px;right:14px;width:36px;height:36px;border:none;background:#000;color:#fff;border-radius:50%;font-size:20px;cursor:pointer;line-height:1;font-weight:700;">&times;</button>
-    <div id="mck-modal-content"></div>
-  </div>
-</div>
 
 
 
@@ -2861,11 +2886,14 @@ campus resources to support academic success and personal growth.">
   #page-contact .Marquee-display { overflow: hidden !important; }
   #page-contact .Marquee-svg { display: none !important; }
   #page-contact .Marquee-display { overflow: hidden !important; }
-  /* Gap between the "Get in touch" block and the newsletter form */
+  /* Newsletter form sits at the top of the section now; no extra space above */
   #page-contact [data-fluid-engine="true"] {
-    margin-top: 300px !important;
+    margin-top: 0 !important;
   }
-</style>
+  /* Gap between newsletter form and the moved "Get in touch" card below */
+  #page-contact > .content-wrapper > .content > div[style*="max-width:900px"] {
+    margin-top: 100px !important;
+  }
 </style>
 
   <div class="section-border">
@@ -2881,13 +2909,6 @@ campus resources to support academic success and personal growth.">
       
     " id="yui_3_17_2_1_1763924797104_95">
     <div class="content" id="yui_3_17_2_1_1763924797104_94">
-<div style="max-width:900px;margin:0 auto;padding:48px 24px 56px;text-align:center;">
-  <p class="" style="font-size:0.85em;letter-spacing:0.12em;text-transform:uppercase;opacity:0.75;margin:0 0 6px;">Contact &amp; Subscribe</p>
-  <h2 style="margin:0 0 12px;">Get in touch</h2>
-  <p class="sqsrte-large" style="margin:0 0 6px;">Questions, feedback, or partnership inquiries? We answer every message.</p>
-  <p style="margin:0 0 6px;"><strong>Email:</strong> <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a></p>
-  <p style="margin:0 0 6px;font-size:0.92em;opacity:0.9;"><strong>Disclosure:</strong> Some links on this site may be affiliate links. If you purchase through them, we may earn a commission at no extra cost to you.</p>
-</div>
 
       
       
@@ -3577,6 +3598,21 @@ campus resources to support academic success and personal growth.">
   
 </section>
 
+<section data-test="page-section" data-section-theme="bright-inverse" class="page-section full-bleed-section layout-engine-section background-width--full-bleed section-height--small content-width--wide horizontal-alignment--center vertical-alignment--top bright-inverse" id="page-contact-info">
+  <div class="section-border"><div class="section-background"></div></div>
+  <div class="content-wrapper">
+    <div class="content">
+      <div style="max-width:900px;margin:0 auto;padding:48px 24px;text-align:center;">
+        <p style="font-size:0.85em;letter-spacing:0.12em;text-transform:uppercase;opacity:0.75;margin:0 0 6px;">Contact &amp; Subscribe</p>
+        <h2 style="margin:0 0 12px;">Get in touch</h2>
+        <p class="sqsrte-large" style="margin:0 0 6px;">Questions, feedback, or partnership inquiries? We answer every message.</p>
+        <p style="margin:0 0 6px;"><strong>Email:</strong> <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a></p>
+        <p style="margin:0 0 6px;font-size:0.92em;opacity:0.9;"><strong>Disclosure:</strong> Some links on this site may be affiliate links. If you purchase through them, we may earn a commission at no extra cost to you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section data-test="page-section" data-section-theme="light" class="page-section 
     
       full-bleed-section
@@ -4071,7 +4107,7 @@ campus resources to support academic success and personal growth.">
 </div></div></div><div class="fe-block fe-block-yui_3_17_2_1_1744130020183_4061" style="mix-blend-mode: normal;"><div class="sqs-block html-block sqs-block-html" data-blend-mode="NORMAL" data-block-type="2" data-border-radii="{&quot;topLeft&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0},&quot;topRight&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0},&quot;bottomLeft&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0},&quot;bottomRight&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;value&quot;:0.0}}" data-sqsp-block="text" id="block-yui_3_17_2_1_1744130020183_4061"><div class="sqs-block-content">
 
 <div class="sqs-html-content" data-sqsp-text-block-content="">
-  <p class="sqsrte-large" data-rte-preserve-empty="true" style="white-space:pre-wrap;"></p><p class="sqsrte-large" style="white-space:pre-wrap;"><a href="#page-contact"><span class="sqsrte-text-color--white">Privacy Policy</span></a><span class="sqsrte-text-color--white">               </span><a href="#page-contact"><span class="sqsrte-text-color--white">Contact</span></a></p>
+  <p class="sqsrte-large" data-rte-preserve-empty="true" style="white-space:pre-wrap;"></p><p class="sqsrte-large" style="white-space:pre-wrap;"><a href="#" onclick="document.getElementById('mck-privacy-modal').showModal();return false;"><span class="sqsrte-text-color--white">Privacy Policy</span></a><span class="sqsrte-text-color--white">               </span><a href="#page-contact"><span class="sqsrte-text-color--white">Contact</span></a></p>
 </div>
 
 
@@ -4183,4 +4219,56 @@ campus resources to support academic success and personal growth.">
   });
 })();
 </script>
+<script>
+/* Blog post Expand / Collapse */
+(function(){
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.mck-expand-btn');
+    if (!btn) return;
+    e.preventDefault();
+    var targetId = btn.getAttribute('data-mck-target');
+    if (!targetId) return;
+    var box = document.getElementById(targetId);
+    if (!box) return;
+    var btnP = btn.closest('p');
+    var excerpt = btnP ? btnP.previousElementSibling : null;
+    var isHidden = (box.style.display === 'none' || box.style.display === '');
+    if (isHidden) {
+      box.style.display = 'block';
+      box.style.paddingBottom = '32px';
+      if (excerpt && excerpt.tagName === 'P') excerpt.style.display = 'none';
+      btn.textContent = '\u25B2 Hide full post';
+    } else {
+      box.style.display = 'none';
+      if (excerpt && excerpt.tagName === 'P') excerpt.style.display = '';
+      btn.textContent = '\u25B6 Expand full post';
+    }
+  });
+})();
+</script>
+
+<dialog id="mck-privacy-modal" style="max-width:600px;width:90%;padding:32px;border:none;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.25);color:#000;line-height:1.5;font-family:inherit;">
+  <h2 style="margin:0 0 16px;">Privacy Policy</h2>
+  <p style="margin:0 0 12px;"><em>Last updated: May 2026</em></p>
+  <p style="margin:0 0 12px;"><strong>What we collect.</strong> If you subscribe to our newsletter, we collect the email address you provide. We do not collect personal information from casual browsing.</p>
+  <p style="margin:0 0 12px;"><strong>How we use it.</strong> Email addresses are used solely to send newsletter updates. You can unsubscribe at any time using the link in any email.</p>
+  <p style="margin:0 0 12px;"><strong>Cookies.</strong> This site uses minimal cookies for basic functionality. Third-party affiliate links may set their own cookies — see those merchants' policies.</p>
+  <p style="margin:0 0 12px;"><strong>Affiliate disclosure.</strong> Some links on this site are affiliate links. If you purchase through them, we may earn a commission at no extra cost to you.</p>
+  <p style="margin:0 0 12px;"><strong>Your rights.</strong> Email <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a> to request deletion of any data we hold.</p>
+  <p style="margin:0 0 24px;"><strong>Contact.</strong> Questions: <a href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a></p>
+  <form method="dialog" style="text-align:right;margin:0;">
+    <button style="padding:8px 24px;background:#2d6a4f;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:1em;">Close</button>
+  </form>
+</dialog>
+
+
+
+<!-- Modal overlay (hidden until a Read full review button is clicked) -->
+<div id="mck-product-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:99999;padding:20px;overflow-y:auto;">
+  <div id="mck-product-modal-panel" style="background:#fff;color:#222;max-width:760px;width:100%;margin:40px auto;padding:36px 32px;border-radius:14px;position:relative;font-family:inherit;line-height:1.55;">
+    <button class="mck-modal-close" type="button" aria-label="Close" style="position:absolute;top:14px;right:14px;width:36px;height:36px;border:none;background:#000;color:#fff;border-radius:50%;font-size:20px;cursor:pointer;line-height:1;font-weight:700;">&times;</button>
+    <div id="mck-modal-content"></div>
+  </div>
+</div>
+
 </body></html>
