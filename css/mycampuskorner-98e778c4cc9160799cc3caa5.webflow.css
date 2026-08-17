@@ -3910,6 +3910,10 @@ label {
   display: flex;
 }
 
+.product-pros li {
+  margin-bottom: .5rem;
+}
+
 .pros-cons-main-wrap {
   grid-column-gap: 40px;
   grid-row-gap: 40px;
@@ -3925,6 +3929,10 @@ label {
   width: 100%;
   padding: 1rem;
   display: flex;
+}
+
+.product-cons li {
+  margin-bottom: .5rem;
 }
 
 .product-summare-img-wrap {

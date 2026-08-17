@@ -54,13 +54,31 @@
       return true;
     }
 
+    // Some catalog entries are brand or landing pages with no single price, so
+    // they carry no data-price. They are not comparable on price and always
+    // sort to the end rather than being treated as $0.
+    function price(el) {
+      var raw = el.getAttribute('data-price');
+      if (raw === null || raw === '') return null;
+      var n = parseFloat(raw);
+      return isNaN(n) ? null : n;
+    }
+
+    function byPrice(dir) {
+      return function (a, b) {
+        var x = price(a), y = price(b);
+        if (x === null && y === null) return 0;
+        if (x === null) return 1;
+        if (y === null) return -1;
+        return (x - y) * dir;
+      };
+    }
+
     var comparators = {
       'name-asc': function (a, b) { return attr(a, 'data-name').localeCompare(attr(b, 'data-name')); },
       'name-desc': function (a, b) { return attr(b, 'data-name').localeCompare(attr(a, 'data-name')); },
-      'price-asc': function (a, b) { return attr(a, 'data-price') - attr(b, 'data-price'); },
-      'price-desc': function (a, b) { return attr(b, 'data-price') - attr(a, 'data-price'); },
-      'year-asc': function (a, b) { return attr(a, 'data-date') - attr(b, 'data-date'); },
-      'year-desc': function (a, b) { return attr(b, 'data-date') - attr(a, 'data-date'); }
+      'price-asc': byPrice(1),
+      'price-desc': byPrice(-1)
     };
 
     var emptyState = null;
