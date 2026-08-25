@@ -7,8 +7,11 @@
  *
  * To add or edit a product, edit the array below. Then re-run
  *     python3 tools/build_listings.py
- * to re-bake the product cards into the listing pages, which stay as static
- * HTML so they are crawlable and survive JavaScript being off.
+ * to re-bake the product cards into store.html and index.html, which stay as
+ * static HTML so they are crawlable and survive JavaScript being off. The
+ * per-category and per-merchant pages (category.html?id=<cat> and
+ * merchant.html?id=<merchantSlug>) read this file at runtime via
+ * js/listing-page.js, so they need no rebuild.
  *
  * Fields: id (URL slug, must stay stable — it is the permalink), name, cat,
  * catLabel, merchant, merchantSlug, url (merchant product page), img.

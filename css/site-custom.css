@@ -1,0 +1,42 @@
+/*
+ * site-custom.css — small additions layered on top of the Webflow export.
+ *
+ * Kept in its own file so re-exporting from Webflow can overwrite the
+ * generated stylesheets without losing these rules. Loaded last, so it wins.
+ */
+
+/* ------------------------------------------------- product card alignment ---
+ * Cards sitting side by side vary in height: a title may run one line or two,
+ * and some items carry no price. Letting the text block grow and pushing the
+ * link down with it keeps every "View product" button on the same baseline at
+ * the foot of its card.
+ */
+
+/* Slider cards — the home page "See what actually works" rail and the
+   related-products rail on a product page. */
+.prodact-slider-cn {
+  flex-grow: 1;
+}
+.prodact-slider-cn > .pr-btn-wrap {
+  margin-top: auto;
+}
+
+/* Grid cards — the store, category and merchant listings. */
+.product-card-wrap {
+  height: 100%;
+}
+.product-cn-wrap {
+  flex-grow: 1;
+}
+.product-cn-wrap > .dark-btn-wrap {
+  margin-top: auto;
+}
+
+/* --------------------------------------------------------- price visibility -
+ * Driven by SHOW_PRICES in js/site-config.js, which puts .prices-hidden on
+ * <html> before the body paints. Set that variable to true to show prices.
+ */
+.prices-hidden .product-price-wrap,
+.prices-hidden .product-list-price-wrap {
+  display: none;
+}

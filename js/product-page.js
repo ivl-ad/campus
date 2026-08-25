@@ -37,6 +37,21 @@
     if (el) el.textContent = text;
   }
 
+  /*
+   * Copy for the "About this product" section.
+   *
+   * A catalog entry may carry its own `desc` string in js/products.js — add one
+   * to any product and it is used verbatim. Without it, fall back to a sentence
+   * built only from what the catalog actually knows (name, category, merchant)
+   * rather than inventing specifications the retailer never stated.
+   */
+  function describe(p) {
+    if (p.desc) return p.desc;
+    return p.name + ' is one of our ' + p.catLabel + ' picks for campus life, ' +
+      'available from ' + p.merchant + '. Head to ' + p.merchant +
+      ' for the full specifications, current price and availability.';
+  }
+
   /* Related rail: same category first, topped up with anything else so the
      rail never looks broken for a category that only holds one or two items. */
   function relatedTo(product, all, want) {
@@ -131,6 +146,8 @@
     if (img) img.style.display = 'none';
     var store = byId('p-store-link');
     if (store) store.style.display = 'none';
+    var about = byId('p-about');
+    if (about) about.style.display = 'none';
   }
 
   function init() {
@@ -148,6 +165,7 @@
 
     setText('p-category', product.catLabel);
     setText('p-name', product.name);
+    setText('p-description', describe(product));
 
     // No invented pricing: when the catalog has no price the line is removed
     // rather than filled with a placeholder.
@@ -163,7 +181,7 @@
     setText('p-buy-text', 'Buy at ' + product.merchant);
 
     var storeLink = byId('p-store-link');
-    if (storeLink) storeLink.setAttribute('href', 'store-' + product.merchantSlug + '.html');
+    if (storeLink) storeLink.setAttribute('href', 'merchant.html?id=' + product.merchantSlug);
     setText('p-store-name', product.merchant);
 
     var img = byId('p-image');
