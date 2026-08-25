@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Catalog editor</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<style>
+  :root{
+    --bg:#f6f6f3; --panel:#fff; --ink:#17210f; --muted:#6b7466; --line:#dcdcd4;
+    --green:#2e6b22; --green-dark:#1d4a15; --red:#b23b32; --amber:#8a6d1f;
+    --head:#eef0ea;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       display:flex;flex-direction:column}
+
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;
+         display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  h1{font-size:15px;margin:0 8px 0 0;font-weight:650;white-space:nowrap}
+  .count{color:var(--muted);white-space:nowrap}
+  .spacer{flex:1}
+  input[type=search]{padding:6px 9px;border:1px solid var(--line);border-radius:6px;
+                     background:#fff;min-width:200px;font:inherit}
+  button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);
+         padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap}
+  button:hover:not(:disabled){background:#f0f0ea}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  button.primary:hover:not(:disabled){background:var(--green-dark)}
+  button.ghost-danger{color:var(--red);border-color:#e3c6c3}
+  button.ghost-danger:hover:not(:disabled){background:#fbf0ef}
+
+  #status{padding:8px 14px;font-size:13px;display:none}
+  #status.show{display:block}
+  #status.ok{background:#e8f3e4;color:var(--green-dark);border-bottom:1px solid #cfe4c8}
+  #status.err{background:#fbeceb;color:var(--red);border-bottom:1px solid #f0d3d0;
+              white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace}
+  #status.warn{background:#fdf6e3;color:var(--amber);border-bottom:1px solid #efe0bb}
+
+  .wrap{flex:1;overflow:auto;background:var(--panel)}
+  table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+  th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+        padding:0;vertical-align:top}
+  thead th{position:sticky;top:0;z-index:3;background:var(--head);text-align:left;
+           padding:7px 8px;font-size:12px;font-weight:650;white-space:nowrap;
+           border-bottom:2px solid var(--line)}
+  tbody tr:hover td{background:#fafaf6}
+  tbody tr.dropped td{opacity:.4;text-decoration:line-through}
+
+  td.rownum,th.rownum{position:sticky;left:0;z-index:2;background:var(--head);
+                      text-align:right;padding:6px 8px;color:var(--muted);
+                      font-variant-numeric:tabular-nums;width:46px;min-width:46px}
+  thead th.rownum{z-index:4}
+  tbody tr:hover td.rownum{background:#e6e8e0}
+
+  td input,td textarea,td select{width:100%;border:0;background:transparent;font:inherit;
+        color:inherit;padding:6px 8px;resize:none;display:block}
+  td input:focus,td textarea:focus,td select:focus{outline:2px solid var(--green);
+        outline-offset:-2px;background:#fff;position:relative;z-index:1}
+  td.invalid input{background:#fbeceb}
+  td select{cursor:pointer}
+  td textarea{min-height:32px;line-height:1.35}
+
+  .w-id{min-width:220px}.w-name{min-width:300px}.w-cat{min-width:180px}
+  .w-merch{min-width:150px}.w-slug{min-width:130px}.w-price{min-width:90px}
+  .w-url{min-width:240px}.w-img{min-width:240px}.w-desc{min-width:260px}
+  .w-note{min-width:180px}
+
+  /* Row controls sit at the far left, pinned next to the row number so they
+     stay reachable however far right the table is scrolled. */
+  td.act,th.act{position:sticky;left:46px;z-index:2;background:var(--head);
+        text-align:center;padding:4px 6px;white-space:nowrap;
+        width:122px;min-width:122px;border-right:2px solid var(--line)}
+  thead th.act{z-index:4}
+  tbody tr:hover td.act{background:#e6e8e0}
+  td.act button{padding:3px 7px;font-size:12px;line-height:1.4}
+  td.act button+button{margin-left:4px}
+
+  footer{background:var(--panel);border-top:1px solid var(--line);padding:8px 14px;
+         color:var(--muted);font-size:12px;display:flex;gap:14px;flex-wrap:wrap}
+  .pill{background:var(--head);border-radius:99px;padding:2px 9px}
+  .dirty{color:var(--amber);font-weight:600}
+  .thumb{width:34px;height:34px;object-fit:contain;background:#fff;border:1px solid var(--line);
+         border-radius:4px;display:block;margin:4px auto}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Catalog editor</h1>
+  <span class="count" id="count">loading…</span>
+  <input type="search" id="q" placeholder="Filter by name, id, merchant…" autocomplete="off"/>
+  <span class="spacer"></span>
+  <button id="add">+ Add product</button>
+  <button id="reload">Reload</button>
+  <button class="primary" id="save" disabled>Save</button>
+</header>
+
+<div id="status"></div>
+
+<div class="wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="rownum">#</th>
+        <th class="act">row</th>
+        <th>img</th>
+        <th class="w-id">id <span style="font-weight:400;color:#6b7466">(permalink)</span></th>
+        <th class="w-name">name</th>
+        <th class="w-cat">category</th>
+        <th class="w-merch">merchant</th>
+        <th class="w-slug">merchantSlug</th>
+        <th class="w-price">price</th>
+        <th class="w-url">url</th>
+        <th class="w-img">img</th>
+        <th class="w-desc">desc <span style="font-weight:400;color:#6b7466">(optional)</span></th>
+        <th class="w-note">note <span style="font-weight:400;color:#6b7466">(private)</span></th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+
+<footer>
+  <span class="pill" id="backups">backups: –</span>
+  <span id="dirty"></span>
+  <span class="spacer"></span>
+  <span>Save writes js/products.js, keeps a numbered backup in js/backups/, and re-bakes store.html + index.html.</span>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // Category list must match SITE_CATEGORIES in build_listings.py and
+  // CATEGORIES in js/listing-page.js. The server sends it when it can.
+  var CATEGORIES = [
+    ['dorm-living-essentials', 'Dorm & Living Essentials'],
+    ['academic-essentials', 'Academic Essentials'],
+    ['personal-lifestyle', 'Personal Lifestyle'],
+    ['event-tickets-travel', 'Event Tickets & Travel'],
+    ['financial-services', 'Financial Services'],
+    ['laundry-cleaning', 'Laundry & Cleaning'],
+    ['living-social-spaces', 'Living & Social Spaces'],
+    ['bathroom', 'Bathroom'],
+    ['kitchen-dining', 'Kitchen & Dining'],
+    ['bedroom-study', 'Bedroom & Study']
+  ];
+
+  var FIELDS = ['id','name','cat','merchant','merchantSlug','price','url','img','desc','note'];
+
+  var rows = [];          // [{data:{...}, el:<tr>}]
+  var dirty = false;
+  var baseSha = null;      // git blob sha when hosted; unused locally
+  var liveEditor = true;  // false when there is no server to save to
+
+  var $ = function (id) { return document.getElementById(id); };
+  var rowsEl = $('rows');
+
+  function label(slug) {
+    for (var i = 0; i < CATEGORIES.length; i++) {
+      if (CATEGORIES[i][0] === slug) return CATEGORIES[i][1];
+    }
+    return '';
+  }
+
+  function slugify(s) {
+    return String(s || '').toLowerCase()
+      .replace(/['’"]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+/, '').slice(0, 60).replace(/-+$/, '');
+  }
+
+  function setStatus(kind, text) {
+    var el = $('status');
+    el.className = 'show ' + kind;
+    el.textContent = text;
+  }
+  function clearStatus() { $('status').className = ''; }
+
+  function markDirty(on) {
+    dirty = on;
+    $('dirty').textContent = on ? '● unsaved changes' : '';
+    $('dirty').className = on ? 'dirty' : '';
+    $('save').disabled = !on || !liveEditor;
+  }
+
+  function counts() {
+    var shown = rows.filter(function (r) { return r.el.style.display !== 'none'; }).length;
+    $('count').textContent = rows.length + ' products' +
+      (shown !== rows.length ? '  ·  ' + shown + ' shown' : '');
+  }
+
+  // ---------------------------------------------------------------- a row
+  function cell(row, field) {
+    var td = document.createElement('td');
+    var input;
+
+    if (field === 'cat') {
+      input = document.createElement('select');
+      CATEGORIES.forEach(function (c) {
+        var o = document.createElement('option');
+        o.value = c[0]; o.textContent = c[1];
+        input.appendChild(o);
+      });
+      input.value = row.data.cat || CATEGORIES[0][0];
+      // catLabel is never typed by hand -- it always follows the category.
+      row.data.cat = input.value;
+      row.data.catLabel = label(input.value);
+    } else if (field === 'desc' || field === 'note') {
+      input = document.createElement('textarea');
+      input.rows = 1;
+      input.value = row.data[field] || '';
+    } else {
+      input = document.createElement('input');
+      input.type = 'text';
+      input.value = row.data[field] === undefined ? '' : row.data[field];
+      if (field === 'price') input.inputMode = 'decimal';
+    }
+
+    td.className = 'w-' + ({id:'id',name:'name',cat:'cat',merchant:'merch',
+      merchantSlug:'slug',price:'price',url:'url',img:'img',desc:'desc',note:'note'}[field]);
+
+    input.addEventListener('input', function () { onEdit(row, field, input, td); });
+    input.addEventListener('change', function () { onEdit(row, field, input, td); });
+    if (field === 'desc' || field === 'note') {
+      input.addEventListener('focus', function () { input.rows = 4; });
+      input.addEventListener('blur', function () { input.rows = 1; });
+    }
+    td.appendChild(input);
+    return td;
+  }
+
+  function onEdit(row, field, input, td) {
+    var v = input.value;
+    if (field === 'price') {
+      v = v.trim();
+      if (v === '') { delete row.data.price; }
+      else {
+        var n = parseFloat(v.replace(/[$,]/g, ''));
+        if (isNaN(n)) { td.classList.add('invalid'); }
+        else { td.classList.remove('invalid'); row.data.price = n; }
+      }
+    } else if (field === 'cat') {
+      row.data.cat = v;
+      row.data.catLabel = label(v);
+    } else if (field === 'desc' || field === 'note') {
+      if (v.trim() === '') delete row.data[field]; else row.data[field] = v;
+    } else {
+      row.data[field] = v;
+      if (field === 'img') {
+        var img = row.el.querySelector('.thumb');
+        if (img) img.src = v || '';
+      }
+    }
+    markDirty(true);
+    clearStatus();
+  }
+
+  function uniqueId(base) {
+    var taken = {};
+    rows.forEach(function (r) { taken[r.data.id] = true; });
+    base = (base || 'product').replace(/-copy(-\d+)?$/, '');
+    var candidate = base + '-copy', n = 2;
+    while (taken[candidate]) { candidate = base + '-copy-' + n; n++; }
+    return candidate;
+  }
+
+  function makeRow(data) {
+    var row = { data: data, el: document.createElement('tr') };
+
+    var num = document.createElement('td');
+    num.className = 'rownum';
+    row.el.appendChild(num);
+
+    // --- row controls, first column after the number ---
+    var act = document.createElement('td');
+    act.className = 'act';
+
+    var dup = document.createElement('button');
+    dup.textContent = 'Copy';
+    dup.title = 'Duplicate this row';
+    dup.addEventListener('click', function () { duplicate(row); });
+    act.appendChild(dup);
+
+    var del = document.createElement('button');
+    del.className = 'ghost-danger';
+    del.textContent = 'Delete';
+    del.title = 'Remove this row';
+    del.addEventListener('click', function () {
+      var i = rows.indexOf(row);
+      if (i > -1) rows.splice(i, 1);
+      row.el.remove();
+      renumber(); counts(); markDirty(true);
+      setStatus('warn', 'Removed "' + (row.data.name || row.data.id || 'untitled') +
+                        '". Nothing is written until you press Save — press Reload to undo.');
+    });
+    act.appendChild(del);
+    row.el.appendChild(act);
+
+    var tdImg = document.createElement('td');
+    var img = document.createElement('img');
+    img.className = 'thumb'; img.alt = ''; img.loading = 'lazy';
+    img.src = data.img || '';
+    img.onerror = function () { img.style.visibility = 'hidden'; };
+    img.onload = function () { img.style.visibility = 'visible'; };
+    tdImg.appendChild(img);
+    row.el.appendChild(tdImg);
+
+    FIELDS.forEach(function (f) {
+      var td = cell(row, f);
+      td.setAttribute('data-field', f);
+      row.el.appendChild(td);
+    });
+
+    return row;
+  }
+
+  function fieldInput(row, field) {
+    var td = row.el.querySelector('[data-field="' + field + '"]');
+    return td ? td.querySelector('input,select,textarea') : null;
+  }
+
+  function duplicate(row) {
+    // Copy every field, including ones this tool does not show, then give the
+    // copy its own id -- two products may never share a permalink.
+    var copy = JSON.parse(JSON.stringify(row.data));
+    copy.id = uniqueId(row.data.id);
+    if (copy.name) copy.name = copy.name + ' (copy)';
+
+    var clone = makeRow(copy);
+    var at = rows.indexOf(row);
+    rows.splice(at + 1, 0, clone);
+    row.el.parentNode.insertBefore(clone.el, row.el.nextSibling);
+
+    renumber(); counts(); markDirty(true); filter();
+    clone.el.scrollIntoView({ block: 'center' });
+    var nameInput = fieldInput(clone, 'name');
+    if (nameInput) { nameInput.focus(); nameInput.select(); }
+    setStatus('warn', 'Duplicated as "' + copy.id +
+                      '". Edit it, then press Save. Reload discards it.');
+  }
+
+  function renumber() {
+    rows.forEach(function (r, i) { r.el.firstChild.textContent = i + 1; });
+  }
+
+  function render(list) {
+    rowsEl.textContent = '';
+    rows = list.map(makeRow);
+    var frag = document.createDocumentFragment();
+    rows.forEach(function (r) { frag.appendChild(r.el); });
+    rowsEl.appendChild(frag);
+    renumber(); counts(); filter();
+  }
+
+  // ------------------------------------------------------------- filtering
+  function filter() {
+    var q = $('q').value.trim().toLowerCase();
+    rows.forEach(function (r) {
+      var hay = [r.data.id, r.data.name, r.data.merchant, r.data.catLabel]
+                  .join(' ').toLowerCase();
+      r.el.style.display = (!q || hay.indexOf(q) > -1) ? '' : 'none';
+    });
+    counts();
+  }
+
+  // ------------------------------------------------------------ validation
+  function problems() {
+    var out = [], seen = {};
+    rows.forEach(function (r, i) {
+      var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
+      ['id','name','cat','merchant','merchantSlug','url','img'].forEach(function (f) {
+        if (!p[f] || !String(p[f]).trim()) out.push(at + ': ' + f + ' is required');
+      });
+      if (p.id) {
+        if (seen[p.id]) out.push(at + ': duplicate id "' + p.id + '" (also row ' + seen[p.id] + ')');
+        seen[p.id] = i + 1;
+        if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
+          out.push(at + ': id must be lowercase letters, numbers and dashes');
+      }
+      if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
+        out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
+      if ('price' in p && (typeof p.price !== 'number' || isNaN(p.price)))
+        out.push(at + ': price must be a number, or left blank');
+    });
+    return out;
+  }
+
+  // ----------------------------------------------------------------- load
+  function parseProductsJs(text) {
+    var body = text.replace(/\/\*[\s\S]*?\*\//g, '');
+    body = body.slice(body.indexOf('['), body.lastIndexOf(']') + 1);
+    return JSON.parse(body.replace(/,(\s*])/g, '$1'));
+  }
+
+  function load() {
+    clearStatus();
+    fetch('/api/catalog', { cache: 'no-store' })
+      .then(function (r) {
+        return r.json().then(function (d) {
+          if (!r.ok) throw new Error(d.error || 'api error');
+          return d;
+        });
+      })
+      .then(function (d) {
+        if (d.categories && d.categories.length) CATEGORIES = d.categories;
+        liveEditor = true;
+        // Sent back on save so a second editor cannot silently overwrite us.
+        baseSha = d.sha || null;
+        $('backups').textContent = d.source
+          ? 'source: ' + d.source
+          : 'backups: ' + (d.backups === undefined ? '–' : d.backups);
+        render(d.products);
+        markDirty(false);
+      })
+      .catch(function () {
+        // No editor server -- fall back to reading the file so the page is at
+        // least useful read-only, and say clearly why Save is off.
+        fetch('js/products.js', { cache: 'no-store' })
+          .then(function (r) { return r.text(); })
+          .then(function (t) {
+            liveEditor = false;
+            render(parseProductsJs(t));
+            markDirty(false);
+            $('save').disabled = true;
+            $('backups').textContent = 'read-only';
+            setStatus('warn',
+              'Read-only: no editor API answered, so this page cannot save. Run  ' +
+              'python catalog_server.py  locally, or open /admin/ on the live site.');
+          })
+          .catch(function (e) {
+            setStatus('err', 'Could not load the catalog: ' + e.message);
+          });
+      });
+  }
+
+  // ----------------------------------------------------------------- save
+  function save() {
+    var bad = problems();
+    if (bad.length) {
+      setStatus('err', 'Not saved — fix these first:\n\n  ' + bad.join('\n  '));
+      return;
+    }
+    $('save').disabled = true;
+    setStatus('warn', 'Saving…');
+    fetch('/api/catalog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        products: rows.map(function (r) { return r.data; }),
+        sha: baseSha || undefined
+      })
+    })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (res) {
+      if (!res.ok) {
+        var msg = res.d.error || 'save failed';
+        if (res.d.errors) msg += '\n\n  ' + res.d.errors.join('\n  ');
+        setStatus('err', msg);
+        $('save').disabled = false;
+        return;
+      }
+      markDirty(false);
+      if (res.d.sha) baseSha = res.d.sha;
+
+      var note;
+      if (res.d.backup) {                       // saved to disk by catalog_server.py
+        $('backups').textContent = 'backups: ' + res.d.backups;
+        note = 'Saved ' + res.d.count + ' products.  Backup: js/backups/' + res.d.backup +
+               (res.d.built && res.d.built.length
+                 ? '  ·  rebuilt ' + res.d.built.join(', ') : '');
+      } else {                                  // committed to GitHub by the Worker
+        note = 'Saved ' + res.d.count + ' products.  ' + (res.d.message || '') +
+               (res.d.commit ? '  (commit ' + res.d.commit + ')' : '');
+      }
+      setStatus('ok', note + (res.d.warnings && res.d.warnings.length
+                        ? '\nWarnings: ' + res.d.warnings.join(' | ') : ''));
+    })
+    .catch(function (e) {
+      setStatus('err', 'Save failed: ' + e.message);
+      $('save').disabled = false;
+    });
+  }
+
+  // ------------------------------------------------------------- controls
+  $('add').addEventListener('click', function () {
+    var row = makeRow({ cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] });
+    rows.unshift(row);
+    rowsEl.insertBefore(row.el, rowsEl.firstChild);
+    renumber(); counts(); markDirty(true);
+    $('q').value = ''; filter();
+    row.el.scrollIntoView({ block: 'center' });
+    var nameInput = fieldInput(row, 'name');
+    nameInput.focus();
+    // Fill the id from the name once, so new rows get a sane permalink.
+    nameInput.addEventListener('blur', function once() {
+      nameInput.removeEventListener('blur', once);
+      var idInput = fieldInput(row, 'id');
+      if (idInput && !idInput.value.trim() && nameInput.value.trim()) {
+        idInput.value = slugify(nameInput.value);
+        row.data.id = idInput.value;
+      }
+    });
+  });
+
+  $('reload').addEventListener('click', function () {
+    if (dirty && !confirm('Discard unsaved changes and reload from js/products.js?')) return;
+    load();
+  });
+
+  $('save').addEventListener('click', save);
+  $('q').addEventListener('input', filter);
+
+  document.addEventListener('keydown', function (ev) {
+    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 's') {
+      ev.preventDefault();
+      if (!$('save').disabled) save();
+    }
+  });
+
+  window.addEventListener('beforeunload', function (ev) {
+    if (dirty) { ev.preventDefault(); ev.returnValue = ''; }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

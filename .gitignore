@@ -1,0 +1,25 @@
+# Local-only tooling. Cloudflare Pages publishes everything committed here, so
+# anything tracked becomes downloadable at mycampuskorner.com/<path>.
+#
+# NOTE: build_listings.py, admin/, functions/ and .github/ are deliberately NOT
+# ignored -- the GitHub Action runs build_listings.py, and the hosted editor is
+# admin/index.html guarded by functions/.
+
+# The local editor server (writes to your disk; useless and confusing if served)
+catalog_server.py
+build_listings_old.py
+
+# Safety copies: local, and they grow forever
+js/backups/
+js/products.backup.js
+js/products.real.js
+
+# Test catalog: a snapshot of the real one, so it goes stale and just
+# duplicates js/products.js in the repo
+js/products.sample.js
+
+# Python / OS noise
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

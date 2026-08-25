@@ -1,0 +1,50 @@
+name: Rebuild listings
+
+# The web catalog editor commits js/products.js and nothing else. store.html and
+# index.html hold their product cards as baked HTML, so they have to be re-made
+# from that catalog -- this is the job that does it, using the same
+# build_listings.py you run locally. Cloudflare Pages then deploys the result.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/products.js'
+      - 'build_listings.py'
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+
+# Needed so the workflow can push the rebuilt pages back.
+permissions:
+  contents: write
+
+concurrency:
+  # If two saves land close together, let the newer one win rather than
+  # racing to commit rebuilt pages on top of each other.
+  group: rebuild-listings
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    # Without this, the commit made below would trigger this workflow again.
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Rebuild store.html and index.html
+        run: python build_listings.py
+
+      - name: Commit the rebuilt pages
+        run: |
+          if git diff --quiet -- store.html index.html; then
+            echo "Pages already matched the catalog - nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add store.html index.html
+          git commit -m "Rebuild store.html and index.html from the catalog [skip ci]"
+          git push
