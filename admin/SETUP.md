@@ -84,6 +84,7 @@ Watch progress in the repo's **Actions** tab.
 | "GITHUB_REPO and GITHUB_TOKEN must be set" | Same, for the two GitHub variables. |
 | "Check GITHUB_TOKEN has Contents: read and write" | Token lacks permission, expired, or is not scoped to this repo. |
 | Save succeeds but the site does not change | The Action has not finished, or it lacks write permission (step 3). Check the Actions tab. Also hard-refresh: Ctrl+F5. |
+| Product pages update but Shop/Home do not | The rebuild commit reached GitHub but Cloudflare skipped deploying it. Never put `[skip ci]`, `[CI Skip]` or `[CF Pages Skip]` in a commit message — Cloudflare Pages treats those as "do not build". |
 | "Somebody else saved the catalog…" | Two editors open. Reload and reapply your change. Nothing was lost. |
 
 ## Changing the password

@@ -25,8 +25,6 @@ concurrency:
 jobs:
   rebuild:
     runs-on: ubuntu-latest
-    # Without this, the commit made below would trigger this workflow again.
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v4
 
@@ -46,5 +44,12 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add store.html index.html
-          git commit -m "Rebuild store.html and index.html from the catalog [skip ci]"
+          # No "[skip ci]" here. Cloudflare Pages treats that as its own
+          # skip-build token, so it would ignore the very commit that carries
+          # the rebuilt pages and Shop/Home would stay stale on the live site.
+          # Nothing is needed to stop this workflow re-triggering itself: the
+          # paths filter above only watches js/products.js and
+          # build_listings.py, and this commit touches neither. (GitHub also
+          # refuses to start workflows from GITHUB_TOKEN pushes.)
+          git commit -m "Rebuild store.html and index.html from the catalog"
           git push
