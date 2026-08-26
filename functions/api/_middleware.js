@@ -24,15 +24,34 @@ async function sameSecret(given, expected) {
   return diff === 0;
 }
 
-function challenge(message) {
-  return new Response(message || 'Authentication required.', {
-    status: 401,
-    headers: {
-      'WWW-Authenticate': 'Basic realm="Catalog editor", charset="UTF-8"',
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-store'
-    }
-  });
+// The browser sends "user:password" as UTF-8 bytes, base64'd. atob() gives one
+// character per byte, so the bytes have to be run back through a UTF-8 decoder
+// or any non-ASCII password (£, é, a curly quote) silently never matches.
+function passwordFrom(header) {
+  const binary = atob(header.slice(6).trim());
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const decoded = new TextDecoder('utf-8').decode(bytes);
+  // Everything after the first colon: usernames cannot contain one, passwords can.
+  return decoded.slice(decoded.indexOf(':') + 1);
+}
+
+function challenge() {
+  return new Response(
+    'Not signed in.\n\n' +
+    'The username is ignored - leave it blank or type anything. Only the\n' +
+    'password is checked, against the EDITOR_PASSWORD variable on this\n' +
+    'Cloudflare Pages project.\n\n' +
+    'If the password keeps being refused, it does not match that variable.\n' +
+    'Check for a stray space or newline pasted into the value, then redeploy.\n',
+    {
+      status: 401,
+      headers: {
+        'WWW-Authenticate': 'Basic realm="Catalog editor", charset="UTF-8"',
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store'
+      }
+    });
 }
 
 export async function onRequest(context) {
@@ -49,12 +68,13 @@ export async function onRequest(context) {
 
   const header = request.headers.get('Authorization') || '';
   if (header.startsWith('Basic ')) {
-    let supplied = '';
+    let supplied = null;
     try {
-      const decoded = atob(header.slice(6));
-      supplied = decoded.slice(decoded.indexOf(':') + 1);
+      supplied = passwordFrom(header);
     } catch (e) { /* malformed header -> falls through to the challenge */ }
-    if (await sameSecret(supplied, expected)) {
+    // The stored value is trimmed: a newline pasted into the Cloudflare box is
+    // invisible and would otherwise lock everyone out with no way to see why.
+    if (supplied !== null && await sameSecret(supplied, String(expected).trim())) {
       return next();
     }
   }

@@ -46,8 +46,15 @@ Repo → **Settings → Actions → General → Workflow permissions** →
 ## 4. Try it
 
 Visit `https://mycampuskorner.com/admin/`. The browser asks for a username and
-password — **the username is ignored**, type anything; only the password is
-checked. Then edit and press Save.
+password.
+
+**The username is ignored.** Leave it blank or type anything at all — only the
+password is checked, against `EDITOR_PASSWORD`. There is no username to set
+anywhere in Cloudflare.
+
+If the box keeps reappearing, the password does not match the variable. Press
+Escape/Cancel at the prompt to read the error page, which says which case you
+are in.
 
 After a save: GitHub shows a new commit, the Action runs, and the site updates.
 Watch progress in the repo's **Actions** tab.
@@ -72,6 +79,7 @@ Watch progress in the repo's **Actions** tab.
 | What you see | Cause |
 |---|---|
 | Browser never asks for a password | `functions/` did not deploy — the page is then unprotected. Check the deployment includes Functions, and fix before sharing the URL. |
+| Password box keeps reappearing | The password does not match `EDITOR_PASSWORD`. Cancel the prompt to see the error page. Re-enter the variable (watch for a pasted newline) and redeploy. |
 | "EDITOR_PASSWORD is not set… editor is disabled" | Variable missing on the environment you are hitting. This is fail-closed and safe. |
 | "GITHUB_REPO and GITHUB_TOKEN must be set" | Same, for the two GitHub variables. |
 | "Check GITHUB_TOKEN has Contents: read and write" | Token lacks permission, expired, or is not scoped to this repo. |
