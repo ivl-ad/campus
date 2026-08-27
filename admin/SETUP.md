@@ -92,6 +92,21 @@ How it behaves once bound:
   rebuilding" and simply keep working toward the next save.
 - **Reset draft** (replaces Reload) throws away *everyone's* unpublished edits
   and reloads the draft from the last saved catalog. It asks first.
+- **History ▾** lists every saved version — each Save is a git commit, so the
+  trail reaches back to the very first save and only ever grows. **Restore**
+  writes an old version as a *new* commit (nothing is ever deleted), the site
+  rebuilds, and every open editor reloads to the restored table with a note
+  saying who restored what.
+- **Undo / redo** (Ctrl+Z / Ctrl+Shift+Z, or the ↶ ↷ buttons) covers your own
+  edits since the last save — including bringing a deleted row back. Undoing
+  syncs to the other editors like any other edit. Saved states are History's
+  job, so the stacks clear on Save.
+- **Columns ▾** shows/hides columns; drag a column header's right edge to
+  resize it (double-click the edge resets). Remembered per browser. The name
+  column stays pinned next to # and the row buttons while you scroll right.
+- Spreadsheet keys: **Enter** moves down a cell (Shift+Enter up; in desc/note
+  Shift+Enter makes a new line instead), **arrow keys** hop cells once the
+  caret is at the edge of the text, and **/** jumps to the filter box.
 - The old "somebody else saved, reload and redo" conflict is gone — there is
   one draft, so there is nothing to collide. The only 409 left fires if
   someone commits `js/products.js` directly in git while a draft is live;
@@ -113,8 +128,9 @@ editor per day against a 100k/day allowance).
   no refused saves. Without it (or on the local python editor), saving is
   atomic per file: the second save is refused with "somebody else saved"
   rather than overwriting; press Reload and redo the change.
-- **Every save is a git commit,** so the full history is in GitHub and any
-  change can be reverted there. The local editor's `js/backups/` folder is a
+- **Every save is a git commit,** so the full history is in GitHub and the
+  editor's **History ▾** button lists every one of them with one-click
+  restore (`/api/history`). The local editor's `js/backups/` folder is a
   separate, local-only safety net.
 - **The catalog is read from GitHub, not the live site,** so the editor is never
   looking at a stale copy while a deploy is in flight.
@@ -134,6 +150,7 @@ editor per day against a 100k/day allowance).
 | Edits do not appear on a colleague's screen | The D1 binding is missing or was added without a redeploy (step 5). The footer says "shared draft · source: …" when live sync is on. |
 | "js/products.js changed on GitHub outside this editor" | Someone committed the file directly in git while a draft was live. Press **Reset draft** to start from that newer version. |
 | Editor shows stale rows after a Reset | It catches up on its next poll (a few seconds). Every editor reloads its table automatically when the draft is reset. |
+| History ▾ says "GitHub would not list the saved versions" | The token lost Contents: read (expired, or re-scoped). Same fix as other token errors: re-issue per step 1. |
 
 ## Changing the password
 

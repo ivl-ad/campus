@@ -33,6 +33,24 @@
   button.ghost-danger{color:var(--red);border-color:#e3c6c3}
   button.ghost-danger:hover:not(:disabled){background:#fbf0ef}
 
+  /* header dropdowns (columns menu, version history) */
+  .menu{position:absolute;top:calc(100% - 4px);right:14px;background:var(--panel);
+        border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 28px rgba(23,33,15,.16);
+        padding:8px;z-index:30;display:none;max-height:65vh;overflow:auto;font-size:13px}
+  .menu.open{display:block}
+  #colsMenu{min-width:190px}
+  #histPanel{min-width:420px;max-width:min(560px,90vw)}
+  .menu-head{padding:2px 6px 6px;color:var(--muted)}
+  .menu label{display:flex;gap:8px;align-items:center;padding:4px 6px;cursor:pointer;
+              border-radius:5px;white-space:nowrap}
+  .menu label:hover{background:#f0f0ea}
+  .hist-row{display:flex;gap:10px;align-items:center;padding:6px;border-bottom:1px solid var(--line)}
+  .hist-row:last-child{border-bottom:0}
+  .hist-when{color:var(--muted);white-space:nowrap;min-width:64px}
+  .hist-msg{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hist-cur{color:var(--green-dark);font-weight:600;white-space:nowrap}
+  .hist-row button{padding:3px 8px;font-size:12px}
+
   #status{padding:8px 14px;font-size:13px;display:none}
   #status.show{display:block}
   #status.ok{background:#e8f3e4;color:var(--green-dark);border-bottom:1px solid #cfe4c8}
@@ -41,12 +59,15 @@
   #status.warn{background:#fdf6e3;color:var(--amber);border-bottom:1px solid #efe0bb}
 
   .wrap{flex:1;overflow:auto;background:var(--panel)}
-  table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+  table{border-collapse:separate;border-spacing:0;table-layout:fixed}
   th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);
-        padding:0;vertical-align:top}
+        padding:0;vertical-align:top;overflow:hidden}
   thead th{position:sticky;top:0;z-index:3;background:var(--head);text-align:left;
            padding:7px 8px;font-size:12px;font-weight:650;white-space:nowrap;
-           border-bottom:2px solid var(--line)}
+           text-overflow:ellipsis;border-bottom:2px solid var(--line)}
+  thead th .rz{position:absolute;top:0;right:-4px;width:8px;height:100%;
+               cursor:col-resize;z-index:6;touch-action:none}
+  thead th .rz:hover{background:rgba(46,107,34,.28)}
   tbody tr:hover td{background:#fafaf6}
   tbody tr.dropped td{opacity:.4;text-decoration:line-through}
 
@@ -59,6 +80,12 @@
   /* Another editor's cursor is parked on this row. */
   tbody tr.peer td.rownum{box-shadow:inset 4px 0 0 0 var(--peer,#888)}
 
+  /* The name column stays pinned (like # and row) so you keep your bearings
+     however far right the table is scrolled. left = 46 (#) + 122 (row). */
+  th.w-name,td.w-name{position:sticky;left:168px;background:var(--panel)}
+  thead th.w-name{z-index:4;background:var(--head)}
+  tbody td.w-name{z-index:2}
+
   td input,td textarea,td select{width:100%;border:0;background:transparent;font:inherit;
         color:inherit;padding:6px 8px;resize:none;display:block}
   td input:focus,td textarea:focus,td select:focus{outline:2px solid var(--green);
@@ -66,11 +93,6 @@
   td.invalid input{background:#fbeceb}
   td select{cursor:pointer}
   td textarea{min-height:32px;line-height:1.35}
-
-  .w-id{min-width:220px}.w-name{min-width:300px}.w-cat{min-width:180px}
-  .w-merch{min-width:150px}.w-slug{min-width:130px}.w-price{min-width:90px}
-  .w-url{min-width:240px}.w-img{min-width:240px}.w-desc{min-width:260px}
-  .w-note{min-width:180px}
 
   /* Row controls sit at the far left, pinned next to the row number so they
      stay reachable however far right the table is scrolled. */
@@ -96,32 +118,38 @@
   <h1>Catalog editor</h1>
   <span class="count" id="count">loading…</span>
   <span class="count" id="who"></span>
-  <input type="search" id="q" placeholder="Filter by name, id, merchant…" autocomplete="off"/>
+  <input type="search" id="q" placeholder="Filter by name, id, merchant…  ( / )" autocomplete="off"/>
   <span class="spacer"></span>
+  <button id="undo" disabled title="Undo (Ctrl+Z)">↶ Undo</button>
+  <button id="redo" disabled title="Redo (Ctrl+Shift+Z or Ctrl+Y)">↷ Redo</button>
+  <button id="cols" title="Show, hide and resize columns">Columns ▾</button>
+  <button id="hist" style="display:none" title="Every saved version, with restore">History ▾</button>
   <button id="add">+ Add product</button>
   <button id="reload">Reload</button>
   <button class="primary" id="save" disabled>Save</button>
+  <div class="menu" id="colsMenu"></div>
+  <div class="menu" id="histPanel"></div>
 </header>
 
 <div id="status"></div>
 
 <div class="wrap">
-  <table>
+  <table id="cattable">
     <thead>
       <tr>
         <th class="rownum">#</th>
         <th class="act">row</th>
-        <th>img</th>
-        <th class="w-id">id <span style="font-weight:400;color:#6b7466">(permalink)</span></th>
-        <th class="w-name">name</th>
-        <th class="w-cat">category</th>
-        <th class="w-merch">merchant</th>
-        <th class="w-slug">merchantSlug</th>
-        <th class="w-price">price</th>
-        <th class="w-url">url</th>
-        <th class="w-img">img</th>
-        <th class="w-desc">desc <span style="font-weight:400;color:#6b7466">(optional)</span></th>
-        <th class="w-note">note <span style="font-weight:400;color:#6b7466">(private)</span></th>
+        <th data-field="_thumb" style="width:52px">img</th>
+        <th class="w-id" data-field="id" style="width:220px">id <span style="font-weight:400;color:#6b7466">(permalink)</span></th>
+        <th class="w-name" data-field="name" style="width:300px">name</th>
+        <th class="w-cat" data-field="cat" style="width:180px">category</th>
+        <th class="w-merch" data-field="merchant" style="width:150px">merchant</th>
+        <th class="w-slug" data-field="merchantSlug" style="width:130px">merchantSlug</th>
+        <th class="w-price" data-field="price" style="width:90px">price</th>
+        <th class="w-url" data-field="url" style="width:240px">url</th>
+        <th class="w-img" data-field="img" style="width:240px">img</th>
+        <th class="w-desc" data-field="desc" style="width:260px">desc <span style="font-weight:400;color:#6b7466">(optional)</span></th>
+        <th class="w-note" data-field="note" style="width:180px">note <span style="font-weight:400;color:#6b7466">(private)</span></th>
       </tr>
     </thead>
     <tbody id="rows"></tbody>
@@ -182,6 +210,7 @@
   var saving = false, saveAfterFlush = false, saveFlushTries = 0;
   var lastActivity = Date.now();
   var focusRid = null, sentFocus = '<none>', presenceSentAt = 0;
+  var navAt = null;        // last keyboard-nav landing, for diagnostics
 
   // Per-tab identity (sessionStorage on purpose: the same person on two
   // devices -- or two tabs -- should count as two editors), sticky name.
@@ -253,6 +282,127 @@
       (shown !== rows.length ? '  ·  ' + shown + ' shown' : '');
   }
 
+  // ------------------------------------------------------- column layout
+  // table-layout:fixed with widths on the header cells, so any column can be
+  // narrowed below its content. Widths and hidden columns live per browser
+  // in localStorage; the name column is always shown (it is the pinned one).
+  var COLS = [                        // [field, menu label, default width]
+    ['_thumb', 'image', 52],
+    ['id', 'id', 220],
+    ['name', 'name', 300],
+    ['cat', 'category', 180],
+    ['merchant', 'merchant', 150],
+    ['merchantSlug', 'merchantSlug', 130],
+    ['price', 'price', 90],
+    ['url', 'url', 240],
+    ['img', 'img url', 240],
+    ['desc', 'desc', 260],
+    ['note', 'note', 180]
+  ];
+  var colState = { w: {}, hidden: {} };
+  try {
+    var cs = JSON.parse(localStorage.getItem('editorCols') || '{}');
+    if (cs && cs.w) colState.w = cs.w;
+    if (cs && cs.hidden) colState.hidden = cs.hidden;
+  } catch (e) { /* fresh defaults */ }
+  delete colState.hidden.name;
+
+  function saveCols() {
+    try { localStorage.setItem('editorCols', JSON.stringify(colState)); } catch (e) {}
+  }
+  function colWidth(f) {
+    var def = 100;
+    for (var i = 0; i < COLS.length; i++) if (COLS[i][0] === f) def = COLS[i][2];
+    var w = colState.w[f];
+    return (typeof w === 'number' && w >= 60 && w <= 1200) ? Math.round(w) : def;
+  }
+
+  var colStyle = document.createElement('style');
+  document.head.appendChild(colStyle);
+
+  function applyCols() {
+    var css = '', total = 46 + 122;   // rownum + act columns are fixed
+    COLS.forEach(function (c) {
+      var f = c[0];
+      var th = document.querySelector('thead th[data-field="' + f + '"]');
+      if (th) th.style.width = colWidth(f) + 'px';
+      if (colState.hidden[f]) {
+        css += 'th[data-field="' + f + '"],td[data-field="' + f + '"]{display:none}\n';
+      } else {
+        total += colWidth(f);
+      }
+    });
+    colStyle.textContent = css;
+    $('cattable').style.width = total + 'px';
+  }
+
+  function initResize() {
+    COLS.forEach(function (c) {
+      var f = c[0];
+      var th = document.querySelector('thead th[data-field="' + f + '"]');
+      if (!th) return;
+      var h = document.createElement('span');
+      h.className = 'rz';
+      h.title = 'Drag to resize · double-click to reset';
+      h.addEventListener('pointerdown', function (ev) {
+        ev.preventDefault();
+        var startX = ev.clientX, startW = colWidth(f);
+        function move(e) {
+          var w = Math.max(60, Math.min(1200, startW + (e.clientX - startX)));
+          colState.w[f] = w;
+          applyCols();
+        }
+        function up() {
+          document.removeEventListener('pointermove', move);
+          document.removeEventListener('pointerup', up);
+          saveCols();
+        }
+        document.addEventListener('pointermove', move);
+        document.addEventListener('pointerup', up);
+      });
+      h.addEventListener('dblclick', function () {
+        delete colState.w[f];
+        applyCols(); saveCols();
+      });
+      th.appendChild(h);
+    });
+  }
+
+  function buildColsMenu() {
+    var m = $('colsMenu');
+    m.textContent = '';
+    var head = document.createElement('div');
+    head.className = 'menu-head';
+    head.textContent = 'Shown columns';
+    m.appendChild(head);
+    COLS.forEach(function (c) {
+      var f = c[0];
+      var lab = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !colState.hidden[f];
+      if (f === 'name') {
+        cb.disabled = true;
+        lab.title = 'The name column is always shown (it stays pinned while you scroll)';
+      }
+      cb.addEventListener('change', function () {
+        if (cb.checked) delete colState.hidden[f]; else colState.hidden[f] = 1;
+        applyCols(); saveCols();
+      });
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(c[1]));
+      m.appendChild(lab);
+    });
+    var reset = document.createElement('button');
+    reset.textContent = 'Reset widths';
+    reset.style.margin = '6px';
+    reset.addEventListener('click', function () {
+      colState.w = {};
+      applyCols(); saveCols();
+    });
+    m.appendChild(reset);
+  }
+
   // ---------------------------------------------------------------- a row
   function cell(row, field) {
     var td = document.createElement('td');
@@ -295,6 +445,7 @@
 
   function onEdit(row, field, input, td) {
     var v = input.value;
+    var before = field === 'price' ? row.data.price : row.data[field];
     var patch = {};
     if (field === 'price') {
       v = v.trim();
@@ -320,6 +471,13 @@
         if (img) img.src = v || '';
       }
     }
+    // One undo entry per stay in a cell: created on the first keystroke,
+    // then it just tracks the latest value until focus leaves the input.
+    if (!input.__act) {
+      input.__act = fieldAction(row, field, before);
+      pushAction(input.__act);
+    }
+    input.__act.st.after = field === 'price' ? row.data.price : row.data[field];
     if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
     else markDirty(true);
     clearStatus();
@@ -354,26 +512,28 @@
     var del = document.createElement('button');
     del.className = 'ghost-danger';
     del.textContent = 'Delete';
-    del.title = 'Remove this row';
+    del.title = 'Remove this row (Undo brings it back)';
     del.addEventListener('click', function () {
+      pushAction(deleteAction(row));
       removeRowLocal(row);
       renumber(); counts();
       if (mode === 'sync' && row.rid) {
         delete pendingPatch[row.rid];
         queueOp({ rid: row.rid, del: true });
         setStatus('warn', 'Removed "' + (row.data.name || row.data.id || 'untitled') +
-                          '" from everyone\'s draft. The site keeps it until the next Save; ' +
-                          'Reset draft undoes all unpublished edits.');
+                          '" from everyone\'s draft. Undo brings it back; the site keeps it ' +
+                          'until the next Save.');
       } else {
         markDirty(true);
         setStatus('warn', 'Removed "' + (row.data.name || row.data.id || 'untitled') +
-                          '". Nothing is written until you press Save — press Reload to undo.');
+                          '". Nothing is written until you press Save — Undo brings it back.');
       }
     });
     act.appendChild(del);
     row.el.appendChild(act);
 
     var tdImg = document.createElement('td');
+    tdImg.setAttribute('data-field', '_thumb');
     var img = document.createElement('img');
     img.className = 'thumb'; img.alt = ''; img.loading = 'lazy';
     img.src = data.img || '';
@@ -437,6 +597,7 @@
       setStatus('warn', 'Duplicated as "' + copy.id +
                         '". Edit it, then press Save. Reload discards it.');
     }
+    pushAction(createAction(clone));
     clone.el.scrollIntoView({ block: 'center' });
     var nameInput = fieldInput(clone, 'name');
     if (nameInput) { nameInput.focus(); nameInput.select(); }
@@ -447,6 +608,7 @@
   }
 
   function render(list) {              // solo mode full render
+    clearHistory();
     rowsEl.textContent = '';
     byRid = {};
     rows = list.map(function (p, i) { return makeRow(p, null, i + 1); });
@@ -488,6 +650,136 @@
     });
     return out;
   }
+
+  // ------------------------------------------------------------ undo/redo
+  // Local, per-tab, and cleared by Save (published states are covered by the
+  // History panel instead). Each entry is a pair of closures that apply the
+  // change in either direction THROUGH the normal editing path, so undoing in
+  // sync mode streams to the other editors like any other edit.
+  var undoStack = [], redoStack = [];
+
+  function pushAction(a) {
+    undoStack.push(a);
+    if (undoStack.length > 200) undoStack.shift();
+    redoStack.length = 0;
+    undoUI();
+  }
+  function undoUI() {
+    $('undo').disabled = !undoStack.length;
+    $('redo').disabled = !redoStack.length;
+  }
+  function clearHistory() {
+    undoStack.length = 0;
+    redoStack.length = 0;
+    undoUI();
+  }
+  function rowAlive(row) { return rows.indexOf(row) > -1; }
+
+  // Programmatic edit of one field: data + input + thumb + sync/dirty.
+  function setFieldValue(row, field, value) {
+    var patch = {};
+    if (field === 'cat') {
+      row.data.cat = value;
+      row.data.catLabel = label(value);
+      patch.cat = value; patch.catLabel = row.data.catLabel;
+    } else {
+      if (value === undefined) delete row.data[field];
+      else row.data[field] = value;
+      patch[field] = value === undefined ? null : value;
+    }
+    var input = fieldInput(row, field);
+    if (input && input.value !== (value === undefined ? '' : String(value))) {
+      input.value = value === undefined ? '' : String(value);
+    }
+    if (field === 'img') {
+      var img = row.el.querySelector('.thumb');
+      if (img) img.src = row.data.img || '';
+    }
+    if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
+    else markDirty(true);
+  }
+
+  function fieldAction(row, field, before) {
+    var st = { after: undefined };
+    return {
+      st: st,
+      u: function () { if (!rowAlive(row)) return false; setFieldValue(row, field, before); return true; },
+      r: function () { if (!rowAlive(row)) return false; setFieldValue(row, field, st.after); return true; }
+    };
+  }
+
+  function createAction(row) {         // row was just added (Add / Copy)
+    var snap = JSON.parse(JSON.stringify(row.data));
+    var rid = row.rid, pos = row.pos;
+    var cur = { row: row };
+    return {
+      u: function () {
+        if (!rowAlive(cur.row)) return false;
+        removeRowLocal(cur.row); renumber(); counts();
+        if (mode === 'sync' && rid) { delete pendingPatch[rid]; queueOp({ rid: rid, del: true }); }
+        else markDirty(true);
+        return true;
+      },
+      r: function () {
+        if (rowAlive(cur.row)) return false;
+        var nr = makeRow(JSON.parse(JSON.stringify(snap)), rid, pos);
+        cur.row = nr;
+        insertSorted(nr); renumber(); counts(); filter();
+        if (mode === 'sync' && rid) queueOp({ rid: rid, pos: pos, data: JSON.parse(JSON.stringify(snap)) });
+        else markDirty(true);
+        return true;
+      }
+    };
+  }
+
+  function deleteAction(row) {         // captured just before removal
+    var snap = JSON.parse(JSON.stringify(row.data));
+    var rid = row.rid, pos = row.pos;
+    var cur = { row: row };
+    return {
+      u: function () {
+        if (rowAlive(cur.row)) return false;
+        var nr = makeRow(JSON.parse(JSON.stringify(snap)), rid, pos);
+        cur.row = nr;
+        insertSorted(nr); renumber(); counts(); filter();
+        if (mode === 'sync' && rid) queueOp({ rid: rid, pos: pos, data: JSON.parse(JSON.stringify(snap)) });
+        else markDirty(true);
+        return true;
+      },
+      r: function () {
+        if (!rowAlive(cur.row)) return false;
+        removeRowLocal(cur.row); renumber(); counts();
+        if (mode === 'sync' && rid) { delete pendingPatch[rid]; queueOp({ rid: rid, del: true }); }
+        else markDirty(true);
+        return true;
+      }
+    };
+  }
+
+  function undo() {
+    if (document.activeElement) document.activeElement.__act = null;
+    while (undoStack.length) {
+      var a = undoStack.pop();
+      if (a.u()) { redoStack.push(a); undoUI(); return true; }
+    }
+    undoUI();
+    return false;
+  }
+  function redo() {
+    if (document.activeElement) document.activeElement.__act = null;
+    while (redoStack.length) {
+      var a = redoStack.pop();
+      if (a.r()) { undoStack.push(a); undoUI(); return true; }
+    }
+    undoUI();
+    return false;
+  }
+
+  $('undo').addEventListener('click', function () { undo(); });
+  $('redo').addEventListener('click', function () { redo(); });
+  rowsEl.addEventListener('focusout', function (ev) {
+    if (ev.target && ev.target.__act) ev.target.__act = null;
+  });
 
   // ------------------------------------------------- sync mode: the queue
   function queuePatch(rid, fields) {
@@ -598,8 +890,8 @@
     if (d.error) { setStatus('err', d.error); return; }
 
     if (booted && d.epoch !== epoch) {
-      // Somebody reset the draft. Local queues target dead rids -- drop them,
-      // and unless this response already carries the full table, fetch it.
+      // Somebody reset or restored the draft. Local queues target dead rids --
+      // drop them, and unless this response carries the full table, fetch it.
       pendingPatch = {}; pendingOps = [];
       if (!d.full) { epoch = d.epoch; cursor = 0; tick(); return; }
     }
@@ -628,7 +920,9 @@
     }
     if (d.reset && d.reset.at > lastResetAt) {
       if (booted && d.reset.who !== NAME) {
-        setStatus('warn', (d.reset.who || 'Someone') + ' reset the draft to the last saved catalog.');
+        setStatus('warn', (d.reset.who || 'Someone') + ' ' +
+          (d.reset.note ? d.reset.note + ' — the table reloaded to match.'
+                        : 'reset the draft to the last saved catalog.'));
       }
       lastResetAt = d.reset.at;
     }
@@ -638,6 +932,7 @@
   }
 
   function renderFull(d) {
+    clearHistory();
     if (d.categories && d.categories.length) CATEGORIES = d.categories;
     var list = d.rows.slice().sort(function (a, b) {
       return a.pos - b.pos || (String(a.rid) < String(b.rid) ? -1 : 1);
@@ -747,12 +1042,16 @@
     });
   }
 
+  function rowFor(tr) {
+    for (var i = 0; i < rows.length; i++) if (rows[i].el === tr) return rows[i];
+    return null;
+  }
+
   rowsEl.addEventListener('focusin', function (ev) {
     var tr = ev.target && ev.target.closest ? ev.target.closest('tr') : null;
     if (!tr) return;
-    for (var i = 0; i < rows.length; i++) {
-      if (rows[i].el === tr) { focusRid = rows[i].rid; return; }
-    }
+    var row = rowFor(tr);
+    if (row) focusRid = row.rid;
   });
   window.addEventListener('blur', function () { focusRid = null; });
 
@@ -766,6 +1065,71 @@
     }
   }
   $('who').addEventListener('click', function () { if (mode === 'sync') promptName(true); });
+
+  // ------------------------------------------------- spreadsheet keyboard
+  function visibleFields() {
+    var out = [];
+    for (var i = 0; i < FIELDS.length; i++) {
+      if (!colState.hidden[FIELDS[i]]) out.push(FIELDS[i]);
+    }
+    return out;
+  }
+
+  function moveFocus(row, field, dRow, dCol) {
+    var vis = rows.filter(function (r) { return r.el.style.display !== 'none'; });
+    var ri = vis.indexOf(row);
+    var fs = visibleFields();
+    var ci = fs.indexOf(field);
+    if (ri < 0 || ci < 0) return;
+    ri = Math.max(0, Math.min(vis.length - 1, ri + dRow));
+    ci = Math.max(0, Math.min(fs.length - 1, ci + dCol));
+    var target = fieldInput(vis[ri], fs[ci]);
+    if (!target) return;
+    target.focus();
+    if (target.tagName === 'INPUT' && target.select) target.select();
+    if (target.scrollIntoView) target.scrollIntoView({ block: 'nearest' });
+    focusRid = vis[ri].rid;             // presence follows keyboard nav too
+    navAt = { row: ri, field: fs[ci] };
+  }
+
+  rowsEl.addEventListener('keydown', function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    var td = t.closest('td[data-field]');
+    if (!td) return;
+    var field = td.getAttribute('data-field');
+    if (field === '_thumb') return;
+    var row = rowFor(td.parentNode);
+    if (!row) return;
+    var tag = t.tagName, k = ev.key;
+
+    if (k === 'Enter') {
+      // In desc/note, Shift+Enter keeps its meaning: a new line.
+      if (tag === 'TEXTAREA' && ev.shiftKey) return;
+      ev.preventDefault();
+      moveFocus(row, field, ev.shiftKey && tag !== 'TEXTAREA' ? -1 : 1, 0);
+    } else if (k === 'ArrowDown' || k === 'ArrowUp') {
+      if (tag === 'SELECT') return;      // native option cycling stays
+      if (tag === 'TEXTAREA') {
+        // Hop rows only from the very start / very end of the text.
+        var atS = t.selectionStart === 0 && t.selectionEnd === 0;
+        var atE = t.selectionStart === t.value.length && t.selectionEnd === t.value.length;
+        if (k === 'ArrowUp' && !atS) return;
+        if (k === 'ArrowDown' && !atE) return;
+      }
+      ev.preventDefault();
+      moveFocus(row, field, k === 'ArrowDown' ? 1 : -1, 0);
+    } else if (k === 'ArrowLeft' || k === 'ArrowRight') {
+      if (tag !== 'SELECT') {
+        // Hop cells only when the caret is already at the edge of the text.
+        if (t.selectionStart !== t.selectionEnd) return;
+        if (k === 'ArrowLeft' && t.selectionStart !== 0) return;
+        if (k === 'ArrowRight' && t.selectionEnd !== t.value.length) return;
+      }
+      ev.preventDefault();
+      moveFocus(row, field, 0, k === 'ArrowRight' ? 1 : -1);
+    }
+  });
 
   // ----------------------------------------------------------------- load
   function parseProductsJs(text) {
@@ -802,11 +1166,12 @@
     $('reload').title = 'Throw away ALL unpublished edits (everyone\'s) and reload the draft ' +
                         'from the last saved catalog';
     $('save').title = 'Publish the shared draft: commits js/products.js and rebuilds the site';
+    $('hist').style.display = '';
     $('who').style.cursor = 'pointer';
     $('who').title = 'Click to change your editor name';
     $('note').textContent = 'Edits sync to every open editor within a few seconds — nothing ' +
       'touches the site until Save, which publishes the shared draft: it writes js/products.js ' +
-      'and re-bakes store.html + index.html (~1 min).';
+      'and re-bakes store.html + index.html (~1 min). Every Save is kept in History.';
   }
 
   function load() {                    // solo mode (original behaviour)
@@ -888,6 +1253,7 @@
         return;
       }
       markDirty(false);
+      clearHistory();
       if (res.d.sha) baseSha = res.d.sha;
 
       var note;
@@ -926,6 +1292,7 @@
           setStatus('err', msg);
         } else {
           publishedSeq = seqCounter;   // next poll brings the exact value
+          clearHistory();              // published states live in History now
           setStatus('ok', 'Saved ' + res.d.count + ' products.  ' + (res.d.message || '') +
                           (res.d.commit ? '  (commit ' + res.d.commit + ')' : ''));
         }
@@ -938,7 +1305,115 @@
       });
   }
 
+  // ------------------------------------------------------ version history
+  // Every Save is a git commit of js/products.js, so the full run of saved
+  // versions already exists and only ever grows. This panel lists it and can
+  // restore any entry -- the restore itself becomes a new version.
+  function fmtAgo(iso) {
+    var t = Date.parse(iso || '');
+    if (!t) return '';
+    var s = (Date.now() - t) / 1000;
+    if (s < 90) return 'just now';
+    if (s < 3600) return Math.round(s / 60) + 'm ago';
+    if (s < 172800) return Math.round(s / 3600) + 'h ago';
+    return Math.round(s / 86400) + 'd ago';
+  }
+
+  function loadHistory() {
+    var p = $('histPanel');
+    p.textContent = 'Loading…';
+    fetch('/api/history', { cache: 'no-store' })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.d.versions) {
+          p.textContent = (res.d && res.d.error) || 'Could not load the history.';
+          return;
+        }
+        renderHistory(res.d.versions);
+      })
+      .catch(function (e) { p.textContent = 'Could not load the history: ' + e.message; });
+  }
+
+  function renderHistory(versions) {
+    var p = $('histPanel');
+    p.textContent = '';
+    var head = document.createElement('div');
+    head.className = 'menu-head';
+    head.textContent = versions.length + ' saved version' + (versions.length === 1 ? '' : 's') +
+                       ' — every Save is kept; restoring adds a new one, nothing is deleted.';
+    p.appendChild(head);
+    versions.forEach(function (v, i) {
+      var row = document.createElement('div');
+      row.className = 'hist-row';
+      var when = document.createElement('span');
+      when.className = 'hist-when';
+      when.textContent = fmtAgo(v.at) || '—';
+      when.title = v.at || '';
+      var msg = document.createElement('span');
+      msg.className = 'hist-msg';
+      msg.textContent = v.message || v.sha.slice(0, 7);
+      msg.title = (v.message || '') + '  ·  ' + v.sha.slice(0, 7);
+      row.appendChild(when);
+      row.appendChild(msg);
+      if (i === 0) {
+        var cur = document.createElement('span');
+        cur.className = 'hist-cur';
+        cur.textContent = 'current';
+        row.appendChild(cur);
+      } else {
+        var b = document.createElement('button');
+        b.textContent = 'Restore';
+        b.addEventListener('click', function () { restoreVersion(v); });
+        row.appendChild(b);
+      }
+      p.appendChild(row);
+    });
+  }
+
+  function restoreVersion(v) {
+    if (!confirm('Restore the catalog exactly as it was ' + (fmtAgo(v.at) || 'at ' + v.sha.slice(0, 7)) +
+                 '?\n\nThe current version stays in History. The site rebuilds (~1 min) and ' +
+                 'every open editor reloads to the restored table.')) return;
+    $('histPanel').classList.remove('open');
+    setStatus('warn', 'Restoring version ' + v.sha.slice(0, 7) + '…');
+    fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sha: v.sha, author: NAME || undefined })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) { setStatus('err', res.d.error || 'restore failed'); return; }
+        setStatus('ok', res.d.message || 'Restored.');
+        if (mode === 'sync') tick();   // the epoch bump brings the full reload
+      })
+      .catch(function (e) { setStatus('err', 'Restore failed: ' + e.message); });
+  }
+
   // ------------------------------------------------------------- controls
+  function toggleMenu(id) {
+    var el = $(id);
+    var open = el.classList.contains('open');
+    $('colsMenu').classList.remove('open');
+    $('histPanel').classList.remove('open');
+    if (!open) el.classList.add('open');
+    return !open;
+  }
+  $('cols').addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    toggleMenu('colsMenu');
+  });
+  $('hist').addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    if (toggleMenu('histPanel')) loadHistory();
+  });
+  document.addEventListener('click', function (ev) {
+    if (!ev.target.closest || !ev.target.closest('.menu')) {
+      $('colsMenu').classList.remove('open');
+      $('histPanel').classList.remove('open');
+    }
+  });
+
   $('add').addEventListener('click', function () {
     var pos = rows.length ? rows[0].pos - 1 : 1;
     var row = makeRow({ cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] }, newRid(), pos);
@@ -951,6 +1426,7 @@
     } else {
       markDirty(true);
     }
+    pushAction(createAction(row));
     $('q').value = ''; filter();
     row.el.scrollIntoView({ block: 'center' });
     var nameInput = fieldInput(row, 'name');
@@ -960,9 +1436,10 @@
       nameInput.removeEventListener('blur', once);
       var idInput = fieldInput(row, 'id');
       if (idInput && !idInput.value.trim() && nameInput.value.trim()) {
-        idInput.value = slugify(nameInput.value);
-        row.data.id = idInput.value;
-        if (mode === 'sync' && row.rid) queuePatch(row.rid, { id: row.data.id });
+        var a = fieldAction(row, 'id', row.data.id);
+        a.st.after = slugify(nameInput.value);
+        pushAction(a);
+        setFieldValue(row, 'id', a.st.after);
       }
     });
   });
@@ -993,11 +1470,31 @@
 
   $('save').addEventListener('click', save);
   $('q').addEventListener('input', filter);
+  $('q').addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') { $('q').value = ''; filter(); $('q').blur(); }
+  });
 
   document.addEventListener('keydown', function (ev) {
-    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 's') {
-      ev.preventDefault();
-      if (!$('save').disabled) save();
+    var meta = ev.metaKey || ev.ctrlKey;
+    if (meta && !ev.altKey) {
+      var k = ev.key.toLowerCase();
+      if (k === 's') {
+        ev.preventDefault();
+        if (!$('save').disabled) save();
+        return;
+      }
+      // Cell edits get a spreadsheet-wide undo, so the browser's per-input
+      // text undo is deliberately overridden (the filter box keeps its own).
+      if (ev.target !== $('q')) {
+        if (k === 'z') { ev.preventDefault(); if (ev.shiftKey) redo(); else undo(); return; }
+        if (k === 'y') { ev.preventDefault(); redo(); return; }
+      }
+      return;
+    }
+    if (ev.key === '/' && !ev.altKey) {
+      var t = ev.target;
+      var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
+      if (!typing) { ev.preventDefault(); $('q').focus(); $('q').select(); }
     }
   });
 
@@ -1015,14 +1512,22 @@
   // catalogSync.tick() to force a sync pump right now.
   window.catalogSync = {
     tick: function () { tick(); },
+    undo: function () { return undo(); },
+    redo: function () { return redo(); },
     state: function () {
       return { mode: mode, cursor: cursor, epoch: epoch, seq: seqCounter,
                publishedSeq: publishedSeq, pendingOps: pendingOps.length,
                pendingRows: Object.keys(pendingPatch).length,
-               inFlight: inFlight, name: NAME };
+               inFlight: inFlight, name: NAME,
+               undoDepth: undoStack.length, redoDepth: redoStack.length,
+               nav: navAt };
     }
   };
 
+  applyCols();
+  initResize();
+  buildColsMenu();
+  undoUI();
   boot();
 })();
 </script>

@@ -47,7 +47,7 @@ const json = (status, body) => new Response(JSON.stringify(body), {
 // Schema is created lazily, so there is nothing to paste into the D1 console:
 // bind an empty database and it initialises itself on first use.
 let ready = false;
-async function ensure(db) {
+export async function ensure(db) {
   if (ready) return;
   await db.batch([
     db.prepare('CREATE TABLE IF NOT EXISTS draft_rows(' +
@@ -63,7 +63,7 @@ async function ensure(db) {
 }
 
 const SEQ = "(SELECT v+0 FROM draft_meta WHERE k='seq')";
-const putMeta = (db, k, v) => db
+export const putMeta = (db, k, v) => db
   .prepare('INSERT INTO draft_meta(k,v) VALUES(?1,?2) ON CONFLICT(k) DO UPDATE SET v=?2')
   .bind(k, v);
 
@@ -77,7 +77,7 @@ async function meta(db) {
 // Throw the draft away and rebuild it from js/products.js on GitHub. Runs on
 // first use (empty database) and on an explicit reset. The epoch bump tells
 // every connected editor to reload its table from scratch.
-async function seed(db, env) {
+export async function seed(db, env) {
   const cfg = config(env);
   const res = await github(cfg, 'GET');
   if (!res.ok) {
