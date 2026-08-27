@@ -93,10 +93,12 @@ How it behaves once bound:
 - **Reset draft** (replaces Reload) throws away *everyone's* unpublished edits
   and reloads the draft from the last saved catalog. It asks first.
 - **History ▾** lists every saved version — each Save is a git commit, so the
-  trail reaches back to the very first save and only ever grows. **Restore**
-  writes an old version as a *new* commit (nothing is ever deleted), the site
-  rebuilds, and every open editor reloads to the restored table with a note
-  saying who restored what.
+  trail reaches back to the very first save and only ever grows. **Restore is
+  draft-only:** it loads that version into the shared draft, every open editor
+  reloads to it with a note saying who restored what, and that is all — no
+  commit, no rebuild, no file is touched, the live site does not change.
+  The restored table sits there as unpublished changes; review it (or keep
+  editing) and press **Save** to publish it, exactly like any other edit.
 - **Undo / redo** (Ctrl+Z / Ctrl+Shift+Z, or the ↶ ↷ buttons) covers your own
   edits since the last save — including bringing a deleted row back. Undoing
   syncs to the other editors like any other edit. Saved states are History's
@@ -129,9 +131,10 @@ editor per day against a 100k/day allowance).
   atomic per file: the second save is refused with "somebody else saved"
   rather than overwriting; press Reload and redo the change.
 - **Every save is a git commit,** so the full history is in GitHub and the
-  editor's **History ▾** button lists every one of them with one-click
-  restore (`/api/history`). The local editor's `js/backups/` folder is a
-  separate, local-only safety net.
+  editor's **History ▾** button lists every one of them (`/api/history`).
+  Restore loads a version back into the shared draft; Save is still the only
+  thing that commits, rebuilds or deploys anything. The local editor's
+  `js/backups/` folder is a separate, local-only safety net.
 - **The catalog is read from GitHub, not the live site,** so the editor is never
   looking at a stale copy while a deploy is in flight.
 
@@ -151,6 +154,7 @@ editor per day against a 100k/day allowance).
 | "js/products.js changed on GitHub outside this editor" | Someone committed the file directly in git while a draft was live. Press **Reset draft** to start from that newer version. |
 | Editor shows stale rows after a Reset | It catches up on its next poll (a few seconds). Every editor reloads its table automatically when the draft is reset. |
 | History ▾ says "GitHub would not list the saved versions" | The token lost Contents: read (expired, or re-scoped). Same fix as other token errors: re-issue per step 1. |
+| Restored a version but the live site still shows the new products | By design. Restore only fills the shared draft; press **Save** to publish the restored table to the site. |
 
 ## Changing the password
 

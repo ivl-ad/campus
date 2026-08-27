@@ -123,7 +123,7 @@
   <button id="undo" disabled title="Undo (Ctrl+Z)">↶ Undo</button>
   <button id="redo" disabled title="Redo (Ctrl+Shift+Z or Ctrl+Y)">↷ Redo</button>
   <button id="cols" title="Show, hide and resize columns">Columns ▾</button>
-  <button id="hist" style="display:none" title="Every saved version, with restore">History ▾</button>
+  <button id="hist" style="display:none" title="Every saved version — load one back into the draft">History ▾</button>
   <button id="add">+ Add product</button>
   <button id="reload">Reload</button>
   <button class="primary" id="save" disabled>Save</button>
@@ -1340,7 +1340,8 @@
     var head = document.createElement('div');
     head.className = 'menu-head';
     head.textContent = versions.length + ' saved version' + (versions.length === 1 ? '' : 's') +
-                       ' — every Save is kept; restoring adds a new one, nothing is deleted.';
+                       ' — every Save is kept forever. Restore loads one into the shared draft; ' +
+                       'the site only changes when you press Save.';
     p.appendChild(head);
     versions.forEach(function (v, i) {
       var row = document.createElement('div');
@@ -1371,11 +1372,11 @@
   }
 
   function restoreVersion(v) {
-    if (!confirm('Restore the catalog exactly as it was ' + (fmtAgo(v.at) || 'at ' + v.sha.slice(0, 7)) +
-                 '?\n\nThe current version stays in History. The site rebuilds (~1 min) and ' +
-                 'every open editor reloads to the restored table.')) return;
+    if (!confirm('Load the catalog as it was ' + (fmtAgo(v.at) || 'at ' + v.sha.slice(0, 7)) +
+                 ' into the shared draft for EVERYONE?\n\nUnpublished edits are replaced by ' +
+                 'that version. The live site does NOT change until somebody presses Save.')) return;
     $('histPanel').classList.remove('open');
-    setStatus('warn', 'Restoring version ' + v.sha.slice(0, 7) + '…');
+    setStatus('warn', 'Loading version ' + v.sha.slice(0, 7) + ' into the draft…');
     fetch('/api/history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

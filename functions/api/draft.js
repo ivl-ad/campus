@@ -74,9 +74,26 @@ async function meta(db) {
   return out;
 }
 
+// Replace the draft's rows with this product list, atomically, bumping the
+// epoch so every connected editor reloads its table. Touches nothing else:
+// base_sha and the save marker are the caller's business, which is what lets
+// /api/history load an OLD version in as unpublished work (draft differs from
+// the live site until somebody presses Save).
+export async function reseed(db, products, extraMeta) {
+  const stmts = [
+    db.prepare('DELETE FROM draft_rows'),
+    db.prepare("UPDATE draft_meta SET v=v+1 WHERE k='seq'"),
+    db.prepare("UPDATE draft_meta SET v=v+1 WHERE k='epoch'")
+  ];
+  (extraMeta || []).forEach((kv) => stmts.push(putMeta(db, kv[0], kv[1])));
+  products.forEach((p, i) => stmts.push(
+    db.prepare('INSERT INTO draft_rows(rid,pos,seq,deleted,data) VALUES(?1,?2,' + SEQ + ',0,?3)')
+      .bind(crypto.randomUUID(), i + 1, JSON.stringify(p))));
+  await db.batch(stmts);
+}
+
 // Throw the draft away and rebuild it from js/products.js on GitHub. Runs on
-// first use (empty database) and on an explicit reset. The epoch bump tells
-// every connected editor to reload its table from scratch.
+// first use (empty database) and on an explicit reset.
 export async function seed(db, env) {
   const cfg = config(env);
   const res = await github(cfg, 'GET');
@@ -86,17 +103,10 @@ export async function seed(db, env) {
                     (res.data && res.data.message ? res.data.message : ''));
   }
   const products = parseProducts(decodeBase64(res.data.content));
-  const stmts = [
-    db.prepare('DELETE FROM draft_rows'),
-    db.prepare("UPDATE draft_meta SET v=v+1 WHERE k='seq'"),
-    db.prepare("UPDATE draft_meta SET v=v+1 WHERE k='epoch'"),
-    putMeta(db, 'base_sha', res.data.sha),
-    putMeta(db, 'source', 'github:' + cfg.repo + '@' + cfg.branch)
-  ];
-  products.forEach((p, i) => stmts.push(
-    db.prepare('INSERT INTO draft_rows(rid,pos,seq,deleted,data) VALUES(?1,?2,' + SEQ + ',0,?3)')
-      .bind(crypto.randomUUID(), i + 1, JSON.stringify(p))));
-  await db.batch(stmts);
+  await reseed(db, products, [
+    ['base_sha', res.data.sha],
+    ['source', 'github:' + cfg.repo + '@' + cfg.branch]
+  ]);
   // A freshly seeded draft matches GitHub exactly, so record a synthetic save
   // marker at the current counter -- "unpublished changes" then starts false.
   // commit:'' also keeps the editors from announcing it as a real save.
