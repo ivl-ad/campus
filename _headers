@@ -1,0 +1,27 @@
+# Cloudflare Pages custom headers.
+# https://developers.cloudflare.com/pages/configuration/headers/
+#
+# Without this file every asset ships with Pages' default
+# "Cache-Control: max-age=0, must-revalidate", so each page navigation
+# re-fetches all four stylesheets over the network; on a flaky phone
+# connection those requests can fail and the page paints unstyled
+# (seen on iOS Safari). A real max-age lets the browser reuse its
+# cached copy instead of depending on the network every time.
+#
+# Deliberately NO rules for: *.html (rebuilt store/index must show up
+# immediately), /js/* (catalog edits to js/products.js must reach
+# shoppers right away; the admin editor also fetches it with
+# cache:'no-store'), and /admin + /api (auth-guarded, served through
+# Pages Functions, which _headers does not apply to anyway).
+#
+# css: a style tweak takes at most a day to reach repeat visitors; the
+# main mycampuskorner-<hash>.webflow.css gets a new filename on every
+# Webflow re-export, so it busts its own cache regardless.
+# images: site chrome only (heroes, favicons) - product photos are
+# external merchant URLs, so nothing here goes stale with the catalog.
+
+/css/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/images/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=604800
