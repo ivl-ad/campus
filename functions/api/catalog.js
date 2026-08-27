@@ -27,7 +27,7 @@ const FIELD_ORDER = ['id', 'name', 'cat', 'catLabel', 'merchant', 'merchantSlug'
                      'url', 'img', 'price', 'desc', 'note'];
 
 // Must match SITE_CATEGORIES in build_listings.py.
-const CATEGORIES = [
+export const CATEGORIES = [
   ['dorm-living-essentials', 'Dorm & Living Essentials'],
   ['academic-essentials', 'Academic Essentials'],
   ['personal-lifestyle', 'Personal Lifestyle'],
@@ -159,7 +159,7 @@ export function validate(products) {
 }
 
 // ----------------------------------------------------------------- GitHub
-function config(env) {
+export function config(env) {
   const repo = env.GITHUB_REPO;
   const token = env.GITHUB_TOKEN;
   const branch = env.GITHUB_BRANCH || 'main';
@@ -170,7 +170,7 @@ function config(env) {
   return { repo, token, branch };
 }
 
-async function github(cfg, method, body) {
+export async function github(cfg, method, body) {
   const url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + FILE +
               (method === 'GET' ? '?ref=' + encodeURIComponent(cfg.branch) : '');
   const res = await fetch(url, {
@@ -230,7 +230,18 @@ export async function onRequestPost({ request, env }) {
   try { body = await request.json(); } catch (e) {
     return json(400, { error: 'expected a JSON body' });
   }
-  const products = body && body.products;
+  let products = body && body.products;
+  let draftSeq = 0;
+  if (body && body.fromDraft) {
+    // The synced editor sends no products: publish the shared draft exactly as
+    // it stands in D1 (see functions/api/draft.js), including edits made on
+    // other screens. Counter first, then rows -- an edit landing in between
+    // shows as "unpublished" afterwards instead of being silently published.
+    if (!env.DB) return json(400, { error: 'The shared draft has no DB binding on this Pages project.' });
+    draftSeq = Number(await env.DB.prepare("SELECT v FROM draft_meta WHERE k='seq'").first('v')) || 0;
+    const got = await env.DB.prepare('SELECT data FROM draft_rows WHERE deleted=0 ORDER BY pos, rid').all();
+    products = got.results.map((r) => JSON.parse(r.data));
+  }
   if (!Array.isArray(products)) return json(400, { error: 'products must be a list' });
   if (!products.length) return json(400, { error: 'refusing to save an empty catalog' });
 
@@ -247,7 +258,18 @@ export async function onRequestPost({ request, env }) {
   let header = '';
   try { header = readHeader(decodeBase64(current.data.content)); } catch (e) { /* header optional */ }
 
-  if (body.sha && body.sha !== current.data.sha) {
+  if (body.fromDraft) {
+    // The draft remembers the sha it was seeded from; a mismatch means somebody
+    // committed js/products.js directly in git while the draft was live.
+    const base = await env.DB.prepare("SELECT v FROM draft_meta WHERE k='base_sha'").first('v');
+    if (base && base !== current.data.sha) {
+      return json(409, {
+        error: 'js/products.js changed on GitHub outside this editor (a direct commit).\n' +
+               'Press "Reset draft" to start over from that newer version (unpublished ' +
+               'edits are discarded), or reconcile the two in git first.'
+      });
+    }
+  } else if (body.sha && body.sha !== current.data.sha) {
     return json(409, {
       error: 'Somebody else saved the catalog while this page was open.\n' +
              'Press Reload to pick up their version, then make your changes again. ' +
@@ -274,11 +296,24 @@ export async function onRequestPost({ request, env }) {
     });
   }
 
+  const newSha = put.data && put.data.content ? put.data.content.sha : null;
+  const commit = put.data && put.data.commit ? put.data.commit.sha.slice(0, 7) : null;
+  if (body.fromDraft && newSha) {
+    // Tell every open editor: base_sha keeps the next out-of-band check honest,
+    // save.seq is what the "unpublished changes" indicator compares against.
+    const note = JSON.stringify({ who: who, at: Date.now(), count: products.length,
+                                  seq: draftSeq, commit: commit || '' });
+    const up = (k, v) => env.DB
+      .prepare('INSERT INTO draft_meta(k,v) VALUES(?1,?2) ON CONFLICT(k) DO UPDATE SET v=?2')
+      .bind(k, v);
+    await env.DB.batch([up('base_sha', newSha), up('save', note)]);
+  }
+
   return json(200, {
     ok: true,
     count: products.length,
-    sha: put.data && put.data.content ? put.data.content.sha : null,
-    commit: put.data && put.data.commit ? put.data.commit.sha.slice(0, 7) : null,
+    sha: newSha,
+    commit: commit,
     message: 'Committed to ' + cfg.repo + '@' + cfg.branch +
              '. The site rebuilds and redeploys in about a minute.'
   });

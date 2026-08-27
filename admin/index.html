@@ -20,6 +20,7 @@
          display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
   h1{font-size:15px;margin:0 8px 0 0;font-weight:650;white-space:nowrap}
   .count{color:var(--muted);white-space:nowrap}
+  #who{cursor:default}
   .spacer{flex:1}
   input[type=search]{padding:6px 9px;border:1px solid var(--line);border-radius:6px;
                      background:#fff;min-width:200px;font:inherit}
@@ -54,6 +55,9 @@
                       font-variant-numeric:tabular-nums;width:46px;min-width:46px}
   thead th.rownum{z-index:4}
   tbody tr:hover td.rownum{background:#e6e8e0}
+
+  /* Another editor's cursor is parked on this row. */
+  tbody tr.peer td.rownum{box-shadow:inset 4px 0 0 0 var(--peer,#888)}
 
   td input,td textarea,td select{width:100%;border:0;background:transparent;font:inherit;
         color:inherit;padding:6px 8px;resize:none;display:block}
@@ -91,6 +95,7 @@
 <header>
   <h1>Catalog editor</h1>
   <span class="count" id="count">loading…</span>
+  <span class="count" id="who"></span>
   <input type="search" id="q" placeholder="Filter by name, id, merchant…" autocomplete="off"/>
   <span class="spacer"></span>
   <button id="add">+ Add product</button>
@@ -127,7 +132,7 @@
   <span class="pill" id="backups">backups: –</span>
   <span id="dirty"></span>
   <span class="spacer"></span>
-  <span>Save writes js/products.js, keeps a numbered backup in js/backups/, and re-bakes store.html + index.html.</span>
+  <span id="note">Save writes js/products.js, keeps a numbered backup in js/backups/, and re-bakes store.html + index.html.</span>
 </footer>
 
 <script>
@@ -151,10 +156,47 @@
 
   var FIELDS = ['id','name','cat','merchant','merchantSlug','price','url','img','desc','note'];
 
-  var rows = [];          // [{data:{...}, el:<tr>}]
+  /*
+   * Two modes.
+   *
+   * sync -- the live site, with /api/draft answering: everyone edits ONE
+   * shared draft in D1. Keystrokes are debounced into field patches, creates
+   * and deletes go as ops, and one pump (tick) both pushes local edits and
+   * pulls everyone else's, every ~2.5s while the tab is visible. Nothing
+   * touches GitHub until Save, which publishes the draft server-side.
+   *
+   * solo -- no /api/draft (python catalog_server.py locally, or D1 not bound
+   * yet): the original behaviour, all state in this tab until Save.
+   */
+  var rows = [];           // display order == draft order (pos ascending)
+  var byRid = {};          // rid -> row, sync mode only
+  var mode = 'boot';       // 'sync' | 'solo'
+  var cursor = 0;          // highest draft seq applied locally
+  var epoch = 0;           // bumped server-side on reset -> full reload
+  var seqCounter = 0;      // server's write counter, for "unpublished changes"
+  var publishedSeq = 0;    // counter at the last save
+  var lastSaveAt = 0, lastResetAt = 0, booted = false;
+  var pendingPatch = {};   // rid -> {field: value|null} typed but not yet sent
+  var pendingOps = [];     // creates/deletes not yet sent
+  var flushTimer = null, pollTimer = null, inFlight = false;
+  var saving = false, saveAfterFlush = false, saveFlushTries = 0;
+  var lastActivity = Date.now();
+  var focusRid = null, sentFocus = '<none>', presenceSentAt = 0;
+
+  // Per-tab identity (sessionStorage on purpose: the same person on two
+  // devices -- or two tabs -- should count as two editors), sticky name.
+  var CLIENT = sessionStorage.getItem('editorClient');
+  if (!CLIENT) {
+    CLIENT = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+             : 'c' + Date.now() + Math.random().toString(36).slice(2);
+    sessionStorage.setItem('editorClient', CLIENT);
+  }
+  var NAME = localStorage.getItem('editorName') || '';
+
+  // solo-mode state (unchanged semantics from the original editor)
   var dirty = false;
-  var baseSha = null;      // git blob sha when hosted; unused locally
-  var liveEditor = true;  // false when there is no server to save to
+  var baseSha = null;
+  var liveEditor = true;
 
   var $ = function (id) { return document.getElementById(id); };
   var rowsEl = $('rows');
@@ -173,6 +215,11 @@
       .replace(/^-+/, '').slice(0, 60).replace(/-+$/, '');
   }
 
+  function newRid() {
+    return (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+           : 'r' + Date.now() + Math.random().toString(36).slice(2);
+  }
+
   function setStatus(kind, text) {
     var el = $('status');
     el.className = 'show ' + kind;
@@ -180,11 +227,24 @@
   }
   function clearStatus() { $('status').className = ''; }
 
-  function markDirty(on) {
+  function markDirty(on) {           // solo mode only
     dirty = on;
     $('dirty').textContent = on ? '● unsaved changes' : '';
     $('dirty').className = on ? 'dirty' : '';
     $('save').disabled = !on || !liveEditor;
+  }
+
+  function localPending() {
+    if (pendingOps.length) return true;
+    for (var k in pendingPatch) return true;
+    return inFlight;
+  }
+  function updateDirty() {           // sync mode: draft ahead of the site?
+    if (mode !== 'sync') return;
+    var un = seqCounter > publishedSeq || localPending();
+    $('dirty').textContent = un ? '● unpublished changes' : '';
+    $('dirty').className = un ? 'dirty' : '';
+    $('save').disabled = !un || saving;
   }
 
   function counts() {
@@ -235,27 +295,33 @@
 
   function onEdit(row, field, input, td) {
     var v = input.value;
+    var patch = {};
     if (field === 'price') {
       v = v.trim();
-      if (v === '') { delete row.data.price; }
+      if (v === '') { delete row.data.price; patch.price = null; }
       else {
         var n = parseFloat(v.replace(/[$,]/g, ''));
-        if (isNaN(n)) { td.classList.add('invalid'); }
-        else { td.classList.remove('invalid'); row.data.price = n; }
+        if (isNaN(n)) { td.classList.add('invalid'); return; }
+        td.classList.remove('invalid');
+        row.data.price = n; patch.price = n;
       }
     } else if (field === 'cat') {
       row.data.cat = v;
       row.data.catLabel = label(v);
+      patch.cat = v; patch.catLabel = row.data.catLabel;
     } else if (field === 'desc' || field === 'note') {
-      if (v.trim() === '') delete row.data[field]; else row.data[field] = v;
+      if (v.trim() === '') { delete row.data[field]; patch[field] = null; }
+      else { row.data[field] = v; patch[field] = v; }
     } else {
       row.data[field] = v;
+      patch[field] = v;
       if (field === 'img') {
         var img = row.el.querySelector('.thumb');
         if (img) img.src = v || '';
       }
     }
-    markDirty(true);
+    if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
+    else markDirty(true);
     clearStatus();
   }
 
@@ -268,8 +334,8 @@
     return candidate;
   }
 
-  function makeRow(data) {
-    var row = { data: data, el: document.createElement('tr') };
+  function makeRow(data, rid, pos) {
+    var row = { data: data, rid: rid || null, pos: pos || 0, el: document.createElement('tr') };
 
     var num = document.createElement('td');
     num.className = 'rownum';
@@ -290,12 +356,19 @@
     del.textContent = 'Delete';
     del.title = 'Remove this row';
     del.addEventListener('click', function () {
-      var i = rows.indexOf(row);
-      if (i > -1) rows.splice(i, 1);
-      row.el.remove();
-      renumber(); counts(); markDirty(true);
-      setStatus('warn', 'Removed "' + (row.data.name || row.data.id || 'untitled') +
-                        '". Nothing is written until you press Save — press Reload to undo.');
+      removeRowLocal(row);
+      renumber(); counts();
+      if (mode === 'sync' && row.rid) {
+        delete pendingPatch[row.rid];
+        queueOp({ rid: row.rid, del: true });
+        setStatus('warn', 'Removed "' + (row.data.name || row.data.id || 'untitled') +
+                          '" from everyone\'s draft. The site keeps it until the next Save; ' +
+                          'Reset draft undoes all unpublished edits.');
+      } else {
+        markDirty(true);
+        setStatus('warn', 'Removed "' + (row.data.name || row.data.id || 'untitled') +
+                          '". Nothing is written until you press Save — press Reload to undo.');
+      }
     });
     act.appendChild(del);
     row.el.appendChild(act);
@@ -323,6 +396,22 @@
     return td ? td.querySelector('input,select,textarea') : null;
   }
 
+  function insertSorted(row) {
+    var i = 0;
+    while (i < rows.length && (rows[i].pos < row.pos ||
+           (rows[i].pos === row.pos && String(rows[i].rid) < String(row.rid)))) i++;
+    rows.splice(i, 0, row);
+    rowsEl.insertBefore(row.el, rows[i + 1] ? rows[i + 1].el : null);
+    if (row.rid) byRid[row.rid] = row;
+  }
+
+  function removeRowLocal(row) {
+    var i = rows.indexOf(row);
+    if (i > -1) rows.splice(i, 1);
+    row.el.remove();
+    if (row.rid) delete byRid[row.rid];
+  }
+
   function duplicate(row) {
     // Copy every field, including ones this tool does not show, then give the
     // copy its own id -- two products may never share a permalink.
@@ -330,26 +419,37 @@
     copy.id = uniqueId(row.data.id);
     if (copy.name) copy.name = copy.name + ' (copy)';
 
-    var clone = makeRow(copy);
     var at = rows.indexOf(row);
+    var next = rows[at + 1];
+    var pos = next ? (row.pos + next.pos) / 2 : row.pos + 1;
+    var clone = makeRow(copy, newRid(), pos);
     rows.splice(at + 1, 0, clone);
+    if (clone.rid) byRid[clone.rid] = clone;
     row.el.parentNode.insertBefore(clone.el, row.el.nextSibling);
 
-    renumber(); counts(); markDirty(true); filter();
+    renumber(); counts(); filter();
+    if (mode === 'sync') {
+      queueOp({ rid: clone.rid, pos: pos, data: JSON.parse(JSON.stringify(copy)) });
+      setStatus('warn', 'Duplicated as "' + copy.id +
+                        '". Every open editor sees it; Save publishes it to the site.');
+    } else {
+      markDirty(true);
+      setStatus('warn', 'Duplicated as "' + copy.id +
+                        '". Edit it, then press Save. Reload discards it.');
+    }
     clone.el.scrollIntoView({ block: 'center' });
     var nameInput = fieldInput(clone, 'name');
     if (nameInput) { nameInput.focus(); nameInput.select(); }
-    setStatus('warn', 'Duplicated as "' + copy.id +
-                      '". Edit it, then press Save. Reload discards it.');
   }
 
   function renumber() {
     rows.forEach(function (r, i) { r.el.firstChild.textContent = i + 1; });
   }
 
-  function render(list) {
+  function render(list) {              // solo mode full render
     rowsEl.textContent = '';
-    rows = list.map(makeRow);
+    byRid = {};
+    rows = list.map(function (p, i) { return makeRow(p, null, i + 1); });
     var frag = document.createDocumentFragment();
     rows.forEach(function (r) { frag.appendChild(r.el); });
     rowsEl.appendChild(frag);
@@ -389,6 +489,284 @@
     return out;
   }
 
+  // ------------------------------------------------- sync mode: the queue
+  function queuePatch(rid, fields) {
+    var p = pendingPatch[rid] || (pendingPatch[rid] = {});
+    for (var k in fields) p[k] = fields[k];
+    bump(false);
+  }
+  function queueOp(op) {
+    pendingOps.push(op);
+    bump(true);
+  }
+  function bump(fast) {
+    lastActivity = Date.now();
+    updateDirty();
+    if (mode !== 'sync') return;
+    if (!flushTimer) {
+      flushTimer = setTimeout(function () { flushTimer = null; tick(); }, fast ? 120 : 400);
+    }
+  }
+
+  function takeOps() {
+    var ops = pendingOps; pendingOps = [];
+    for (var rid in pendingPatch) ops.push({ rid: rid, patch: pendingPatch[rid] });
+    pendingPatch = {};
+    return ops;
+  }
+  function requeue(ops) {
+    // A send failed: put everything back, but anything typed meanwhile wins.
+    ops.forEach(function (op) {
+      if (op.patch) {
+        var p = pendingPatch[op.rid] || (pendingPatch[op.rid] = {});
+        for (var k in op.patch) if (!(k in p)) p[k] = op.patch[k];
+      } else {
+        pendingOps.unshift(op);
+      }
+    });
+  }
+
+  // The one pump: pushes queued edits, pulls everything after `cursor`, and
+  // carries the presence heartbeat. Runs on the poll timer, after local edits
+  // (debounced), on tab focus, and as a keepalive flush when the tab closes.
+  function tick(keepalive) {
+    if (mode !== 'sync' || inFlight) return;
+    if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+    inFlight = true;
+    var ops = takeOps();
+    var payload = { client: CLIENT, name: NAME, since: cursor, ops: ops };
+    var now = Date.now();
+    if (focusRid !== sentFocus || now - presenceSentAt > 25000) {
+      payload.presence = { rid: focusRid };
+      sentFocus = focusRid; presenceSentAt = now;
+    }
+    fetch('/api/draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: !!keepalive
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        inFlight = false;
+        saveFlushTries = 0;
+        apply(d);
+        afterTick();
+      })
+      .catch(function () {
+        inFlight = false;
+        requeue(ops);
+        if (ops.length) setStatus('warn', 'Connection hiccup — your last edits are queued and will retry.');
+        afterTick();
+      });
+  }
+
+  function afterTick() {
+    updateDirty();
+    if (saveAfterFlush) {
+      if (!localPending()) {
+        saveAfterFlush = false; saveFlushTries = 0;
+        doSave();
+      } else if (++saveFlushTries <= 3) {
+        tick();                        // keep flushing until clean, then save
+        return;
+      } else {
+        saveAfterFlush = false; saveFlushTries = 0; saving = false;
+        setStatus('err', 'Could not push your last edits to the server, so nothing was saved. ' +
+                         'Check the connection and press Save again.');
+        updateDirty();
+      }
+    }
+    schedulePoll();
+  }
+
+  function schedulePoll() {
+    if (mode !== 'sync') return;
+    clearTimeout(pollTimer);
+    if (document.visibilityState === 'hidden') return;   // resumes on visibilitychange
+    var idle = Date.now() - lastActivity > 5 * 60 * 1000;
+    pollTimer = setTimeout(function () { tick(); }, idle ? 10000 : 2500);
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && mode === 'sync') tick();
+  });
+
+  // ------------------------------------------- sync mode: applying changes
+  function apply(d) {
+    if (!d) return;
+    if (d.mode === 'solo') { enterSolo(); return; }
+    if (d.error) { setStatus('err', d.error); return; }
+
+    if (booted && d.epoch !== epoch) {
+      // Somebody reset the draft. Local queues target dead rids -- drop them,
+      // and unless this response already carries the full table, fetch it.
+      pendingPatch = {}; pendingOps = [];
+      if (!d.full) { epoch = d.epoch; cursor = 0; tick(); return; }
+    }
+    epoch = d.epoch;
+    seqCounter = d.seq;
+
+    if (d.full) {
+      renderFull(d);
+    } else if (d.rows && d.rows.length) {
+      d.rows.forEach(applyRemoteRow);
+      renumber(); counts(); filter();
+      lastActivity = Date.now();       // others are active: keep polling briskly
+    }
+    (d.rows || []).forEach(function (r) { if (r.seq > cursor) cursor = r.seq; });
+
+    if (d.save) {
+      publishedSeq = d.save.seq || 0;
+      if (d.save.at > lastSaveAt) {
+        if (booted && d.save.commit && d.save.who !== NAME) {
+          setStatus('ok', (d.save.who || 'Someone') + ' saved ' + d.save.count +
+            ' products (commit ' + d.save.commit + ') — the site is rebuilding (~1 min). ' +
+            'Keep working; the next Save publishes the newer draft.');
+        }
+        lastSaveAt = d.save.at;
+      }
+    }
+    if (d.reset && d.reset.at > lastResetAt) {
+      if (booted && d.reset.who !== NAME) {
+        setStatus('warn', (d.reset.who || 'Someone') + ' reset the draft to the last saved catalog.');
+      }
+      lastResetAt = d.reset.at;
+    }
+    if (d.presence) renderPresence(d.presence);
+    updateDirty();
+    booted = true;
+  }
+
+  function renderFull(d) {
+    if (d.categories && d.categories.length) CATEGORIES = d.categories;
+    var list = d.rows.slice().sort(function (a, b) {
+      return a.pos - b.pos || (String(a.rid) < String(b.rid) ? -1 : 1);
+    });
+    rowsEl.textContent = '';
+    rows = []; byRid = {};
+    var frag = document.createDocumentFragment();
+    list.forEach(function (r) {
+      var row = makeRow(r.data, r.rid, r.pos);
+      rows.push(row); byRid[r.rid] = row;
+      frag.appendChild(row.el);
+    });
+    rowsEl.appendChild(frag);
+    renumber(); counts(); filter();
+    if (d.source) $('backups').textContent = 'shared draft · ' + d.source;
+    cursor = 0;
+    d.rows.forEach(function (r) { if (r.seq > cursor) cursor = r.seq; });
+  }
+
+  function applyRemoteRow(r) {
+    var row = byRid[r.rid];
+    if (r.del) {
+      if (row) {
+        var wasFocused = row.el.contains(document.activeElement);
+        removeRowLocal(row);
+        if (wasFocused) setStatus('warn', 'The row you were editing was deleted by another editor.');
+      }
+      delete pendingPatch[r.rid];
+      return;
+    }
+    if (!row) {
+      insertSorted(makeRow(r.data, r.rid, r.pos));
+      return;
+    }
+    if (r.pos !== row.pos && !row.el.contains(document.activeElement)) {
+      row.pos = r.pos;
+      var i = rows.indexOf(row);
+      if (i > -1) rows.splice(i, 1);
+      row.el.remove();
+      insertSorted(row);
+    }
+    // Merge: the server is the truth, but my unsent keystrokes and the field
+    // under my cursor win locally -- they are on their way to the server.
+    var mine = pendingPatch[r.rid] || {};
+    var active = document.activeElement;
+    var focusField = null;
+    if (active && row.el.contains(active) && active.closest) {
+      var td = active.closest('td[data-field]');
+      focusField = td ? td.getAttribute('data-field') : null;
+    }
+    var keep = {};
+    for (var k in mine) keep[k] = row.data[k];
+    if (focusField && !(focusField in keep)) {
+      keep[focusField] = row.data[focusField];
+      if (focusField === 'cat') keep.catLabel = row.data.catLabel;
+    }
+    row.data = JSON.parse(JSON.stringify(r.data));
+    for (var kk in keep) {
+      if (keep[kk] === undefined) delete row.data[kk];
+      else row.data[kk] = keep[kk];
+    }
+    FIELDS.forEach(function (f) {
+      var input = fieldInput(row, f);
+      if (!input || input === active) return;
+      var want = row.data[f] === undefined ? '' : String(row.data[f]);
+      if (input.value !== want) {
+        input.value = want;
+        if (f === 'img') {
+          var img = row.el.querySelector('.thumb');
+          if (img) img.src = row.data.img || '';
+        }
+      }
+    });
+  }
+
+  // --------------------------------------------------- sync mode: presence
+  function colorFor(name) {
+    var h = 0;
+    name = name || '?';
+    for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+    return 'hsl(' + h + ',62%,42%)';
+  }
+
+  function renderPresence(list) {
+    var others = list.filter(function (p) { return p.client !== CLIENT; });
+    var names = [];
+    others.forEach(function (p) {
+      var n = p.name || 'anonymous';
+      if (names.indexOf(n) < 0) names.push(n);
+    });
+    $('who').textContent = names.length
+      ? '· ' + names.join(', ') + (names.length === 1 ? ' is' : ' are') + ' also editing'
+      : (NAME ? '· editing as ' + NAME : '');
+    rows.forEach(function (r) {
+      if (r.el.classList.contains('peer')) {
+        r.el.classList.remove('peer');
+        r.el.removeAttribute('title');
+      }
+    });
+    others.forEach(function (p) {
+      var row = p.rid && byRid[p.rid];
+      if (row) {
+        row.el.classList.add('peer');
+        row.el.style.setProperty('--peer', colorFor(p.name));
+        row.el.title = (p.name || 'Someone') + ' is editing this row';
+      }
+    });
+  }
+
+  rowsEl.addEventListener('focusin', function (ev) {
+    var tr = ev.target && ev.target.closest ? ev.target.closest('tr') : null;
+    if (!tr) return;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].el === tr) { focusRid = rows[i].rid; return; }
+    }
+  });
+  window.addEventListener('blur', function () { focusRid = null; });
+
+  function promptName(interactive) {
+    var n = prompt('Your name — other editors see it, and saves are credited to it:', NAME || '');
+    if (n === null && !interactive) n = '';
+    if (n !== null) {
+      NAME = String(n).trim().slice(0, 40);
+      localStorage.setItem('editorName', NAME);
+      presenceSentAt = 0; sentFocus = '<resend>';   // resend with the new name
+    }
+  }
+  $('who').addEventListener('click', function () { if (mode === 'sync') promptName(true); });
+
   // ----------------------------------------------------------------- load
   function parseProductsJs(text) {
     var body = text.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -396,7 +774,42 @@
     return JSON.parse(body.replace(/,(\s*])/g, '$1'));
   }
 
-  function load() {
+  function boot() {
+    clearStatus();
+    fetch('/api/draft?since=0', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('no draft api');
+        return r.json();
+      })
+      .then(function (d) {
+        if (d.mode !== 'sync') { enterSolo(); return; }
+        mode = 'sync';
+        if (!NAME) promptName(false);
+        apply(d);
+        enterSyncChrome();
+        schedulePoll();
+      })
+      .catch(function () { enterSolo(); });
+  }
+
+  function enterSolo() {
+    mode = 'solo';
+    load();
+  }
+
+  function enterSyncChrome() {
+    $('reload').textContent = 'Reset draft';
+    $('reload').title = 'Throw away ALL unpublished edits (everyone\'s) and reload the draft ' +
+                        'from the last saved catalog';
+    $('save').title = 'Publish the shared draft: commits js/products.js and rebuilds the site';
+    $('who').style.cursor = 'pointer';
+    $('who').title = 'Click to change your editor name';
+    $('note').textContent = 'Edits sync to every open editor within a few seconds — nothing ' +
+      'touches the site until Save, which publishes the shared draft: it writes js/products.js ' +
+      'and re-bakes store.html + index.html (~1 min).';
+  }
+
+  function load() {                    // solo mode (original behaviour)
     clearStatus();
     fetch('/api/catalog', { cache: 'no-store' })
       .then(function (r) {
@@ -441,9 +854,20 @@
   function save() {
     var bad = problems();
     if (bad.length) {
-      setStatus('err', 'Not saved — fix these first:\n\n  ' + bad.join('\n  '));
+      setStatus('err', 'Not saved — fix these first' +
+        (mode === 'sync' ? ' (the draft is shared, so some may be another editor\'s rows)' : '') +
+        ':\n\n  ' + bad.join('\n  '));
       return;
     }
+    if (mode === 'sync') {
+      saving = true;
+      $('save').disabled = true;
+      setStatus('warn', 'Saving…');
+      if (localPending() || flushTimer) { saveAfterFlush = true; tick(); }
+      else doSave();
+      return;
+    }
+    // solo mode: original save path
     $('save').disabled = true;
     setStatus('warn', 'Saving…');
     fetch('/api/catalog', {
@@ -485,12 +909,48 @@
     });
   }
 
+  // sync mode: the server publishes the draft as it stands in D1 -- including
+  // edits from other screens -- so no product list travels with the request.
+  function doSave() {
+    fetch('/api/catalog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromDraft: true, author: NAME || undefined })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        saving = false;
+        if (!res.ok) {
+          var msg = res.d.error || 'save failed';
+          if (res.d.errors) msg += '\n\n  ' + res.d.errors.join('\n  ');
+          setStatus('err', msg);
+        } else {
+          publishedSeq = seqCounter;   // next poll brings the exact value
+          setStatus('ok', 'Saved ' + res.d.count + ' products.  ' + (res.d.message || '') +
+                          (res.d.commit ? '  (commit ' + res.d.commit + ')' : ''));
+        }
+        updateDirty();
+      })
+      .catch(function (e) {
+        saving = false;
+        setStatus('err', 'Save failed: ' + e.message);
+        updateDirty();
+      });
+  }
+
   // ------------------------------------------------------------- controls
   $('add').addEventListener('click', function () {
-    var row = makeRow({ cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] });
+    var pos = rows.length ? rows[0].pos - 1 : 1;
+    var row = makeRow({ cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] }, newRid(), pos);
     rows.unshift(row);
+    if (row.rid) byRid[row.rid] = row;
     rowsEl.insertBefore(row.el, rowsEl.firstChild);
-    renumber(); counts(); markDirty(true);
+    renumber(); counts();
+    if (mode === 'sync') {
+      queueOp({ rid: row.rid, pos: pos, data: JSON.parse(JSON.stringify(row.data)) });
+    } else {
+      markDirty(true);
+    }
     $('q').value = ''; filter();
     row.el.scrollIntoView({ block: 'center' });
     var nameInput = fieldInput(row, 'name');
@@ -502,11 +962,31 @@
       if (idInput && !idInput.value.trim() && nameInput.value.trim()) {
         idInput.value = slugify(nameInput.value);
         row.data.id = idInput.value;
+        if (mode === 'sync' && row.rid) queuePatch(row.rid, { id: row.data.id });
       }
     });
   });
 
   $('reload').addEventListener('click', function () {
+    if (mode === 'sync') {
+      if (!confirm('Reset the shared draft for EVERYONE back to the last saved catalog?\n' +
+                   'All unpublished edits — yours and anyone else\'s — are discarded.')) return;
+      pendingPatch = {}; pendingOps = [];
+      setStatus('warn', 'Resetting draft…');
+      fetch('/api/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client: CLIENT, name: NAME, reset: true })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          apply(d);
+          setStatus('warn', 'Draft reset to the last saved catalog.');
+          schedulePoll();
+        })
+        .catch(function (e) { setStatus('err', 'Reset failed: ' + e.message); });
+      return;
+    }
     if (dirty && !confirm('Discard unsaved changes and reload from js/products.js?')) return;
     load();
   });
@@ -522,10 +1002,28 @@
   });
 
   window.addEventListener('beforeunload', function (ev) {
+    if (mode === 'sync') return;       // pagehide flushes the last keystrokes
     if (dirty) { ev.preventDefault(); ev.returnValue = ''; }
   });
+  window.addEventListener('pagehide', function () {
+    if (mode === 'sync' && (pendingOps.length || Object.keys(pendingPatch).length)) {
+      tick(true);                      // keepalive lets it outlive the tab
+    }
+  });
 
-  load();
+  // Diagnostics handle for the browser console: catalogSync.state(), and
+  // catalogSync.tick() to force a sync pump right now.
+  window.catalogSync = {
+    tick: function () { tick(); },
+    state: function () {
+      return { mode: mode, cursor: cursor, epoch: epoch, seq: seqCounter,
+               publishedSeq: publishedSeq, pendingOps: pendingOps.length,
+               pendingRows: Object.keys(pendingPatch).length,
+               inFlight: inFlight, name: NAME };
+    }
+  };
+
+  boot();
 })();
 </script>
 </body>
