@@ -13,4 +13,5 @@
  * wordmark, exactly as before.
  */
 window.PARTNERS = [
+  {"name": "down2chill", "url": "https://down2chill.com", "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgWbd5u_F9CxHjvuwypPjEuf8SEymU0Jj7lcRKucA2VA&s=10"},
 ];
