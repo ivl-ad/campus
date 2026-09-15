@@ -13,7 +13,7 @@
  * wordmark, exactly as before.
  */
 window.PARTNERS = [
-  {"name": "down2chill", "url": "https://down2chill.com", "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgWbd5u_F9CxHjvuwypPjEuf8SEymU0Jj7lcRKucA2VA&s=10"},
-  {"name": "macys", "url": "https://macys.com", "logo": "https://cdn.mos.cms.futurecdn.net/kPTwCmCKYJUwGbDbRZr9MX-650-80.png.webp"},
-  {"name": "macys (copy)", "url": "https://nike.com", "logo": "https://1000logos.net/wp-content/uploads/2021/11/Nike-Logo.jpg"},
+  {"name": "down2chill", "url": "https://down2chill.com", "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgWbd5u_F9CxHjvuwypPjEuf8SEymU0Jj7lcRKucA2VA&s=10", "note": "delete this once we have real ones"},
+  {"name": "macys", "url": "https://macys.com", "logo": "https://cdn.mos.cms.futurecdn.net/kPTwCmCKYJUwGbDbRZr9MX-650-80.png.webp", "note": "delete this once we have real ones"},
+  {"name": "macys (copy)", "url": "https://nike.com", "logo": "https://1000logos.net/wp-content/uploads/2021/11/Nike-Logo.jpg", "note": "delete this once we have real ones"},
 ];
