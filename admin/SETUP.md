@@ -119,6 +119,40 @@ Cost: comfortably inside the free tiers (D1 allows 100k writes/day — a full
 day of editing uses a few hundred; polling is a few thousand tiny requests per
 editor per day against a 100k/day allowance).
 
+## 6. Partner logos — the scrolling strip on the home page
+
+The **Partners** tab at the top of the editor (`/admin/?view=partners`)
+manages the logo strip on `index.html` (the band that scrolls sideways under
+"MyCampusKorner helps you…"). Partners are the companies themselves, kept
+separate from their products: they live in `js/partners.js`, not
+`js/products.js`. Nothing extra to set up — it uses the same password, token
+and D1 binding (its own `partner_*` tables, created on first use).
+
+Each row is one logo: **name** (alt text / hover title), **link url** (opens
+in a new tab), **logo url** (a full `https://` image address, or a path under
+`images/`), and an optional private **note**. Table order is strip order —
+use **↑ ↓** to reorder. The preview above the table draws the strip from the
+draft exactly as the site will, so you can check sizes and click the links
+before saving.
+
+What the strip shows:
+
+| Partners | Strip |
+|---|---|
+| 0 | The MyCampusKorner wordmark strip, exactly as before |
+| 1 | That logo in every box |
+| 2 or more | All of them in order, then the list starts again — repeated until the strip spans the screen, so the loop is seamless |
+| More than fill the screen | Listed once and simply looped |
+
+Logos of any shape are sized to the same visual area, the scroll keeps its
+original speed per box, and it pauses on hover (desktop) so a logo is easy to
+click.
+
+**Save** commits `js/partners.js` only. There is no rebuild: the home page
+reads that file in the browser (`js/partner-marquee.js`), so the change is live
+once Cloudflare Pages redeploys, about a minute. Undo, History ▾ and Reset draft
+work as for products, on the partner list only.
+
 ---
 
 ## How to think about it
@@ -155,6 +189,8 @@ editor per day against a 100k/day allowance).
 | Editor shows stale rows after a Reset | It catches up on its next poll (a few seconds). Every editor reloads its table automatically when the draft is reset. |
 | History ▾ says "GitHub would not list the saved versions" | The token lost Contents: read (expired, or re-scoped). Same fix as other token errors: re-issue per step 1. |
 | Restored a version but the live site still shows the new products | By design. Restore only fills the shared draft; press **Save** to publish the restored table to the site. |
+| A partner row says "can't load" | The logo url is not an image the browser can fetch (typo, a page rather than an image, or the partner's site blocks hotlinking). Right-click the logo on their site → Copy image address, or put the file in `images/` and use that path. |
+| Saved partners but the home page strip has not changed | Wait for the Pages redeploy (~1 min), then hard-refresh (Ctrl+F5). With 0 partners the MyCampusKorner strip is expected. |
 
 ## Changing the password
 

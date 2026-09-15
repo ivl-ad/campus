@@ -170,8 +170,9 @@ export function config(env) {
   return { repo, token, branch };
 }
 
-export async function github(cfg, method, body) {
-  const url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + FILE +
+// file defaults to the catalog; /api/partners passes js/partners.js.
+export async function github(cfg, method, body, file) {
+  const url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + (file || FILE) +
               (method === 'GET' ? '?ref=' + encodeURIComponent(cfg.branch) : '');
   const res = await fetch(url, {
     method,

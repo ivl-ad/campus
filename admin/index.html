@@ -19,6 +19,15 @@
   header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;
          display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
   h1{font-size:15px;margin:0 8px 0 0;font-weight:650;white-space:nowrap}
+
+  /* section switch: Products | Partners. The tabs name the section on screen,
+     so the h1 is kept for screen readers only -- it saves the header a line. */
+  h1.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .tabs{display:flex;gap:2px;background:var(--head);border-radius:7px;padding:2px;margin-right:4px}
+  .tabs a{padding:4px 12px;border-radius:5px;color:var(--muted);text-decoration:none;
+          font-weight:600;white-space:nowrap}
+  .tabs a:hover{color:var(--ink)}
+  .tabs a[aria-current]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(23,33,15,.16)}
   .count{color:var(--muted);white-space:nowrap}
   #who{cursor:default}
   .spacer{flex:1}
@@ -81,8 +90,8 @@
   tbody tr.peer td.rownum{box-shadow:inset 4px 0 0 0 var(--peer,#888)}
 
   /* The name column stays pinned (like # and row) so you keep your bearings
-     however far right the table is scrolled. left = 46 (#) + 122 (row). */
-  th.w-name,td.w-name{position:sticky;left:168px;background:var(--panel)}
+     however far right the table is scrolled. left = 46 (#) + the row column. */
+  th.w-name,td.w-name{position:sticky;left:calc(46px + var(--act-w));background:var(--panel)}
   thead th.w-name{z-index:4;background:var(--head)}
   tbody td.w-name{z-index:2}
 
@@ -98,7 +107,7 @@
      stay reachable however far right the table is scrolled. */
   td.act,th.act{position:sticky;left:46px;z-index:2;background:var(--head);
         text-align:center;padding:4px 6px;white-space:nowrap;
-        width:122px;min-width:122px;border-right:2px solid var(--line)}
+        width:var(--act-w);min-width:var(--act-w);border-right:2px solid var(--line)}
   thead th.act{z-index:4}
   tbody tr:hover td.act{background:#e6e8e0}
   td.act button{padding:3px 7px;font-size:12px;line-height:1.4}
@@ -110,12 +119,45 @@
   .dirty{color:var(--amber);font-weight:600}
   .thumb{width:34px;height:34px;object-fit:contain;background:#fff;border:1px solid var(--line);
          border-radius:4px;display:block;margin:4px auto}
+
+  /* ---- partners view ---- */
+  :root{--act-w:122px}
+  .view-partners{--act-w:178px}
+  .view-partners .thumb{width:84px;height:40px;padding:3px}
+  .view-partners td.broken::after{content:"can't load";display:block;text-align:center;
+        color:var(--red);font-size:11px;margin:-2px 0 4px}
+  .view-partners td.act button.mv{padding:3px 6px}
+
+  /* Live preview of the home page strip, drawn by js/partner-marquee.js from
+     the draft. Boxes mirror .logo-marquee-box on the site, at its phone size. */
+  #preview{background:var(--panel);border-bottom:1px solid var(--line)}
+  .pv-head{display:flex;gap:10px;align-items:center;padding:6px 14px;font-size:13px;flex-wrap:wrap}
+  .pv-head strong{font-weight:650}
+  .pv-head button{padding:3px 10px;font-size:12px}
+  #preview.collapsed .pv-stage{display:none}
+  .pv-stage{overflow:hidden;border-top:1px solid #eeece6;background:#fff}
+  .pv-main{display:flex;width:max-content;animation:pv-scroll 40s linear infinite}
+  .pv-stage:hover .pv-main{animation-play-state:paused}
+  @keyframes pv-scroll{to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){.pv-main{animation:none}}
+  .pv-list{display:flex}
+  #preview .logo-marquee-box{flex:none;width:150px;aspect-ratio:1;display:flex;flex-direction:column;
+        align-items:center;justify-content:center;border-right:1px solid #eeece6;overflow:hidden}
+  #preview .partner-box{text-decoration:none;transition:background-color .2s ease}
+  #preview .partner-box:hover,#preview .partner-box:focus-visible{background-color:#f7f6f2}
+  #preview .partner-logo{display:block;max-width:70%;max-height:42%;object-fit:contain}
+  #preview .pv-default img{width:60%;filter:grayscale(1);opacity:.14}
 </style>
+<script src="../js/partner-marquee.js"></script>
 </head>
 <body>
 
 <header>
-  <h1>Catalog editor</h1>
+  <h1 id="title" class="sr-only">Catalog editor</h1>
+  <nav class="tabs" aria-label="Section">
+    <a href="./" data-view="products">Products</a>
+    <a href="./?view=partners" data-view="partners">Partners</a>
+  </nav>
   <span class="count" id="count">loading…</span>
   <span class="count" id="who"></span>
   <input type="search" id="q" placeholder="Filter by name, id, merchant…  ( / )" autocomplete="off"/>
@@ -133,24 +175,20 @@
 
 <div id="status"></div>
 
+<section id="preview" hidden>
+  <div class="pv-head">
+    <strong>Home page strip</strong>
+    <span class="count" id="pvNote"></span>
+    <span class="spacer"></span>
+    <button id="pvToggle" type="button">Hide preview</button>
+  </div>
+  <div class="pv-stage" id="pvStage"></div>
+</section>
+
 <div class="wrap">
   <table id="cattable">
     <thead>
-      <tr>
-        <th class="rownum">#</th>
-        <th class="act">row</th>
-        <th data-field="_thumb" style="width:52px">img</th>
-        <th class="w-id" data-field="id" style="width:220px">id <span style="font-weight:400;color:#6b7466">(permalink)</span></th>
-        <th class="w-name" data-field="name" style="width:300px">name</th>
-        <th class="w-cat" data-field="cat" style="width:180px">category</th>
-        <th class="w-merch" data-field="merchant" style="width:150px">merchant</th>
-        <th class="w-slug" data-field="merchantSlug" style="width:130px">merchantSlug</th>
-        <th class="w-price" data-field="price" style="width:90px">price</th>
-        <th class="w-url" data-field="url" style="width:240px">url</th>
-        <th class="w-img" data-field="img" style="width:240px">img</th>
-        <th class="w-desc" data-field="desc" style="width:260px">desc <span style="font-weight:400;color:#6b7466">(optional)</span></th>
-        <th class="w-note" data-field="note" style="width:180px">note <span style="font-weight:400;color:#6b7466">(private)</span></th>
-      </tr>
+      <tr id="headrow"></tr>
     </thead>
     <tbody id="rows"></tbody>
   </table>
@@ -182,7 +220,126 @@
     ['bedroom-study', 'Bedroom & Study']
   ];
 
-  var FIELDS = ['id','name','cat','merchant','merchantSlug','price','url','img','desc','note'];
+  // A full https:// address; a logo may also be a file in the site's images/.
+  var URL_RE = /^https?:\/\/\S+$/i;
+  var LOGO_RE = /^(https?:\/\/\S+|\/?images\/\S+)$/i;
+
+  /*
+   * The two sections this page edits, with one engine. /admin/ is the product
+   * catalog, exactly as it always was; /admin/?view=partners is the partner
+   * logo strip on the home page. Each has its own file, its own shared draft
+   * (/api/draft?doc=partners) and its own History.
+   *
+   *   cols    [field, menu label, default width, header note]; _thumb is the
+   *           image preview. text = textarea fields, blank removes them.
+   */
+  var DOCS = {
+    products: {
+      title: 'Catalog editor',
+      one: 'product', many: 'products', what: 'catalog',
+      file: 'js/products.js', listKey: 'products',
+      draftApi: '/api/draft', saveApi: '/api/catalog', historyApi: '/api/history',
+      cols: [
+        ['_thumb', 'image', 52, '', 'img'],
+        ['id', 'id', 220, '(permalink)'],
+        ['name', 'name', 300],
+        ['cat', 'category', 180],
+        ['merchant', 'merchant', 150],
+        ['merchantSlug', 'merchantSlug', 130],
+        ['price', 'price', 90],
+        ['url', 'url', 240],
+        ['img', 'img url', 240, '', 'img'],
+        ['desc', 'desc', 260, '(optional)'],
+        ['note', 'note', 180, '(private)']
+      ],
+      text: ['desc', 'note'],
+      thumb: 'img',
+      search: ['id', 'name', 'merchant', 'catLabel'],
+      filterHint: 'Filter by name, id, merchant…  ( / )',
+      blank: function () { return { cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] }; },
+      soloNote: 'Save writes js/products.js, keeps a numbered backup in js/backups/, and re-bakes store.html + index.html.',
+      syncNote: 'Edits sync to every open editor within a few seconds — nothing ' +
+        'touches the site until Save, which publishes the shared draft: it writes js/products.js ' +
+        'and re-bakes store.html + index.html (~1 min). Every Save is kept in History.',
+      saveTitle: 'Publish the shared draft: commits js/products.js and rebuilds the site',
+      publishing: 'the site is rebuilding (~1 min)',
+      problems: function (rows) {
+        var out = [], seen = {};
+        rows.forEach(function (r, i) {
+          var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
+          ['id','name','cat','merchant','merchantSlug','url','img'].forEach(function (f) {
+            if (!p[f] || !String(p[f]).trim()) out.push(at + ': ' + f + ' is required');
+          });
+          if (p.id) {
+            if (seen[p.id]) out.push(at + ': duplicate id "' + p.id + '" (also row ' + seen[p.id] + ')');
+            seen[p.id] = i + 1;
+            if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
+              out.push(at + ': id must be lowercase letters, numbers and dashes');
+          }
+          if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
+            out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
+          if ('price' in p && (typeof p.price !== 'number' || isNaN(p.price)))
+            out.push(at + ': price must be a number, or left blank');
+        });
+        return out;
+      }
+    },
+
+    partners: {
+      title: 'Partner logos',
+      one: 'partner', many: 'partners', what: 'partner list',
+      file: 'js/partners.js', listKey: 'partners',
+      draftApi: '/api/draft?doc=partners', saveApi: '/api/partners',
+      historyApi: '/api/history?doc=partners',
+      cols: [
+        ['_thumb', 'logo preview', 100, '', 'logo'],
+        ['name', 'name', 210],
+        ['url', 'link url', 270, '(where the logo goes)'],
+        ['logo', 'logo url', 270, '(image address)'],
+        ['note', 'note', 170, '(private)']
+      ],
+      text: ['note'],
+      thumb: 'logo',
+      // Relative logos (images/…) belong to the site root, not to /admin/.
+      thumbSrc: function (v) {
+        v = String(v || '').trim();
+        return !v || /^(https?:|data:|\/)/i.test(v) ? v : '/' + v;
+      },
+      placeholder: { name: 'Partner name', url: 'https://partner.com', logo: 'https://partner.com/logo.png' },
+      search: ['name', 'url', 'logo'],
+      filterHint: 'Filter by name or link…  ( / )',
+      blank: function () { return {}; },
+      addAtEnd: true,       // the strip runs in table order, so new partners join the end
+      reorder: true,
+      preview: true,
+      soloNote: 'Save writes js/partners.js — the home page reads it directly, so there is no rebuild.',
+      syncNote: 'Edits sync to every open editor within a few seconds — nothing touches the ' +
+        'site until Save, which writes js/partners.js; the home page logo strip updates once the ' +
+        'site redeploys (~1 min). Order here is the order in the strip. Every Save is kept in History.',
+      saveTitle: 'Publish the shared draft: commits js/partners.js, which the home page reads',
+      publishing: 'the home page updates in ~1 min',
+      problems: function (rows) {
+        var out = [];
+        rows.forEach(function (r, i) {
+          var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || 'untitled') + ')';
+          ['name', 'url', 'logo'].forEach(function (f) {
+            if (!p[f] || !String(p[f]).trim()) out.push(at + ': ' + f + ' is required');
+          });
+          if (p.url && String(p.url).trim() && !URL_RE.test(String(p.url).trim()))
+            out.push(at + ': url must be a full address starting with https://');
+          if (p.logo && String(p.logo).trim() && !LOGO_RE.test(String(p.logo).trim()))
+            out.push(at + ': logo must be a full https:// image address (or a path under images/)');
+        });
+        return out;
+      }
+    }
+  };
+
+  var VIEW = /(^|[?&])view=partners(&|$)/.test(location.search.slice(1)) ? 'partners' : 'products';
+  var DOC = DOCS[VIEW];
+  var FIELDS = DOC.cols.map(function (c) { return c[0]; })
+                       .filter(function (f) { return f !== '_thumb'; });
+  var TD_CLASS = { merchant: 'merch', merchantSlug: 'slug' };   // others: w-<field>
 
   /*
    * Two modes.
@@ -276,9 +433,11 @@
     $('save').disabled = !un || saving;
   }
 
+  function plural(n) { return n + ' ' + (n === 1 ? DOC.one : DOC.many); }
+
   function counts() {
     var shown = rows.filter(function (r) { return r.el.style.display !== 'none'; }).length;
-    $('count').textContent = rows.length + ' products' +
+    $('count').textContent = plural(rows.length) +
       (shown !== rows.length ? '  ·  ' + shown + ' shown' : '');
   }
 
@@ -286,29 +445,44 @@
   // table-layout:fixed with widths on the header cells, so any column can be
   // narrowed below its content. Widths and hidden columns live per browser
   // in localStorage; the name column is always shown (it is the pinned one).
-  var COLS = [                        // [field, menu label, default width]
-    ['_thumb', 'image', 52],
-    ['id', 'id', 220],
-    ['name', 'name', 300],
-    ['cat', 'category', 180],
-    ['merchant', 'merchant', 150],
-    ['merchantSlug', 'merchantSlug', 130],
-    ['price', 'price', 90],
-    ['url', 'url', 240],
-    ['img', 'img url', 240],
-    ['desc', 'desc', 260],
-    ['note', 'note', 180]
-  ];
+  var COLS = DOC.cols;                // [field, menu label, default width, note, header]
+  var COLS_KEY = VIEW === 'products' ? 'editorCols' : 'editorCols:' + VIEW;
+  var ACT_W = VIEW === 'partners' ? 178 : 122;    // matches --act-w in the CSS
   var colState = { w: {}, hidden: {} };
   try {
-    var cs = JSON.parse(localStorage.getItem('editorCols') || '{}');
+    var cs = JSON.parse(localStorage.getItem(COLS_KEY) || '{}');
     if (cs && cs.w) colState.w = cs.w;
     if (cs && cs.hidden) colState.hidden = cs.hidden;
   } catch (e) { /* fresh defaults */ }
   delete colState.hidden.name;
 
   function saveCols() {
-    try { localStorage.setItem('editorCols', JSON.stringify(colState)); } catch (e) {}
+    try { localStorage.setItem(COLS_KEY, JSON.stringify(colState)); } catch (e) {}
+  }
+
+  function buildHead() {
+    var tr = $('headrow');
+    var num = document.createElement('th');
+    num.className = 'rownum'; num.textContent = '#';
+    var act = document.createElement('th');
+    act.className = 'act'; act.textContent = 'row';
+    tr.appendChild(num);
+    tr.appendChild(act);
+    COLS.forEach(function (c) {
+      var th = document.createElement('th');
+      th.setAttribute('data-field', c[0]);
+      if (c[0] !== '_thumb') th.className = 'w-' + (TD_CLASS[c[0]] || c[0]);
+      th.style.width = c[2] + 'px';
+      th.textContent = c[4] || c[1];
+      if (c[3]) {
+        var sub = document.createElement('span');
+        sub.style.cssText = 'font-weight:400;color:#6b7466';
+        sub.textContent = c[3];
+        th.appendChild(document.createTextNode(' '));
+        th.appendChild(sub);
+      }
+      tr.appendChild(th);
+    });
   }
   function colWidth(f) {
     var def = 100;
@@ -321,7 +495,7 @@
   document.head.appendChild(colStyle);
 
   function applyCols() {
-    var css = '', total = 46 + 122;   // rownum + act columns are fixed
+    var css = '', total = 46 + ACT_W;   // rownum + act columns are fixed
     COLS.forEach(function (c) {
       var f = c[0];
       var th = document.querySelector('thead th[data-field="' + f + '"]');
@@ -404,6 +578,8 @@
   }
 
   // ---------------------------------------------------------------- a row
+  function isText(field) { return DOC.text.indexOf(field) > -1; }
+
   function cell(row, field) {
     var td = document.createElement('td');
     var input;
@@ -419,7 +595,7 @@
       // catLabel is never typed by hand -- it always follows the category.
       row.data.cat = input.value;
       row.data.catLabel = label(input.value);
-    } else if (field === 'desc' || field === 'note') {
+    } else if (isText(field)) {
       input = document.createElement('textarea');
       input.rows = 1;
       input.value = row.data[field] || '';
@@ -428,14 +604,14 @@
       input.type = 'text';
       input.value = row.data[field] === undefined ? '' : row.data[field];
       if (field === 'price') input.inputMode = 'decimal';
+      if (DOC.placeholder && DOC.placeholder[field]) input.placeholder = DOC.placeholder[field];
     }
 
-    td.className = 'w-' + ({id:'id',name:'name',cat:'cat',merchant:'merch',
-      merchantSlug:'slug',price:'price',url:'url',img:'img',desc:'desc',note:'note'}[field]);
+    td.className = 'w-' + (TD_CLASS[field] || field);
 
     input.addEventListener('input', function () { onEdit(row, field, input, td); });
     input.addEventListener('change', function () { onEdit(row, field, input, td); });
-    if (field === 'desc' || field === 'note') {
+    if (isText(field)) {
       input.addEventListener('focus', function () { input.rows = 4; });
       input.addEventListener('blur', function () { input.rows = 1; });
     }
@@ -460,16 +636,13 @@
       row.data.cat = v;
       row.data.catLabel = label(v);
       patch.cat = v; patch.catLabel = row.data.catLabel;
-    } else if (field === 'desc' || field === 'note') {
+    } else if (isText(field)) {
       if (v.trim() === '') { delete row.data[field]; patch[field] = null; }
       else { row.data[field] = v; patch[field] = v; }
     } else {
       row.data[field] = v;
       patch[field] = v;
-      if (field === 'img') {
-        var img = row.el.querySelector('.thumb');
-        if (img) img.src = v || '';
-      }
+      if (field === DOC.thumb) setThumb(row);
     }
     // One undo entry per stay in a cell: created on the first keystroke,
     // then it just tracks the latest value until focus leaves the input.
@@ -480,7 +653,20 @@
     input.__act.st.after = field === 'price' ? row.data.price : row.data[field];
     if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
     else markDirty(true);
+    schedulePreview();
     clearStatus();
+  }
+
+  // The image preview cell follows the img (products) / logo (partners) field.
+  function setThumb(row) {
+    var img = row.el.querySelector('.thumb');
+    if (!img) return;
+    var v = row.data[DOC.thumb] || '';
+    img.parentNode.classList.remove('broken');
+    // Unhide before the new src: Chrome holds back a lazy image that is
+    // visibility:hidden, so a row added blank never showed its image.
+    img.style.visibility = v ? 'visible' : 'hidden';
+    img.src = DOC.thumbSrc ? DOC.thumbSrc(v) : v;
   }
 
   function uniqueId(base) {
@@ -502,6 +688,19 @@
     // --- row controls, first column after the number ---
     var act = document.createElement('td');
     act.className = 'act';
+
+    if (DOC.reorder) {
+      [['↑', -1, 'Move up — earlier in the strip'], ['↓', 1, 'Move down — later in the strip']]
+        .forEach(function (m) {
+          var b = document.createElement('button');
+          b.className = 'mv';
+          b.textContent = m[0];
+          b.title = m[2];
+          b.setAttribute('aria-label', m[2]);
+          b.addEventListener('click', function () { moveRow(row, m[1], b); });
+          act.appendChild(b);
+        });
+    }
 
     var dup = document.createElement('button');
     dup.textContent = 'Copy';
@@ -536,11 +735,17 @@
     tdImg.setAttribute('data-field', '_thumb');
     var img = document.createElement('img');
     img.className = 'thumb'; img.alt = ''; img.loading = 'lazy';
-    img.src = data.img || '';
-    img.onerror = function () { img.style.visibility = 'hidden'; };
-    img.onload = function () { img.style.visibility = 'visible'; };
+    img.onerror = function () {
+      img.style.visibility = 'hidden';
+      if (row.data[DOC.thumb]) tdImg.classList.add('broken');
+    };
+    img.onload = function () {
+      img.style.visibility = 'visible';
+      tdImg.classList.remove('broken');
+    };
     tdImg.appendChild(img);
     row.el.appendChild(tdImg);
+    setThumb(row);
 
     FIELDS.forEach(function (f) {
       var td = cell(row, f);
@@ -576,8 +781,9 @@
     // Copy every field, including ones this tool does not show, then give the
     // copy its own id -- two products may never share a permalink.
     var copy = JSON.parse(JSON.stringify(row.data));
-    copy.id = uniqueId(row.data.id);
+    if (FIELDS.indexOf('id') > -1) copy.id = uniqueId(row.data.id);
     if (copy.name) copy.name = copy.name + ' (copy)';
+    var called = copy.id || copy.name || 'untitled';
 
     var at = rows.indexOf(row);
     var next = rows[at + 1];
@@ -590,11 +796,11 @@
     renumber(); counts(); filter();
     if (mode === 'sync') {
       queueOp({ rid: clone.rid, pos: pos, data: JSON.parse(JSON.stringify(copy)) });
-      setStatus('warn', 'Duplicated as "' + copy.id +
+      setStatus('warn', 'Duplicated as "' + called +
                         '". Every open editor sees it; Save publishes it to the site.');
     } else {
       markDirty(true);
-      setStatus('warn', 'Duplicated as "' + copy.id +
+      setStatus('warn', 'Duplicated as "' + called +
                         '". Edit it, then press Save. Reload discards it.');
     }
     pushAction(createAction(clone));
@@ -605,6 +811,37 @@
 
   function renumber() {
     rows.forEach(function (r, i) { r.el.firstChild.textContent = i + 1; });
+    schedulePreview();
+  }
+
+  // Reorder (partners): the row lands between the neighbour it passes and the
+  // one beyond, so a move is one pos change -- one op, like an insert.
+  function moveRow(row, dir, button) {
+    var i = rows.indexOf(row), j = i + dir;
+    if (i < 0 || j < 0 || j >= rows.length) return;
+    var passed = rows[j], beyond = rows[j + dir];
+    var from = row.pos;
+    var to = beyond ? (passed.pos + beyond.pos) / 2 : passed.pos + dir;
+    placeRow(row, to);
+    pushAction(moveAction(row, from, to));
+    if (button) { button.focus(); row.el.scrollIntoView({ block: 'nearest' }); }
+  }
+
+  function placeRow(row, pos) {
+    row.pos = pos;
+    var i = rows.indexOf(row);
+    if (i > -1) rows.splice(i, 1);
+    insertSorted(row);                 // moves row.el to its new place
+    renumber(); counts();
+    if (mode === 'sync' && row.rid) queueOp({ rid: row.rid, pos: pos, move: true });
+    else markDirty(true);
+  }
+
+  function moveAction(row, from, to) {
+    return {
+      u: function () { if (!rowAlive(row)) return false; placeRow(row, from); return true; },
+      r: function () { if (!rowAlive(row)) return false; placeRow(row, to); return true; }
+    };
   }
 
   function render(list) {              // solo mode full render
@@ -622,7 +859,7 @@
   function filter() {
     var q = $('q').value.trim().toLowerCase();
     rows.forEach(function (r) {
-      var hay = [r.data.id, r.data.name, r.data.merchant, r.data.catLabel]
+      var hay = DOC.search.map(function (f) { return r.data[f]; })
                   .join(' ').toLowerCase();
       r.el.style.display = (!q || hay.indexOf(q) > -1) ? '' : 'none';
     });
@@ -631,24 +868,7 @@
 
   // ------------------------------------------------------------ validation
   function problems() {
-    var out = [], seen = {};
-    rows.forEach(function (r, i) {
-      var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
-      ['id','name','cat','merchant','merchantSlug','url','img'].forEach(function (f) {
-        if (!p[f] || !String(p[f]).trim()) out.push(at + ': ' + f + ' is required');
-      });
-      if (p.id) {
-        if (seen[p.id]) out.push(at + ': duplicate id "' + p.id + '" (also row ' + seen[p.id] + ')');
-        seen[p.id] = i + 1;
-        if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
-          out.push(at + ': id must be lowercase letters, numbers and dashes');
-      }
-      if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
-        out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
-      if ('price' in p && (typeof p.price !== 'number' || isNaN(p.price)))
-        out.push(at + ': price must be a number, or left blank');
-    });
-    return out;
+    return DOC.problems(rows);
   }
 
   // ------------------------------------------------------------ undo/redo
@@ -691,12 +911,10 @@
     if (input && input.value !== (value === undefined ? '' : String(value))) {
       input.value = value === undefined ? '' : String(value);
     }
-    if (field === 'img') {
-      var img = row.el.querySelector('.thumb');
-      if (img) img.src = row.data.img || '';
-    }
+    if (field === DOC.thumb) setThumb(row);
     if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
     else markDirty(true);
+    schedulePreview();
   }
 
   function fieldAction(row, field, before) {
@@ -832,7 +1050,7 @@
       payload.presence = { rid: focusRid };
       sentFocus = focusRid; presenceSentAt = now;
     }
-    fetch('/api/draft', {
+    fetch(DOC.draftApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -911,8 +1129,8 @@
       publishedSeq = d.save.seq || 0;
       if (d.save.at > lastSaveAt) {
         if (booted && d.save.commit && d.save.who !== NAME) {
-          setStatus('ok', (d.save.who || 'Someone') + ' saved ' + d.save.count +
-            ' products (commit ' + d.save.commit + ') — the site is rebuilding (~1 min). ' +
+          setStatus('ok', (d.save.who || 'Someone') + ' saved ' + plural(d.save.count) +
+            ' (commit ' + d.save.commit + ') — ' + DOC.publishing + '. ' +
             'Keep working; the next Save publishes the newer draft.');
         }
         lastSaveAt = d.save.at;
@@ -948,7 +1166,11 @@
     rowsEl.appendChild(frag);
     renumber(); counts(); filter();
     if (d.source) $('backups').textContent = 'shared draft · ' + d.source;
-    cursor = 0;
+    // A full snapshot holds every write up to d.seq (the server reads the
+    // counter before the rows), so resume from there. Starting from the rows
+    // alone left an EMPTY draft -- a new partner list -- at cursor 0, and every
+    // poll then fetched and redrew the whole table, wiping focus and undo.
+    cursor = Number(d.seq) || 0;
     d.rows.forEach(function (r) { if (r.seq > cursor) cursor = r.seq; });
   }
 
@@ -1000,12 +1222,10 @@
       var want = row.data[f] === undefined ? '' : String(row.data[f]);
       if (input.value !== want) {
         input.value = want;
-        if (f === 'img') {
-          var img = row.el.querySelector('.thumb');
-          if (img) img.src = row.data.img || '';
-        }
+        if (f === DOC.thumb) setThumb(row);
       }
     });
+    schedulePreview();
   }
 
   // --------------------------------------------------- sync mode: presence
@@ -1140,7 +1360,7 @@
 
   function boot() {
     clearStatus();
-    fetch('/api/draft?since=0', { cache: 'no-store' })
+    fetch(DOC.draftApi + (DOC.draftApi.indexOf('?') < 0 ? '?' : '&') + 'since=0', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('no draft api');
         return r.json();
@@ -1165,18 +1385,16 @@
     $('reload').textContent = 'Reset draft';
     $('reload').title = 'Throw away ALL unpublished edits (everyone\'s) and reload the draft ' +
                         'from the last saved catalog';
-    $('save').title = 'Publish the shared draft: commits js/products.js and rebuilds the site';
+    $('save').title = DOC.saveTitle;
     $('hist').style.display = '';
     $('who').style.cursor = 'pointer';
     $('who').title = 'Click to change your editor name';
-    $('note').textContent = 'Edits sync to every open editor within a few seconds — nothing ' +
-      'touches the site until Save, which publishes the shared draft: it writes js/products.js ' +
-      'and re-bakes store.html + index.html (~1 min). Every Save is kept in History.';
+    $('note').textContent = DOC.syncNote;
   }
 
   function load() {                    // solo mode (original behaviour)
     clearStatus();
-    fetch('/api/catalog', { cache: 'no-store' })
+    fetch(DOC.saveApi, { cache: 'no-store' })
       .then(function (r) {
         return r.json().then(function (d) {
           if (!r.ok) throw new Error(d.error || 'api error');
@@ -1191,13 +1409,13 @@
         $('backups').textContent = d.source
           ? 'source: ' + d.source
           : 'backups: ' + (d.backups === undefined ? '–' : d.backups);
-        render(d.products);
+        render(d[DOC.listKey] || []);
         markDirty(false);
       })
       .catch(function () {
         // No editor server -- fall back to reading the file so the page is at
         // least useful read-only, and say clearly why Save is off.
-        fetch('js/products.js', { cache: 'no-store' })
+        fetch(DOC.file, { cache: 'no-store' })
           .then(function (r) { return r.text(); })
           .then(function (t) {
             liveEditor = false;
@@ -1210,7 +1428,7 @@
               'python catalog_server.py  locally, or open /admin/ on the live site.');
           })
           .catch(function (e) {
-            setStatus('err', 'Could not load the catalog: ' + e.message);
+            setStatus('err', 'Could not load the ' + DOC.what + ': ' + e.message);
           });
       });
   }
@@ -1235,13 +1453,12 @@
     // solo mode: original save path
     $('save').disabled = true;
     setStatus('warn', 'Saving…');
-    fetch('/api/catalog', {
+    var body = { sha: baseSha || undefined };
+    body[DOC.listKey] = rows.map(function (r) { return r.data; });
+    fetch(DOC.saveApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        products: rows.map(function (r) { return r.data; }),
-        sha: baseSha || undefined
-      })
+      body: JSON.stringify(body)
     })
     .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
     .then(function (res) {
@@ -1259,11 +1476,11 @@
       var note;
       if (res.d.backup) {                       // saved to disk by catalog_server.py
         $('backups').textContent = 'backups: ' + res.d.backups;
-        note = 'Saved ' + res.d.count + ' products.  Backup: js/backups/' + res.d.backup +
+        note = 'Saved ' + plural(res.d.count) + '.  Backup: js/backups/' + res.d.backup +
                (res.d.built && res.d.built.length
                  ? '  ·  rebuilt ' + res.d.built.join(', ') : '');
       } else {                                  // committed to GitHub by the Worker
-        note = 'Saved ' + res.d.count + ' products.  ' + (res.d.message || '') +
+        note = 'Saved ' + plural(res.d.count) + '.  ' + (res.d.message || '') +
                (res.d.commit ? '  (commit ' + res.d.commit + ')' : '');
       }
       setStatus('ok', note + (res.d.warnings && res.d.warnings.length
@@ -1278,7 +1495,7 @@
   // sync mode: the server publishes the draft as it stands in D1 -- including
   // edits from other screens -- so no product list travels with the request.
   function doSave() {
-    fetch('/api/catalog', {
+    fetch(DOC.saveApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fromDraft: true, author: NAME || undefined })
@@ -1293,7 +1510,7 @@
         } else {
           publishedSeq = seqCounter;   // next poll brings the exact value
           clearHistory();              // published states live in History now
-          setStatus('ok', 'Saved ' + res.d.count + ' products.  ' + (res.d.message || '') +
+          setStatus('ok', 'Saved ' + plural(res.d.count) + '.  ' + (res.d.message || '') +
                           (res.d.commit ? '  (commit ' + res.d.commit + ')' : ''));
         }
         updateDirty();
@@ -1306,7 +1523,7 @@
   }
 
   // ------------------------------------------------------ version history
-  // Every Save is a git commit of js/products.js, so the full run of saved
+  // Every Save is a git commit of the section's file, so the full run of saved
   // versions already exists and only ever grows. This panel lists it and can
   // restore any entry -- the restore itself becomes a new version.
   function fmtAgo(iso) {
@@ -1322,7 +1539,7 @@
   function loadHistory() {
     var p = $('histPanel');
     p.textContent = 'Loading…';
-    fetch('/api/history', { cache: 'no-store' })
+    fetch(DOC.historyApi, { cache: 'no-store' })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         if (!res.ok || !res.d.versions) {
@@ -1372,12 +1589,12 @@
   }
 
   function restoreVersion(v) {
-    if (!confirm('Load the catalog as it was ' + (fmtAgo(v.at) || 'at ' + v.sha.slice(0, 7)) +
+    if (!confirm('Load the ' + DOC.what + ' as it was ' + (fmtAgo(v.at) || 'at ' + v.sha.slice(0, 7)) +
                  ' into the shared draft for EVERYONE?\n\nUnpublished edits are replaced by ' +
                  'that version. The live site does NOT change until somebody presses Save.')) return;
     $('histPanel').classList.remove('open');
     setStatus('warn', 'Loading version ' + v.sha.slice(0, 7) + ' into the draft…');
-    fetch('/api/history', {
+    fetch(DOC.historyApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sha: v.sha, author: NAME || undefined })
@@ -1389,6 +1606,94 @@
         if (mode === 'sync') tick();   // the epoch bump brings the full reload
       })
       .catch(function (e) { setStatus('err', 'Restore failed: ' + e.message); });
+  }
+
+  // ------------------------------------------------ partner strip preview
+  // The home page strip as the current draft would draw it, using the site's
+  // own js/partner-marquee.js -- the same 0 / 1 / many rules and logo sizing.
+  // Redrawn only when something it shows changes (or the width does), since
+  // every redraw restarts the scroll.
+  var previewTimer = null, previewKey = '';
+  var PV_HIDDEN_KEY = 'editorPreviewHidden';
+
+  function schedulePreview() {
+    if (!DOC.preview) return;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(renderPreview, 250);
+  }
+
+  function renderPreview() {
+    var stage = $('pvStage');
+    if ($('preview').classList.contains('collapsed')) return;
+    var list = rows.map(function (r) {
+      return { name: r.data.name || '', url: r.data.url || '', logo: DOC.thumbSrc(r.data.logo) };
+    });
+    var key = JSON.stringify(list) + '|' + stage.clientWidth;
+    if (key === previewKey) return;
+    previewKey = key;
+
+    stage.textContent = '';
+    var wrap = document.createElement('div');
+    var track = document.createElement('div');
+    track.className = 'pv-main';
+    var strip = document.createElement('div');
+    strip.className = 'pv-list';
+    strip.setAttribute('data-marquee-list', '');
+    track.appendChild(strip);
+    wrap.appendChild(track);
+    stage.appendChild(wrap);
+
+    var got = window.PartnerMarquee
+      ? window.PartnerMarquee.render(wrap, list, { width: stage.clientWidth }) : false;
+    var note;
+    if (!got) {
+      // No partners: the site keeps its MyCampusKorner wordmark strip.
+      for (var i = 0; i < 12; i++) {
+        var b = document.createElement('div');
+        b.className = 'logo-marquee-box pv-default';
+        var img = document.createElement('img');
+        img.alt = ''; img.src = '../images/mycampuskorner-logo.avif';
+        b.appendChild(img);
+        strip.appendChild(b);
+      }
+      wrap.setAttribute('data-marquee-duration', '40');
+      note = window.PartnerMarquee
+        ? 'No logos yet — the home page keeps the MyCampusKorner strip.'
+        : 'Preview unavailable: js/partner-marquee.js did not load.';
+    } else if (got.partners === 1) {
+      note = '1 logo — it fills every box.';
+    } else {
+      note = got.partners + ' logos in table order' +
+             (got.rounds > 1 ? ', then the list starts again.' : ' — more than fill the strip, so it simply loops.');
+    }
+    $('pvNote').textContent = '· ' + note + '  Showing the draft: hover to pause, click a logo to test its link.';
+
+    // Second copy closes the loop, like the site's marquee script does.
+    var copy = strip.cloneNode(true);
+    copy.setAttribute('aria-hidden', 'true');
+    Array.prototype.forEach.call(copy.querySelectorAll('a'), function (a) { a.tabIndex = -1; });
+    track.appendChild(copy);
+    track.style.animationDuration = (Number(wrap.getAttribute('data-marquee-duration')) || 40) + 's';
+  }
+
+  function initPreview() {
+    if (!DOC.preview) return;
+    var box = $('preview');
+    box.hidden = false;
+    var hide = false;
+    try { hide = localStorage.getItem(PV_HIDDEN_KEY) === '1'; } catch (e) {}
+    function sync() {
+      box.classList.toggle('collapsed', hide);
+      $('pvToggle').textContent = hide ? 'Show preview' : 'Hide preview';
+      if (!hide) { previewKey = ''; renderPreview(); }
+    }
+    $('pvToggle').addEventListener('click', function () {
+      hide = !hide;
+      try { localStorage.setItem(PV_HIDDEN_KEY, hide ? '1' : '0'); } catch (e) {}
+      sync();
+    });
+    window.addEventListener('resize', schedulePreview);
+    sync();
   }
 
   // ------------------------------------------------------------- controls
@@ -1416,11 +1721,19 @@
   });
 
   $('add').addEventListener('click', function () {
-    var pos = rows.length ? rows[0].pos - 1 : 1;
-    var row = makeRow({ cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] }, newRid(), pos);
-    rows.unshift(row);
+    var pos, row;
+    if (DOC.addAtEnd) {
+      pos = rows.length ? rows[rows.length - 1].pos + 1 : 1;
+      row = makeRow(DOC.blank(), newRid(), pos);
+      rows.push(row);
+      rowsEl.appendChild(row.el);
+    } else {
+      pos = rows.length ? rows[0].pos - 1 : 1;
+      row = makeRow(DOC.blank(), newRid(), pos);
+      rows.unshift(row);
+      rowsEl.insertBefore(row.el, rowsEl.firstChild);
+    }
     if (row.rid) byRid[row.rid] = row;
-    rowsEl.insertBefore(row.el, rowsEl.firstChild);
     renumber(); counts();
     if (mode === 'sync') {
       queueOp({ rid: row.rid, pos: pos, data: JSON.parse(JSON.stringify(row.data)) });
@@ -1432,6 +1745,7 @@
     row.el.scrollIntoView({ block: 'center' });
     var nameInput = fieldInput(row, 'name');
     nameInput.focus();
+    if (FIELDS.indexOf('id') < 0) return;
     // Fill the id from the name once, so new rows get a sane permalink.
     nameInput.addEventListener('blur', function once() {
       nameInput.removeEventListener('blur', once);
@@ -1451,7 +1765,7 @@
                    'All unpublished edits — yours and anyone else\'s — are discarded.')) return;
       pendingPatch = {}; pendingOps = [];
       setStatus('warn', 'Resetting draft…');
-      fetch('/api/draft', {
+      fetch(DOC.draftApi, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client: CLIENT, name: NAME, reset: true })
@@ -1465,7 +1779,7 @@
         .catch(function (e) { setStatus('err', 'Reset failed: ' + e.message); });
       return;
     }
-    if (dirty && !confirm('Discard unsaved changes and reload from js/products.js?')) return;
+    if (dirty && !confirm('Discard unsaved changes and reload from ' + DOC.file + '?')) return;
     load();
   });
 
@@ -1516,7 +1830,7 @@
     undo: function () { return undo(); },
     redo: function () { return redo(); },
     state: function () {
-      return { mode: mode, cursor: cursor, epoch: epoch, seq: seqCounter,
+      return { view: VIEW, mode: mode, cursor: cursor, epoch: epoch, seq: seqCounter,
                publishedSeq: publishedSeq, pendingOps: pendingOps.length,
                pendingRows: Object.keys(pendingPatch).length,
                inFlight: inFlight, name: NAME,
@@ -1525,10 +1839,23 @@
     }
   };
 
+  // Section chrome: title, tabs, and the wording that names the list.
+  document.documentElement.classList.add('view-' + VIEW);
+  document.title = DOC.title;
+  $('title').textContent = DOC.title;
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs a'), function (a) {
+    if (a.getAttribute('data-view') === VIEW) a.setAttribute('aria-current', 'page');
+  });
+  $('add').textContent = '+ Add ' + DOC.one;
+  $('q').placeholder = DOC.filterHint;
+  $('note').textContent = DOC.soloNote;
+
+  buildHead();
   applyCols();
   initResize();
   buildColsMenu();
   undoUI();
+  initPreview();
   boot();
 })();
 </script>

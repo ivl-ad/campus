@@ -624,6 +624,24 @@ body {
   filter: grayscale(1);
   opacity: .14;
 }
+/* Partner logos, when js/partners.js has any (js/partner-marquee.js swaps
+   them in). Full colour: they are the partners' own marks. The script sizes
+   each logo to the same visual area; the caps below only hold until an
+   image has loaded and reported its shape. */
+.partner-box {
+  text-decoration: none;
+  transition: background-color .2s ease;
+}
+.partner-box:hover,
+.partner-box:focus-visible {
+  background-color: #f7f6f2;
+}
+.partner-logo {
+  display: block;
+  max-width: 70%;
+  max-height: 42%;
+  object-fit: contain;
+}
 </style>
 <section class="section">
 <div class="logo-main-wrap">
@@ -1623,6 +1641,8 @@ body {
 <script src="js/webflow.js" type="text/javascript"></script>
 <script src="js/catalog.js" type="text/javascript"></script>
 <script src="https://cdn.prod.website-files.com/gsap/3.15.0/gsap.min.js" type="text/javascript"></script>
+<script src="js/partners.js" type="text/javascript"></script>
+<script src="js/partner-marquee.js" type="text/javascript"></script>
 <script>
 const marqueeinit = () => {
   const marquees = document.querySelectorAll('[data-marquee]');
@@ -1635,6 +1655,9 @@ const marqueeinit = () => {
     const duration = item.getAttribute('data-marquee-duration') || 20;
     const pauseOnHover = item.getAttribute('data-marquee-pause-hover') === 'true';
     const marqueeContentClone = marqueeContent.cloneNode(true);
+    // The copy only closes the loop: keep it out of screen readers and tab order.
+    marqueeContentClone.setAttribute('aria-hidden', 'true');
+    marqueeContentClone.querySelectorAll('a').forEach(a => a.setAttribute('tabindex', '-1'));
     let animations = [];
     if (marqueeType === 'first') {
       marqueeInner.append(marqueeContentClone);

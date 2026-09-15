@@ -20,12 +20,20 @@
  *
  * The fine-grained token from SETUP.md step 1 already covers this: listing
  * commits and reading a file at a ref are both "Contents: read".
+ *
+ * ?doc=partners does the same for js/partners.js and the partner draft.
  */
 
 import { config, decodeBase64, parseProducts } from './catalog.js';
-import { ensure, reseed, putMeta } from './draft.js';
+import { ensure, reseed, putMeta, docFor, DOCS } from './draft.js';
+import { FILE as PARTNERS_FILE, parsePartners } from './partners.js';
 
-const FILE = 'js/products.js';
+function target(request) {
+  const doc = docFor(request);
+  return doc === DOCS.partners
+    ? { doc, file: PARTNERS_FILE, parse: parsePartners, noun: 'partners' }
+    : { doc, file: 'js/products.js', parse: parseProducts, noun: 'products' };
+}
 
 const json = (status, body) => new Response(JSON.stringify(body), {
   status,
@@ -50,11 +58,12 @@ async function gh(cfg, path) {
   return { ok: res.ok, status: res.status, data, text };
 }
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
   let cfg;
   try { cfg = config(env); } catch (e) { return json(500, { error: e.message }); }
+  const { file } = target(request);
 
-  const r = await gh(cfg, 'commits?path=' + encodeURIComponent(FILE) +
+  const r = await gh(cfg, 'commits?path=' + encodeURIComponent(file) +
                           '&sha=' + encodeURIComponent(cfg.branch) + '&per_page=100');
   if (!r.ok || !Array.isArray(r.data)) {
     return json(502, {
@@ -86,25 +95,26 @@ export async function onRequestPost({ request, env }) {
   }
   const sha = String(body.sha || '');
   if (!/^[0-9a-f]{7,40}$/i.test(sha)) return json(400, { error: 'not a commit sha' });
+  const { doc, file, parse, noun } = target(request);
 
-  const old = await gh(cfg, 'contents/' + FILE + '?ref=' + encodeURIComponent(sha));
+  const old = await gh(cfg, 'contents/' + file + '?ref=' + encodeURIComponent(sha));
   if (!old.ok) {
     return json(502, { error: 'GitHub would not return that version (HTTP ' + old.status + ').' });
   }
   let products;
   try {
-    products = parseProducts(decodeBase64(old.data.content));
+    products = parse(decodeBase64(old.data.content));
   } catch (e) {
-    return json(400, { error: 'That version cannot be read as a catalog: ' + e.message });
+    return json(400, { error: 'That version cannot be read as a list of ' + noun + ': ' + e.message });
   }
 
   const who = (body.author || '').toString().slice(0, 40).replace(/[^\w .@-]/g, '');
   try {
-    await ensure(env.DB);
-    await reseed(env.DB, products);
+    await ensure(env.DB, doc);
+    await reseed(env.DB, products, null, doc);
     await putMeta(env.DB, 'reset', JSON.stringify({
       who, at: Date.now(), note: 'restored version ' + sha.slice(0, 7)
-    })).run();
+    }), doc).run();
   } catch (e) {
     return json(500, { error: 'Could not load that version into the draft: ' + e.message });
   }
@@ -112,7 +122,7 @@ export async function onRequestPost({ request, env }) {
   return json(200, {
     ok: true,
     count: products.length,
-    message: 'Loaded ' + products.length + ' products from ' + sha.slice(0, 7) +
+    message: 'Loaded ' + products.length + ' ' + noun + ' from ' + sha.slice(0, 7) +
              ' into the shared draft — every open editor reloads to it. The live site is ' +
              'untouched until somebody presses Save.'
   });
