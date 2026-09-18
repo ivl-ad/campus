@@ -21,4 +21,8 @@ window.PARTNERS = [
   {"name": "NFL Shop", "url": "https://nflshop.k77v.net/X4Re13", "logo": "https://www.nflshop.com/content/assets/__0-859256003070.1062.svg"},
   {"name": "Kingbull Bikes", "url": "https://kingbulltechnologycolimited.pxf.io/JkA112", "logo": "https://cdn3.impact.com/display-campaign-image/159864.gif"},
   {"name": "LivWell", "url": "https://livwellnutrition.pxf.io/R0ozzX", "logo": "https://cdn4.impact.com/display-campaign-image/54126.gif"},
+  {"name": "Onemile", "url": "https://onemilebike.sjv.io/5kGRWb", "logo": "https://cdn2.impact.com/display-campaign-image/92447.gif"},
+  {"name": "Vegas", "url": "https://vegas.vdvm.net/qWv1Qg", "logo": "https://cdn2.impact.com/display-campaign-image/160137.gif"},
+  {"name": "Hilton", "url": "https://hilton.ijrn.net/jR4PNZ", "logo": "https://cdn3.impact.com/display-campaign-image/37058.gif"},
+  {"name": "Franklin Sports", "url": "https://franklinsports.sjv.io/AgQrda", "logo": "https://cdn1.impact.com/display-campaign-image/53407.gif"},
 ];
