@@ -20,4 +20,5 @@ window.PARTNERS = [
   {"name": "Gemini", "url": "https://gemini.sjv.io/1GkNbz", "logo": "https://www.gemini.com/favicon.ico"},
   {"name": "NFL Shop", "url": "https://nflshop.k77v.net/X4Re13", "logo": "https://www.nflshop.com/content/assets/__0-859256003070.1062.svg"},
   {"name": "Kingbull Bikes", "url": "https://kingbulltechnologycolimited.pxf.io/JkA112", "logo": "https://cdn3.impact.com/display-campaign-image/159864.gif"},
+  {"name": "LivWell", "url": "https://livwellnutrition.pxf.io/R0ozzX", "logo": "https://cdn4.impact.com/display-campaign-image/54126.gif"},
 ];
