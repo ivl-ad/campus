@@ -19,4 +19,5 @@ window.PARTNERS = [
   {"name": "Belkin", "url": "https://belkin.evyy.net/YVY9nO", "logo": "https://www.belkin.com/on/demandware.static/Sites-BELKUS-Site/-/default/dw39bf336a/images/brand/belkin_logo_notm.svg"},
   {"name": "Gemini", "url": "https://gemini.sjv.io/1GkNbz", "logo": "https://www.gemini.com/favicon.ico"},
   {"name": "NFL Shop", "url": "https://nflshop.k77v.net/X4Re13", "logo": "https://www.nflshop.com/content/assets/__0-859256003070.1062.svg"},
+  {"name": "Kingbull Bikes", "url": "https://kingbulltechnologycolimited.pxf.io/JkA112", "logo": "https://cdn3.impact.com/display-campaign-image/159864.gif"},
 ];
