@@ -25,4 +25,5 @@ window.PARTNERS = [
   {"name": "Vegas", "url": "https://vegas.vdvm.net/qWv1Qg", "logo": "https://cdn2.impact.com/display-campaign-image/160137.gif"},
   {"name": "Hilton", "url": "https://hilton.ijrn.net/jR4PNZ", "logo": "https://cdn3.impact.com/display-campaign-image/37058.gif"},
   {"name": "Franklin Sports", "url": "https://franklinsports.sjv.io/AgQrda", "logo": "https://cdn1.impact.com/display-campaign-image/53407.gif"},
+  {"name": "Blick", "url": "https://www.awin1.com/cread.php?s=4861370&v=88183&q=577484&r=3045715", "logo": "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png"},
 ];
