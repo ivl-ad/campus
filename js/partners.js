@@ -27,4 +27,5 @@ window.PARTNERS = [
   {"name": "Franklin Sports", "url": "https://franklinsports.sjv.io/AgQrda", "logo": "https://cdn1.impact.com/display-campaign-image/53407.gif"},
   {"name": "Blick", "url": "https://www.awin1.com/cread.php?s=4861370&v=88183&q=577484&r=3045715", "logo": "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png"},
   {"name": "Ticket Liquidator", "url": "https://ticketliquidator.auhm.net/c/5891219/496768/2085", "logo": "https://app.impact.com/display-thumbnail/496768"},
+  {"name": "Sharper Image", "url": "https://ad.linksynergy.com/fs-bin/show?id=MdERYhlEo38&bids=1429613.10000930&subid=0&type=4&gridnum=0", "logo": "https://merchant.linksynergy.com/fs/banners/815/815_10000930.jpg"},
 ];
