@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "sharper-image-travel-steamer", "name": "Sharper Image Travel Steamer", "cat": "event-tickets-travel", "catLabel": "Event Tickets & Travel", "merchant": "Sharper Image", "merchantSlug": "sharp", "url": "https://ad.linksynergy.com/fs-bin/show?id=MdERYhlEo38&bids=1429613.8151722101366314463273&type=2&subid=0", "img": "https://cdn1.sharperimage.com/si/img/productImages/208280/208280-g1.jpg"},
   {"id": "ticket-liquidator", "name": "Ticket Liquidator", "cat": "event-tickets-travel", "catLabel": "Event Tickets & Travel", "merchant": "Ticket Liquidator", "merchantSlug": "liquid", "url": "https://ticketliquidator.auhm.net/c/5891219/496768/2085", "img": "https://app.impact.com/display-thumbnail/496768"},
   {"id": "book", "name": "Book Seats Tickets", "cat": "event-tickets-travel", "catLabel": "Event Tickets & Travel", "merchant": "Book Seats", "merchantSlug": "seats", "url": "https://bookseats.pxf.io/c/5891219/3956627/53276", "img": "https://app.impact.com/display-thumbnail/3956627"},
   {"id": "blick-art-supplys", "name": "Blick Art Supplys", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "Blick", "merchantSlug": "blick", "url": "https://www.awin1.com/cread.php?s=4468390&v=88183&q=577505&r=3045715", "img": "https://static.shareasale.com/image/30103/2010drawing180x150.jpg"},
