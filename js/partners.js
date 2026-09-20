@@ -28,4 +28,5 @@ window.PARTNERS = [
   {"name": "Blick", "url": "https://www.awin1.com/cread.php?s=4861370&v=88183&q=577484&r=3045715", "logo": "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png"},
   {"name": "Ticket Liquidator", "url": "https://ticketliquidator.auhm.net/c/5891219/496768/2085", "logo": "https://app.impact.com/display-thumbnail/496768"},
   {"name": "Sharper Image", "url": "https://click.linksynergy.com/fs-bin/click?id=MdERYhlEo38&offerid=1429613.10000930&subid=0&type=4&LSNSUBSITE=LSNSUBSITE", "logo": "https://merchant.linksynergy.com/fs/banners/815/815_10000930.jpg"},
+  {"name": "UGG", "url": "https://track.flexlinkspro.com/g.ashx?foid=1.43728.4611686018427604620&trid=1485277.158350&foc=16&fot=9999&fos=6", "logo": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158350.png"},
 ];
