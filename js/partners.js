@@ -30,4 +30,5 @@ window.PARTNERS = [
   {"name": "Sharper Image", "url": "https://click.linksynergy.com/fs-bin/click?id=MdERYhlEo38&offerid=1429613.10000930&subid=0&type=4&LSNSUBSITE=LSNSUBSITE", "logo": "https://merchant.linksynergy.com/fs/banners/815/815_10000930.jpg"},
   {"name": "UGG", "url": "https://track.flexlinkspro.com/g.ashx?foid=1.43728.4611686018427604620&trid=1485277.158350&foc=16&fot=9999&fos=6", "logo": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158350.png"},
   {"name": "Aveda", "url": "https://track.flexlinkspro.com/g.ashx?foid=1.37315.1000002045&trid=1485277.178071&foc=16&fot=9999&fos=6", "logo": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/178071.png"},
+  {"name": "Zulily", "url": "https://click.linksynergy.com/fs-bin/click?id=MdERYhlEo38&offerid=1987947.3&subid=0&type=4", "logo": "https://www.zulily.com/cdn/shop/files/Zulily-Logos_2000x1000_392ef5dc-5aaf-4cf7-a5f5-cf0cbac04b5a.png?v=1754076480&width=110"},
 ];
