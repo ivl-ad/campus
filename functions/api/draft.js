@@ -33,10 +33,11 @@
  * old single-screen editor. catalog_server.py 404s this path, so the local
  * editor takes the same fallback.
  *
- * Two documents share this engine. ?doc=partners on any request selects the
- * home page logo strip (js/partners.js, tables partner_*); anything else is
- * the product catalog, exactly as it always was (tables draft_*). The two
- * drafts, counters and presence lists never mix.
+ * Several documents share this engine. ?doc=partners on any request selects
+ * the home page logo strip (js/partners.js, tables partner_*), ?doc=blog the
+ * blog posts (js/blogs.js, blog_*) and ?doc=team the About page team
+ * (js/team.js, team_*); anything else is the product catalog, exactly as it
+ * always was (tables draft_*). The drafts, counters and presence lists never mix.
  *
  * Binding (Pages project settings): DB -> the campus-draft D1 database.
  */
@@ -44,6 +45,8 @@
 import { config, github, decodeBase64, parseProducts, CATEGORIES } from './catalog.js';
 import { readRemote as readPartners, parsePartners, TABLES as PARTNER_TABLES,
          NO_FILE } from './partners.js';
+import { FILE as BLOG_FILE, TABLES as BLOG_TABLES, parseBlog } from './blog.js';
+import { FILE as TEAM_FILE, TABLES as TEAM_TABLES, parseTeam } from './team.js';
 
 const PRESENCE_ALIVE = 45 * 1000;       // heartbeats this fresh count as "here"
 const PRESENCE_PURGE = 10 * 60 * 1000;  // rows older than this are dropped
@@ -80,12 +83,37 @@ export const DOCS = {
       return { list: cur.exists ? parsePartners(cur.source) : [], sha: cur.sha || NO_FILE,
                source: 'github:' + cfg.repo + '@' + cfg.branch };
     }
+  },
+  blog: {
+    rows: BLOG_TABLES.rows, meta: BLOG_TABLES.meta, presence: BLOG_TABLES.presence,
+    extra: {},
+    async load(env) {
+      const cfg = config(env);
+      const cur = await readPartners(cfg, BLOG_FILE);
+      const parsed = cur.exists ? parseBlog(cur.source) : { posts: [], categories: [] };
+      // The category list travels with full snapshots (see snapshot()), so the
+      // editor's dropdown matches the file it was seeded from.
+      return { list: parsed.posts, sha: cur.sha || NO_FILE,
+               source: 'github:' + cfg.repo + '@' + cfg.branch,
+               extra: { blogCategories: parsed.categories } };
+    }
+  },
+  team: {
+    rows: TEAM_TABLES.rows, meta: TEAM_TABLES.meta, presence: TEAM_TABLES.presence,
+    extra: {},
+    async load(env) {
+      const cfg = config(env);
+      const cur = await readPartners(cfg, TEAM_FILE);
+      return { list: cur.exists ? parseTeam(cur.source) : [], sha: cur.sha || NO_FILE,
+               source: 'github:' + cfg.repo + '@' + cfg.branch };
+    }
   }
 };
 
 export function docFor(request) {
-  return new URL(request.url).searchParams.get('doc') === 'partners'
-    ? DOCS.partners : DOCS.products;
+  const name = new URL(request.url).searchParams.get('doc');
+  return name && name !== 'products' && Object.prototype.hasOwnProperty.call(DOCS, name)
+    ? DOCS[name] : DOCS.products;
 }
 
 // Schema is created lazily, so there is nothing to paste into the D1 console:
@@ -140,10 +168,9 @@ export async function reseed(db, products, extraMeta, doc = DOCS.products) {
 // on first use (empty database) and on an explicit reset.
 export async function seed(db, env, doc = DOCS.products) {
   const got = await doc.load(env);
-  await reseed(db, got.list, [
-    ['base_sha', got.sha],
-    ['source', got.source]
-  ], doc);
+  const meta0 = [['base_sha', got.sha], ['source', got.source]];
+  if (got.extra) meta0.push(['extra', JSON.stringify(got.extra)]);
+  await reseed(db, got.list, meta0, doc);
   // A freshly seeded draft matches GitHub exactly, so record a synthetic save
   // marker at the current counter -- "unpublished changes" then starts false.
   // commit:'' also keeps the editors from announcing it as a real save.
@@ -179,7 +206,11 @@ async function snapshot(db, env, since, doc) {
     save: m.save ? JSON.parse(m.save) : null,
     reset: m.reset ? JSON.parse(m.reset) : null
   };
-  if (since === 0) { Object.assign(out, doc.extra); out.source = m.source || ''; }
+  if (since === 0) {
+    Object.assign(out, doc.extra);
+    if (m.extra) { try { Object.assign(out, JSON.parse(m.extra)); } catch (e) { /* ignore */ } }
+    out.source = m.source || '';
+  }
   return out;
 }
 
@@ -219,20 +250,31 @@ export async function onRequestPost({ request, env }) {
       return json(200, await snapshot(db, env, 0, doc));
     }
 
+    // Edits are for the draft the editor loaded (body.epoch). After a Reset or
+    // a History restore their rows are gone, and applying them would start
+    // stray half-rows ({"url": ...} with no name) that then block every Save.
+    // So each statement only runs while the epoch still matches -- checked
+    // inside the batch, which is one transaction -- and otherwise nothing is
+    // written; the reply's new epoch makes that editor reload its table.
+    const E = Number(body.epoch);
+    const same = Number.isInteger(E)
+      ? '(SELECT v+0 FROM ' + doc.meta + " WHERE k='epoch') = " + E : '1';
     const ops = Array.isArray(body.ops) ? body.ops.slice(0, 500) : [];
     const stmts = [];
     ops.forEach((op) => {
       const rid = op && typeof op.rid === 'string' ? op.rid.slice(0, 64) : '';
       if (!rid) return;
       if (op.del) {
-        stmts.push(db.prepare('UPDATE ' + doc.rows + ' SET deleted=1, seq=' + SEQ + ' WHERE rid=?1')
+        stmts.push(db.prepare('UPDATE ' + doc.rows + ' SET deleted=1, seq=' + SEQ +
+                              ' WHERE rid=?1 AND ' + same)
           .bind(rid));
       } else if (op.data && typeof op.data === 'object') {
         // Whole row (Add / Copy). On a retried create, json_patch simply
         // rewrites every field, which is the same row again.
         const pos = Number(op.pos);
         stmts.push(db.prepare(
-          'INSERT INTO ' + doc.rows + '(rid,pos,seq,deleted,data) VALUES(?1,?2,' + SEQ + ',0,json(?3)) ' +
+          'INSERT INTO ' + doc.rows + '(rid,pos,seq,deleted,data) SELECT ?1,?2,' + SEQ + ',0,json(?3) ' +
+          'WHERE ' + same + ' ' +
           'ON CONFLICT(rid) DO UPDATE SET pos=?2, deleted=0, seq=' + SEQ + ', data=json_patch(data,?3)')
           .bind(rid, isFinite(pos) ? pos : 1e9, JSON.stringify(op.data)));
       } else if (op.move) {
@@ -240,22 +282,24 @@ export async function onRequestPost({ request, env }) {
         // seen simply matches nothing.
         const pos = Number(op.pos);
         if (!isFinite(pos)) return;
-        stmts.push(db.prepare('UPDATE ' + doc.rows + ' SET pos=?2, seq=' + SEQ + ' WHERE rid=?1')
+        stmts.push(db.prepare('UPDATE ' + doc.rows + ' SET pos=?2, seq=' + SEQ +
+                              ' WHERE rid=?1 AND ' + same)
           .bind(rid, pos));
       } else if (op.patch && typeof op.patch === 'object') {
         // Field-level merge; a null value removes the field. A patch for a rid
-        // this database has never seen (a reset race) starts a partial row --
-        // harmless, validation at save time reports it like any other gap.
+        // this draft has never seen (an editor too old to send its epoch, in a
+        // reset race) starts a partial row, which Save then reports by name.
         // deleted is deliberately left alone: typing into a row somebody just
         // deleted must not resurrect it.
         stmts.push(db.prepare(
-          'INSERT INTO ' + doc.rows + '(rid,pos,seq,deleted,data) VALUES(?1,1e9,' + SEQ + ',0,json(?2)) ' +
+          'INSERT INTO ' + doc.rows + '(rid,pos,seq,deleted,data) SELECT ?1,1e9,' + SEQ + ',0,json(?2) ' +
+          'WHERE ' + same + ' ' +
           'ON CONFLICT(rid) DO UPDATE SET seq=' + SEQ + ', data=json_patch(data,?2)')
           .bind(rid, JSON.stringify(op.patch)));
       }
     });
     if (stmts.length) {
-      stmts.unshift(db.prepare('UPDATE ' + doc.meta + " SET v=v+1 WHERE k='seq'"));
+      stmts.unshift(db.prepare('UPDATE ' + doc.meta + " SET v=v+1 WHERE k='seq' AND " + same));
       await db.batch(stmts);
     }
 

@@ -9,19 +9,44 @@
 # cached copy instead of depending on the network every time.
 #
 # Deliberately NO rules for: *.html (rebuilt store/index must show up
-# immediately), /js/* (catalog edits to js/products.js must reach
+# immediately), /js/* apart from /js/vendor/* (catalog edits to js/products.js must reach
 # shoppers right away; the admin editor also fetches it with
 # cache:'no-store'), and /admin + /api (auth-guarded, served through
 # Pages Functions, which _headers does not apply to anyway).
 #
 # css: a style tweak takes at most a day to reach repeat visitors; the
 # main mycampuskorner-<hash>.webflow.css gets a new filename on every
-# Webflow re-export, so it busts its own cache regardless.
-# images: site chrome only (heroes, favicons) - product photos are
-# external merchant URLs, so nothing here goes stale with the catalog.
+# Webflow re-export, so it busts its own cache regardless. The pages link
+# css/site-custom.css?v=<date>: bump that date in every page when a change
+# must reach everyone at once.
+# images: site chrome (heroes, favicons, logos) and the blog cover images
+# in images/blog - product photos are external merchant URLs, so nothing
+# here goes stale with the catalog. Replacing an image file under the same
+# name reaches repeat visitors within a week; give it a new name to show it
+# at once.
+# fonts and js/vendor (jQuery, GSAP, Swiper): third-party files whose
+# version is in the file name, and the site's fonts -- they never change in
+# place, so browsers may keep them for a year.
+
+# Every static page and file: no MIME sniffing, no framing by other sites
+# (clickjacking), and the browser-default referrer behaviour made explicit
+# (merchants still see the visit came from mycampuskorner.com).
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
 
 /css/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 /images/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=604800
+
+/documents/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=604800
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/vendor/*
+  Cache-Control: public, max-age=31536000, immutable

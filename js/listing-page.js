@@ -14,6 +14,13 @@
 (function () {
   'use strict';
 
+  // The page's Function (functions/*.js) usually writes a fuller title and
+  // description into the HTML itself. Only fill them in when it did not --
+  // i.e. the page still has its template title -- so search engines, which
+  // read the page after scripts run, see the same text either way.
+  var TEMPLATE_TITLE = /^(Product|Category|Store|Article|Blog Category) \| MyCampusKorner$/;
+  function headIsTemplate() { return TEMPLATE_TITLE.test(document.title); }
+
   // Every category that has a page, in mega-menu order (same list as
   // tools/build_listings.py SITE_CATEGORIES).
   var CATEGORIES = [
@@ -125,16 +132,18 @@
       label = items.length ? items[0].merchant : 'Store not found';
       radiosWrap.innerHTML = radios(items);
       var title = label + ' | MyCampusKorner';
-      document.title = title;
-      setMeta('meta[property="og:title"]', title);
-      setMeta('meta[name="twitter:title"]', title);
+      if (headIsTemplate()) {
+        document.title = title;
+        setMeta('meta[property="og:title"]', title);
+        setMeta('meta[name="twitter:title"]', title);
+      }
     } else {
       // category.html — one page per product category
       var cat = null;
       CATEGORIES.forEach(function (c) { if (c[0] === id) cat = c; });
       label = cat ? cat[1] : 'Category not found';
       items = all.filter(function (p) { return p.cat === id; });
-      document.title = label + ' | MyCampusKorner';
+      if (headIsTemplate()) document.title = label + ' | MyCampusKorner';
     }
 
     var labelEl = byId('l-label');

@@ -19,6 +19,8 @@
  */
 
 import { config, github, decodeBase64, encodeBase64 } from './catalog.js';
+import { draftMarks, baseMismatch, recordSave, epochMoved, RACE_MESSAGE, RESET_MESSAGE } from '../_shared/draft-save.js';
+import { jsValue, extractArray, headerBefore } from '../_shared/js-data.js';
 
 export const FILE = 'js/partners.js';
 export const TABLES = { rows: 'partner_rows', meta: 'partner_meta', presence: 'partner_presence' };
@@ -29,8 +31,8 @@ export const NO_FILE = 'none';
 const FIELD_ORDER = ['name', 'url', 'logo', 'note'];
 
 // A logo is a full image URL, or a file in this site's images folder.
-const LOGO_RE = /^(https?:\/\/\S+|\/?images\/\S+)$/i;
-const URL_RE = /^https?:\/\/\S+$/i;
+const LOGO_RE = /^(https?:\/\/[^\s<>"']+|\/?images\/[^\s<>"']+)$/i;
+const URL_RE = /^https?:\/\/[^\s<>"']+$/i;
 
 // Used when the file is first created from the editor.
 const DEFAULT_HEADER = [
@@ -56,20 +58,8 @@ const json = (status, body) => new Response(JSON.stringify(body), {
 });
 
 // ------------------------------------------------------------ partners.js
-export function parsePartners(source) {
-  const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '');
-  const open = stripped.indexOf('[');
-  const close = stripped.lastIndexOf(']');
-  if (open < 0 || close < 0) throw new Error('no partner array found in ' + FILE);
-  const list = JSON.parse(stripped.slice(open, close + 1).replace(/,(\s*])/g, '$1'));
-  if (!Array.isArray(list)) throw new Error(FILE + ' does not hold a list');
-  return list;
-}
-
-export function readHeader(source) {
-  const m = /^window\.PARTNERS\s*=/m.exec(source);
-  return m && m.index > 0 ? source.slice(0, m.index).replace(/\n+$/, '') : '';
-}
+export const parsePartners = (source) => extractArray(source, 'PARTNERS');
+export const readHeader = (source) => headerBefore(source, 'PARTNERS');
 
 export function tidy(partner) {
   const out = {};
@@ -89,7 +79,7 @@ export function render(header, partners) {
   lines.push('window.PARTNERS = [');
   partners.forEach((p) => {
     const t = tidy(p);
-    lines.push('  {' + Object.keys(t).map((k) => JSON.stringify(k) + ': ' + JSON.stringify(t[k]))
+    lines.push('  {' + Object.keys(t).map((k) => JSON.stringify(k) + ': ' + jsValue(t[k]))
       .join(', ') + '},');
   });
   lines.push('];');
@@ -123,9 +113,9 @@ export function validate(partners) {
 // ----------------------------------------------------------------- GitHub
 // The file does not exist until the first Save, and GitHub answers 404 both
 // for that and for a wrong repo or branch. js/products.js is always there, so
-// asking for it tells the two apart.
-export async function readRemote(cfg) {
-  const res = await github(cfg, 'GET', null, FILE);
+// asking for it tells the two apart. /api/team and /api/blog pass their own file.
+export async function readRemote(cfg, file = FILE) {
+  const res = await github(cfg, 'GET', null, file);
   if (res.ok) {
     return { exists: true, sha: res.data.sha, source: decodeBase64(res.data.content) };
   }
@@ -133,7 +123,7 @@ export async function readRemote(cfg) {
     const probe = await github(cfg, 'GET');
     if (probe.ok) return { exists: false, sha: null, source: '' };
   }
-  const err = new Error('GitHub would not return ' + FILE + ' (HTTP ' + res.status + '). ' +
+  const err = new Error('GitHub would not return ' + file + ' (HTTP ' + res.status + '). ' +
     (res.data && res.data.message ? res.data.message : '') +
     (res.status === 404 ? ' Check GITHUB_REPO and GITHUB_BRANCH.' : '') +
     (res.status === 401 || res.status === 403
@@ -171,13 +161,13 @@ export async function onRequestPost({ request, env }) {
     return json(400, { error: 'expected a JSON body' });
   }
   let partners = body && body.partners;
-  let draftSeq = 0;
+  let draftSeq = 0, draftEpoch = null;
   if (body && body.fromDraft) {
     // Publish the shared draft exactly as it stands (see functions/api/draft.js).
     // Counter first, then rows, for the same reason as /api/catalog.
     if (!env.DB) return json(400, { error: 'The shared draft has no DB binding on this Pages project.' });
-    draftSeq = Number(await env.DB.prepare(
-      'SELECT v FROM ' + TABLES.meta + " WHERE k='seq'").first('v')) || 0;
+    ({ seq: draftSeq, epoch: draftEpoch } = await draftMarks(env.DB, TABLES.meta));
+    if (epochMoved(body, draftEpoch)) return json(409, { error: RESET_MESSAGE });
     const got = await env.DB.prepare(
       'SELECT data FROM ' + TABLES.rows + ' WHERE deleted=0 ORDER BY pos, rid').all();
     partners = got.results.map((r) => JSON.parse(r.data));
@@ -193,11 +183,12 @@ export async function onRequestPost({ request, env }) {
   }
 
   if (body.fromDraft) {
-    const base = await env.DB.prepare(
-      'SELECT v FROM ' + TABLES.meta + " WHERE k='base_sha'").first('v');
-    if (base && base !== (current.sha || NO_FILE)) {
+    const mismatch = await baseMismatch(env.DB, TABLES.meta, current.sha || NO_FILE);
+    if (mismatch === 'race') return json(409, { error: RACE_MESSAGE });
+    if (mismatch) {
       return json(409, {
-        error: FILE + ' changed on GitHub outside this editor (a direct commit).\n' +
+        error: FILE + ' changed on GitHub since this draft was loaded (a direct commit in git, or a\n' +
+               'Save that finished while the draft was being reset).\n' +
                'Press "Reset draft" to start over from that version (unpublished ' +
                'edits are discarded), or reconcile the two in git first.'
       });
@@ -211,7 +202,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   const content = render(current.exists ? readHeader(current.source) : '', partners);
-  const who = (body.author || '').toString().slice(0, 40).replace(/[^\w .@-]/g, '');
+  const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
   const message = 'Partners: ' + partners.length + ' logo' + (partners.length === 1 ? '' : 's') +
                   ', edited in the web editor' + (who ? ' by ' + who : '');
 
@@ -223,6 +214,9 @@ export async function onRequestPost({ request, env }) {
   }, FILE);
 
   if (!put.ok) {
+    // GitHub's own check: the file moved on between our read and our write --
+    // in practice another editor's Save landing in the same second.
+    if (put.status === 409 && body.fromDraft) return json(409, { error: RACE_MESSAGE });
     return json(put.status === 409 ? 409 : 502, {
       error: 'GitHub refused the commit (HTTP ' + put.status + '). ' +
              (put.data && put.data.message ? put.data.message : '')
@@ -234,10 +228,7 @@ export async function onRequestPost({ request, env }) {
   if (body.fromDraft && newSha) {
     const note = JSON.stringify({ who: who, at: Date.now(), count: partners.length,
                                   seq: draftSeq, commit: commit || '' });
-    const up = (k, v) => env.DB
-      .prepare('INSERT INTO ' + TABLES.meta + '(k,v) VALUES(?1,?2) ON CONFLICT(k) DO UPDATE SET v=?2')
-      .bind(k, v);
-    await env.DB.batch([up('base_sha', newSha), up('save', note)]);
+    await recordSave(env.DB, TABLES.meta, draftEpoch, [['base_sha', newSha], ['save', note]]);
   }
 
   return json(200, {

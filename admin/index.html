@@ -11,6 +11,7 @@
     --head:#eef0ea;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}   /* the hidden attribute always wins over display rules */
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--ink);
        font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -147,6 +148,101 @@
   #preview .partner-box:hover,#preview .partner-box:focus-visible{background-color:#f7f6f2}
   #preview .partner-logo{display:block;max-width:70%;max-height:42%;object-fit:contain}
   #preview .pv-default img{width:60%;filter:grayscale(1);opacity:.14}
+
+  /* ---- blog + team views ---- */
+  .view-blog .thumb{width:56px;height:36px;object-fit:cover}
+  .view-team .thumb{width:40px;height:40px;object-fit:cover;border-radius:50%}
+  td select.st,.dr-field select.st{font-weight:650}
+  select.st-live{color:var(--green-dark)}
+  select.st-draft{color:var(--amber)}
+  tbody tr.is-draft td.w-name input{font-style:italic;color:var(--muted)}
+  td button.body-btn{width:100%;border:0;border-radius:0;background:transparent;text-align:left;
+        padding:6px 8px;color:var(--green-dark);font-weight:600}
+  td button.body-btn:hover{background:#eef5ea}
+  td button.body-btn.empty{color:var(--amber)}
+  td input[type=datetime-local]{min-width:0}
+
+  /* Side panel: one post / one person as a form. Edits sync like cell edits. */
+  #drawerShade{position:fixed;inset:0;background:rgba(23,33,15,.3);z-index:40}
+  #drawer{position:fixed;top:0;right:0;bottom:0;width:min(920px,100vw);background:var(--bg);z-index:41;
+          display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(23,33,15,.22)}
+  #drawer[hidden],#drawerShade[hidden]{display:none}
+  .dr-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;
+           background:var(--panel);border-bottom:1px solid var(--line)}
+  .dr-head strong{font-size:15px;max-width:48ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dr-head a{color:var(--green-dark);font-weight:600;text-decoration:none;white-space:nowrap}
+  .dr-head a:hover{text-decoration:underline}
+  .dr-body{flex:1;overflow:auto;padding:18px 22px 80px}
+  .dr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 16px;margin-bottom:16px}
+  .dr-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;min-width:0}
+  .dr-grid .dr-field{margin-bottom:0}
+  .dr-field > label{font-size:12px;font-weight:650;color:var(--muted);letter-spacing:.02em}
+  .dr-field .hint{font-size:12px;color:var(--muted);line-height:1.4}
+  .dr-field input,.dr-field select,.dr-field textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);
+        border-radius:7px;background:#fff;color:var(--ink);width:100%;min-width:0}
+  .dr-field textarea{resize:vertical;min-height:84px;line-height:1.5}
+  .dr-field textarea.lg{min-height:190px}
+  .dr-field input:focus,.dr-field select:focus,.dr-field textarea:focus{outline:2px solid var(--green);outline-offset:-1px}
+  .dr-row{display:flex;gap:8px;align-items:center}
+  .dr-row > input,.dr-row > select{flex:1}
+  .dr-field input.dr-title{font-size:21px;font-weight:650;padding:10px 12px}
+  .dr-img{max-width:280px;max-height:170px;border-radius:8px;border:1px solid var(--line);background:#fff;
+          align-self:flex-start;object-fit:cover}
+  .dr-img[hidden]{display:none}
+  .dr-url{font-size:12px;color:var(--muted);word-break:break-all}
+
+  /* The article editor. Paste from Google Docs / Word / a web page: it is
+     cleaned to plain structure on the way in (and again on Save). */
+  .rich{border:1px solid var(--line);border-radius:8px;background:#fff}
+  .rich-bar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:var(--head);border-bottom:1px solid var(--line);
+            border-radius:8px 8px 0 0;position:sticky;top:-18px;z-index:2}
+  .rich-bar button{padding:3px 9px;font-size:12.5px}
+  .rich-bar button[aria-pressed="true"]{background:var(--green);color:#fff;border-color:var(--green)}
+  .rich-bar .sep{width:1px;background:var(--line);margin:2px 3px}
+  .rich-ed{min-height:380px;padding:18px 24px;font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+           color:#1a1a1a;outline:none;overflow-wrap:anywhere}
+  .rich-ed:focus{box-shadow:inset 0 0 0 2px var(--green)}
+  .rich-ed:empty::before{content:attr(data-placeholder);color:var(--muted)}
+  .rich-ed h2,.rich-ed h3,.rich-ed h4{font-family:Georgia,"Times New Roman",serif;font-weight:400;line-height:1.2;margin:1.1em 0 .45em}
+  .rich-ed h2{font-size:30px} .rich-ed h3{font-size:24px} .rich-ed h4{font-size:19px}
+  .rich-ed > :first-child{margin-top:0}
+  .rich-ed p{margin:0 0 .85em}
+  .rich-ed ul,.rich-ed ol{margin:0 0 .85em;padding-left:1.6em}
+  .rich-ed blockquote{margin:0 0 .85em;padding:4px 16px;border-left:3px solid var(--green);color:#5a5a5a}
+  .rich-ed a{color:var(--green-dark)}
+  .rich-ed img{max-width:100%;height:auto;border-radius:6px}
+  .rich-ed table{border-collapse:collapse;margin:0 0 .85em}
+  .rich-ed td,.rich-ed th{border:1px solid var(--line);padding:4px 8px}
+  .rich-src{display:block;width:100%;min-height:380px;border:0;padding:14px 16px;resize:vertical;
+            font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:#fcfcfa}
+  .rich-src[hidden]{display:none}
+  .rich-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;padding:6px 10px;
+             border-top:1px solid var(--line);font-size:12px;color:var(--muted);background:var(--head);border-radius:0 0 8px 8px}
+  .rel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+
+  /* Form | Raw block switch, and the raw block panel (blog). */
+  .dr-seg{display:inline-flex;gap:2px;background:var(--head);border-radius:7px;padding:2px}
+  .dr-seg[hidden]{display:none}
+  .dr-seg button{border:0;background:transparent;color:var(--muted);font-weight:600;padding:4px 11px}
+  .dr-seg button:hover:not(:disabled){background:transparent;color:var(--ink)}
+  .dr-seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(23,33,15,.16)}
+  #drBody[hidden],#drRaw[hidden]{display:none}
+  .raw-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+  .raw-help{font-size:12.5px;color:var(--muted);margin:0 0 10px;line-height:1.5;max-width:92ch}
+  .raw-text{display:block;width:100%;min-height:52vh;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+            font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:#fff;resize:vertical;tab-size:2}
+  .raw-text:focus{outline:2px solid var(--green);outline-offset:-1px}
+  .raw-stale{background:#fdf6e3;color:var(--amber);border:1px solid #efe0bb;border-radius:7px;padding:7px 10px;
+             margin:0 0 10px;font-size:13px}
+  .raw-stale[hidden]{display:none}
+  .raw-report{margin-top:12px;font-size:13px;line-height:1.45}
+  .raw-report h4{margin:12px 0 4px;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+  .raw-report ul{margin:0;padding-left:20px}
+  .raw-report li{margin:2px 0}
+  .raw-report .r-err h4,.raw-report .r-err li{color:var(--red)}
+  .raw-report .r-warn h4{color:var(--amber)}
+  .raw-report .r-note h4,.raw-report .r-note li{color:var(--muted)}
+  .raw-report .r-ok{color:var(--green-dark);font-weight:650;margin:4px 0}
 </style>
 <script src="../js/partner-marquee.js"></script>
 </head>
@@ -157,6 +253,9 @@
   <nav class="tabs" aria-label="Section">
     <a href="./" data-view="products">Products</a>
     <a href="./?view=partners" data-view="partners">Partners</a>
+    <a href="./?view=blog" data-view="blog">Blog</a>
+    <a href="./?view=team" data-view="team">Team</a>
+    <a href="signups">Signups</a>
   </nav>
   <span class="count" id="count">loading…</span>
   <span class="count" id="who"></span>
@@ -194,6 +293,23 @@
   </table>
 </div>
 
+<div id="drawerShade" hidden></div>
+<aside id="drawer" hidden role="dialog" aria-labelledby="drTitle">
+  <div class="dr-head">
+    <strong id="drTitle">Edit</strong>
+    <span class="count" id="drMeta"></span>
+    <span class="spacer"></span>
+    <div class="dr-seg" id="drMode" role="group" aria-label="Edit as" hidden>
+      <button type="button" data-mode="form" aria-pressed="true" title="Edit field by field">Form</button>
+      <button type="button" data-mode="raw" aria-pressed="false" title="The whole post as one block of text you can copy, edit or paste">Raw block</button>
+    </div>
+    <a id="drView" target="_blank" rel="noopener" hidden>Open live page ↗</a>
+    <button id="drClose" type="button" class="primary" title="Close (Esc). Edits are already in the shared draft.">Done</button>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-body" id="drRaw" hidden></div>
+</aside>
+
 <footer>
   <span class="pill" id="backups">backups: –</span>
   <span id="dirty"></span>
@@ -221,8 +337,8 @@
   ];
 
   // A full https:// address; a logo may also be a file in the site's images/.
-  var URL_RE = /^https?:\/\/\S+$/i;
-  var LOGO_RE = /^(https?:\/\/\S+|\/?images\/\S+)$/i;
+  var URL_RE = /^https?:\/\/[^\s<>"']+$/i;
+  var LOGO_RE = /^(https?:\/\/[^\s<>"']+|\/?images\/[^\s<>"']+)$/i;
 
   /*
    * The two sections this page edits, with one engine. /admin/ is the product
@@ -238,6 +354,7 @@
       title: 'Catalog editor',
       one: 'product', many: 'products', what: 'catalog',
       file: 'js/products.js', listKey: 'products',
+      parseFile: function (t) { return parseList(t, 'PRODUCTS'); },
       draftApi: '/api/draft', saveApi: '/api/catalog', historyApi: '/api/history',
       cols: [
         ['_thumb', 'image', 52, '', 'img'],
@@ -250,7 +367,7 @@
         ['url', 'url', 240],
         ['img', 'img url', 240, '', 'img'],
         ['desc', 'desc', 260, '(optional)'],
-        ['note', 'note', 180, '(private)']
+        ['note', 'note', 180, '(internal — in the public data file, not secret)']
       ],
       text: ['desc', 'note'],
       thumb: 'img',
@@ -278,6 +395,10 @@
           }
           if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
             out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
+          if (p.url && !/^https?:\/\/[^\s<>"']+$/i.test(String(p.url).trim()))
+            out.push(at + ': url must be a full web address starting with https://');
+          if (p.img && !/^(https?:\/\/[^\s<>"']+|\/?images\/[^\s<>"']+)$/i.test(String(p.img).trim()))
+            out.push(at + ': img url must be a full https:// image address');
           if ('price' in p && (typeof p.price !== 'number' || isNaN(p.price)))
             out.push(at + ': price must be a number, or left blank');
         });
@@ -289,6 +410,7 @@
       title: 'Partner logos',
       one: 'partner', many: 'partners', what: 'partner list',
       file: 'js/partners.js', listKey: 'partners',
+      parseFile: function (t) { return parseList(t, 'PARTNERS'); },
       draftApi: '/api/draft?doc=partners', saveApi: '/api/partners',
       historyApi: '/api/history?doc=partners',
       cols: [
@@ -296,7 +418,7 @@
         ['name', 'name', 210],
         ['url', 'link url', 270, '(where the logo goes)'],
         ['logo', 'logo url', 270, '(image address)'],
-        ['note', 'note', 170, '(private)']
+        ['note', 'note', 170, '(internal — in the public data file, not secret)']
       ],
       text: ['note'],
       thumb: 'logo',
@@ -332,10 +454,181 @@
         });
         return out;
       }
+    },
+
+    /*
+     * The blog (js/blogs.js). Rows are posts; "Edit" (or the article cell)
+     * opens the side panel, where the article itself is written or pasted.
+     * New posts start as drafts (hidden) so a colleague's Save can never
+     * publish a half-written post; flip Status to Published when it is ready.
+     */
+    blog: {
+      title: 'Blog posts',
+      one: 'post', many: 'posts', what: 'blog',
+      file: 'js/blogs.js', listKey: 'posts',
+      parseFile: function (t) {
+        BLOG_CATS = parseList(t, 'BLOG_CATEGORIES');
+        return parseList(t, 'BLOG_POSTS');
+      },
+      draftApi: '/api/draft?doc=blog', saveApi: '/api/blog', historyApi: '/api/history?doc=blog',
+      cols: [
+        ['_thumb', 'cover', 70, '', 'cover'],
+        ['name', 'title', 320],
+        ['hidden', 'status', 140],
+        ['dateMs', 'publish date', 205, '(Michigan)'],
+        ['cat', 'category', 160],
+        ['author', 'author', 180],
+        ['contentHTML', 'article', 140],
+        ['excerpt', 'excerpt', 280, '(blank = start of article)'],
+        ['img', 'cover image url', 240],
+        ['id', 'id', 250, '(permalink)']
+      ],
+      text: ['excerpt'],
+      thumb: 'img',
+      thumbSrc: siteSrc,
+      kinds: { hidden: statusKind(), dateMs: dateKind(), cat: blogCatKind(),
+               author: authorKind(), contentHTML: bodyKind() },
+      drawer: [
+        ['name', 'Title', 'title'],
+        ['|', ['hidden', 'Status', 'kind', 'Drafts are saved but never shown on the site.'],
+              ['dateMs', 'Publish date & time (Michigan)', 'kind', 'now'],
+              ['cat', 'Category', 'kind'],
+              ['author', 'Author', 'kind', 'People come from the Team tab.']],
+        ['img', 'Cover image', 'image', 'A full https:// image address, or /images/… for a file that is part of the site (like the current covers). Choosing a category fills in that category’s usual image.'],
+        ['excerpt', 'Excerpt', 'textarea', 'Shown on the blog cards and in search results. Leave blank to use the first sentences of the article.'],
+        ['contentHTML', 'Article', 'rich'],
+        ['related', 'Continue reading', 'related', 'Up to three posts shown under the article. “Automatic” picks the newest posts in the same category.'],
+        ['id', 'Permalink', 'slug', 'The post’s address: /blog-post?id=… — filled in from the title. Don’t change it once the post is live, or old links break.']
+      ],
+      openOnAdd: true,
+      raw: true,            // "Raw block": the whole post as one copy/paste-able block
+      viewUrl: function (d) { return d.id && !d.hidden ? '/blog-post?id=' + encodeURIComponent(d.id) : ''; },
+      search: ['id', 'name', 'catLabel', 'excerpt'],
+      filterHint: 'Filter by title, category, id…  ( / )',
+      blank: function () {
+        var cats = blogCategories(), c = cats[0], now = nowMinute();
+        var d = { name: '', hidden: true, dateMs: now, dateLabel: dateLabelOf(now) };
+        if (c) {
+          d.cat = c.id; d.catLabel = c.label;
+          var img = categoryImage(c.id);
+          if (img) d.img = img;
+        }
+        var me = teamIdForName(NAME);
+        if (me) d.author = me;
+        return d;
+      },
+      onCopy: function (c) {
+        c.hidden = true;                     // a copy starts life as a draft
+        c.dateMs = nowMinute(); c.dateLabel = dateLabelOf(c.dateMs);
+      },
+      onData: function (d) { if (d.blogCategories) BLOG_CATS = d.blogCategories; },
+      boot: function () { loadTeamOptions(); },
+      // The draft loaded: if the author list could not be read at startup
+      // (the same outage the boot retried through), read it now.
+      ready: function () { if (!teamLoaded) loadTeamOptions(); },
+      actW: 180,
+      soloNote: 'Save writes js/blogs.js; the blog and home page cards are rebuilt from it.',
+      syncNote: 'Edits sync to every open editor within a few seconds — nothing touches the site ' +
+        'until Save, which publishes the shared draft: it writes js/blogs.js, articles go live in ' +
+        '~1 min and the Blog / Home cards follow ~1 min later. Drafts stay hidden. Every Save is kept in History.',
+      saveTitle: 'Publish the shared draft: commits js/blogs.js and rebuilds the blog pages',
+      publishing: 'the blog updates in ~2 min',
+      problems: function (rows) {
+        var out = [], seen = {};
+        rows.forEach(function (r, i) {
+          var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
+          if (!p.name || !String(p.name).trim()) out.push(at + ': the title is required');
+          if (!p.id || !String(p.id).trim()) out.push(at + ': the permalink (id) is required');
+          else {
+            if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
+              out.push(at + ': the permalink must be lowercase letters, numbers and dashes');
+            if (seen[p.id]) out.push(at + ': duplicate permalink "' + p.id + '" (also row ' + seen[p.id] + ')');
+            seen[p.id] = i + 1;
+          }
+          if (p.img && String(p.img).trim() && !LOGO_RE.test(String(p.img).trim()))
+            out.push(at + ': the cover image must be a full https:// address');
+          if (p.hidden) return;            // drafts only need a title and a permalink
+          if (!p.cat) out.push(at + ': choose a category (or set Status to Draft)');
+          if (!p.img || !String(p.img).trim()) out.push(at + ': a cover image is required (or set Status to Draft)');
+          if (!wordCount(p.contentHTML)) out.push(at + ': the article is empty (or set Status to Draft)');
+        });
+        return out;
+      }
+    },
+
+    /*
+     * The people on the About page (js/team.js), in page order. Blog posts
+     * pick their author from this list.
+     */
+    team: {
+      title: 'Team — About page',
+      one: 'person', many: 'people', what: 'team',
+      file: 'js/team.js', listKey: 'team',
+      parseFile: function (t) { return parseList(t, 'TEAM'); },
+      draftApi: '/api/draft?doc=team', saveApi: '/api/team', historyApi: '/api/history?doc=team',
+      cols: [
+        ['_thumb', 'photo', 64, '', 'photo'],
+        ['name', 'name', 210],
+        ['role', 'role', 170, '(e.g. Founder)'],
+        ['bio', 'bio', 360],
+        ['photo', 'photo url', 250, '(image address)'],
+        ['link', 'profile link', 230, '(optional)'],
+        ['id', 'id', 170, '(anchor)']
+      ],
+      text: ['bio'],
+      thumb: 'photo',
+      thumbSrc: siteSrc,
+      placeholder: { name: 'Full name', role: 'Founder', photo: 'https://…/photo.jpg',
+                     link: 'https://www.linkedin.com/in/…' },
+      drawer: [
+        ['name', 'Name', 'title'],
+        ['role', 'Role / title', 'text', 'Shown above the name, e.g. “Founder” or “Student Editor”. A role containing “Founder” is listed as a founder for search engines.'],
+        ['photo', 'Photo', 'image', 'A full https:// image address, or a file under images/. Square or portrait works best; leave blank to show initials.'],
+        ['bio', 'Bio', 'textarea-lg', 'A few sentences. A blank line starts a new paragraph.'],
+        ['link', 'Profile link', 'text', 'Optional: LinkedIn, a personal site, or mailto:name@mycampuskorner.com'],
+        ['id', 'Anchor id', 'slug', 'Links to this person use about#team-<id>, and blog posts refer to it. Filled in from the name.']
+      ],
+      openOnAdd: true,
+      viewUrl: function (d) { return d.id ? '/about#team-' + d.id : ''; },
+      search: ['name', 'role', 'bio', 'id'],
+      filterHint: 'Filter by name or role…  ( / )',
+      blank: function () { return {}; },
+      addAtEnd: true,       // the About page runs in table order, so new people join the end
+      reorder: true,
+      noCopy: true,
+      actW: 200,
+      soloNote: 'Save writes js/team.js; the About page is rebuilt from it.',
+      syncNote: 'Edits sync to every open editor within a few seconds — nothing touches the site ' +
+        'until Save, which writes js/team.js; the About page updates once the rebuild finishes (~2 min). ' +
+        'Order here is the order on the page. Every Save is kept in History.',
+      saveTitle: 'Publish the shared draft: commits js/team.js and rebuilds the About page',
+      publishing: 'the About page updates in ~2 min',
+      problems: function (rows) {
+        var out = [], seen = {};
+        rows.forEach(function (r, i) {
+          var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || 'untitled') + ')';
+          if (!p.name || !String(p.name).trim()) out.push(at + ': name is required');
+          if (!p.id || !String(p.id).trim()) out.push(at + ': id is required');
+          else {
+            if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id)) out.push(at + ': id must be lowercase letters, numbers and dashes');
+            if (seen[p.id]) out.push(at + ': duplicate id "' + p.id + '" (also row ' + seen[p.id] + ')');
+            seen[p.id] = i + 1;
+          }
+          if (p.photo && String(p.photo).trim() && !LOGO_RE.test(String(p.photo).trim()))
+            out.push(at + ': photo must be a full https:// image address (or a path under images/)');
+          if (p.link && String(p.link).trim() && !/^(https?:\/\/[^\s<>"']+|mailto:[^\s<>"']+@[^\s<>"']+)$/i.test(String(p.link).trim()))
+            out.push(at + ': profile link must start with https:// (or mailto:)');
+        });
+        return out;
+      }
     }
   };
 
-  var VIEW = /(^|[?&])view=partners(&|$)/.test(location.search.slice(1)) ? 'partners' : 'products';
+  // ?view=partners / blog / team; anything else is the product catalog.
+  var VIEW = (function () {
+    var m = /(?:^|[?&])view=([a-z]+)(?:&|$)/.exec(location.search.slice(1));
+    return m && Object.prototype.hasOwnProperty.call(DOCS, m[1]) ? m[1] : 'products';
+  })();
   var DOC = DOCS[VIEW];
   var FIELDS = DOC.cols.map(function (c) { return c[0]; })
                        .filter(function (f) { return f !== '_thumb'; });
@@ -364,7 +657,8 @@
   var pendingPatch = {};   // rid -> {field: value|null} typed but not yet sent
   var pendingOps = [];     // creates/deletes not yet sent
   var flushTimer = null, pollTimer = null, inFlight = false;
-  var saving = false, saveAfterFlush = false, saveFlushTries = 0;
+  var sendingOps = 0;      // edits riding on the request in flight
+  var saving = false, saveAfterFlush = false, saveFlushTries = 0, saveDropped = false;
   var lastActivity = Date.now();
   var focusRid = null, sentFocus = '<none>', presenceSentAt = 0;
   var navAt = null;        // last keyboard-nav landing, for diagnostics
@@ -395,7 +689,7 @@
   }
 
   function slugify(s) {
-    return String(s || '').toLowerCase()
+    return String(s || '').replace(/[™℠®©]/g, '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       .replace(/['’"]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+/, '').slice(0, 60).replace(/-+$/, '');
@@ -447,7 +741,8 @@
   // in localStorage; the name column is always shown (it is the pinned one).
   var COLS = DOC.cols;                // [field, menu label, default width, note, header]
   var COLS_KEY = VIEW === 'products' ? 'editorCols' : 'editorCols:' + VIEW;
-  var ACT_W = VIEW === 'partners' ? 178 : 122;    // matches --act-w in the CSS
+  var ACT_W = DOC.actW || (VIEW === 'partners' ? 178 : 122);    // matches --act-w in the CSS
+  document.documentElement.style.setProperty('--act-w', ACT_W + 'px');
   var colState = { w: {}, hidden: {} };
   try {
     var cs = JSON.parse(localStorage.getItem(COLS_KEY) || '{}');
@@ -584,6 +879,21 @@
     var td = document.createElement('td');
     var input;
 
+    var K = kindOf(field);
+    if (K) {
+      // A special editor (blog status, date, category, author, article).
+      input = K.make(row, field);
+      K.write(input, row.data[field], row);
+      td.className = 'w-' + (TD_CLASS[field] || field);
+      if (input.tagName !== 'BUTTON') {
+        var onKind = function () { onKindEdit(row, field, input); };
+        input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', onKind);
+        if (input.tagName !== 'SELECT') input.addEventListener('change', onKind);
+      }
+      td.appendChild(input);
+      return td;
+    }
+
     if (field === 'cat') {
       input = document.createElement('select');
       CATEGORIES.forEach(function (c) {
@@ -654,6 +964,7 @@
     if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
     else markDirty(true);
     schedulePreview();
+    refreshDrawer(row);
     clearStatus();
   }
 
@@ -702,11 +1013,21 @@
         });
     }
 
-    var dup = document.createElement('button');
-    dup.textContent = 'Copy';
-    dup.title = 'Duplicate this row';
-    dup.addEventListener('click', function () { duplicate(row); });
-    act.appendChild(dup);
+    if (DOC.drawer) {
+      var ed = document.createElement('button');
+      ed.textContent = 'Edit';
+      ed.title = 'Open this ' + DOC.one + ' in the side panel';
+      ed.addEventListener('click', function () { openDrawer(row); });
+      act.appendChild(ed);
+    }
+
+    if (!DOC.noCopy) {
+      var dup = document.createElement('button');
+      dup.textContent = 'Copy';
+      dup.title = 'Duplicate this row';
+      dup.addEventListener('click', function () { duplicate(row); });
+      act.appendChild(dup);
+    }
 
     var del = document.createElement('button');
     del.className = 'ghost-danger';
@@ -752,13 +1073,14 @@
       td.setAttribute('data-field', f);
       row.el.appendChild(td);
     });
+    rowDecor(row);
 
     return row;
   }
 
   function fieldInput(row, field) {
     var td = row.el.querySelector('[data-field="' + field + '"]');
-    return td ? td.querySelector('input,select,textarea') : null;
+    return td ? td.querySelector('input,select,textarea,button') : null;
   }
 
   function insertSorted(row) {
@@ -775,12 +1097,14 @@
     if (i > -1) rows.splice(i, 1);
     row.el.remove();
     if (row.rid) delete byRid[row.rid];
+    if (drawerRow === row) closeDrawer(true);
   }
 
   function duplicate(row) {
     // Copy every field, including ones this tool does not show, then give the
     // copy its own id -- two products may never share a permalink.
     var copy = JSON.parse(JSON.stringify(row.data));
+    if (DOC.onCopy) DOC.onCopy(copy);
     if (FIELDS.indexOf('id') > -1) copy.id = uniqueId(row.data.id);
     if (copy.name) copy.name = copy.name + ' (copy)';
     var called = copy.id || copy.name || 'untitled';
@@ -839,12 +1163,13 @@
 
   function moveAction(row, from, to) {
     return {
-      u: function () { if (!rowAlive(row)) return false; placeRow(row, from); return true; },
-      r: function () { if (!rowAlive(row)) return false; placeRow(row, to); return true; }
+      u: function () { row = liveRow(row); if (!rowAlive(row)) return false; placeRow(row, from); return true; },
+      r: function () { row = liveRow(row); if (!rowAlive(row)) return false; placeRow(row, to); return true; }
     };
   }
 
   function render(list) {              // solo mode full render
+    closeDrawer(true);
     clearHistory();
     rowsEl.textContent = '';
     byRid = {};
@@ -853,6 +1178,7 @@
     rows.forEach(function (r) { frag.appendChild(r.el); });
     rowsEl.appendChild(frag);
     renumber(); counts(); filter();
+    if (rawKept) setTimeout(keptBlock, 0);   // after the load's own status line
   }
 
   // ------------------------------------------------------------- filtering
@@ -894,6 +1220,15 @@
     undoUI();
   }
   function rowAlive(row) { return rows.indexOf(row) > -1; }
+  // The row an undo entry means now: the same row, or -- once its Delete was
+  // undone, here or on another screen -- the copy that replaced it (same rid
+  // in the shared draft; replacedBy in the one-screen editor). Without this,
+  // Undo skipped that row's older entries and reverted another row instead.
+  function liveRow(row) {
+    while (row.replacedBy) row = row.replacedBy;
+    if (!rowAlive(row) && row.rid && byRid[row.rid]) row = byRid[row.rid];
+    return row;
+  }
 
   // Programmatic edit of one field: data + input + thumb + sync/dirty.
   function setFieldValue(row, field, value) {
@@ -915,14 +1250,16 @@
     if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
     else markDirty(true);
     schedulePreview();
+    refreshDrawer(row);
+    rowDecor(row);
   }
 
   function fieldAction(row, field, before) {
     var st = { after: undefined };
     return {
       st: st,
-      u: function () { if (!rowAlive(row)) return false; setFieldValue(row, field, before); return true; },
-      r: function () { if (!rowAlive(row)) return false; setFieldValue(row, field, st.after); return true; }
+      u: function () { row = liveRow(row); if (!rowAlive(row)) return false; setFieldValue(row, field, before); return true; },
+      r: function () { row = liveRow(row); if (!rowAlive(row)) return false; setFieldValue(row, field, st.after); return true; }
     };
   }
 
@@ -932,6 +1269,7 @@
     var cur = { row: row };
     return {
       u: function () {
+        cur.row = liveRow(cur.row);
         if (!rowAlive(cur.row)) return false;
         removeRowLocal(cur.row); renumber(); counts();
         if (mode === 'sync' && rid) { delete pendingPatch[rid]; queueOp({ rid: rid, del: true }); }
@@ -939,8 +1277,10 @@
         return true;
       },
       r: function () {
+        cur.row = liveRow(cur.row);
         if (rowAlive(cur.row)) return false;
         var nr = makeRow(JSON.parse(JSON.stringify(snap)), rid, pos);
+        cur.row.replacedBy = nr;
         cur.row = nr;
         insertSorted(nr); renumber(); counts(); filter();
         if (mode === 'sync' && rid) queueOp({ rid: rid, pos: pos, data: JSON.parse(JSON.stringify(snap)) });
@@ -956,8 +1296,10 @@
     var cur = { row: row };
     return {
       u: function () {
+        cur.row = liveRow(cur.row);
         if (rowAlive(cur.row)) return false;
         var nr = makeRow(JSON.parse(JSON.stringify(snap)), rid, pos);
+        cur.row.replacedBy = nr;
         cur.row = nr;
         insertSorted(nr); renumber(); counts(); filter();
         if (mode === 'sync' && rid) queueOp({ rid: rid, pos: pos, data: JSON.parse(JSON.stringify(snap)) });
@@ -965,6 +1307,7 @@
         return true;
       },
       r: function () {
+        cur.row = liveRow(cur.row);
         if (!rowAlive(cur.row)) return false;
         removeRowLocal(cur.row); renumber(); counts();
         if (mode === 'sync' && rid) { delete pendingPatch[rid]; queueOp({ rid: rid, del: true }); }
@@ -1025,14 +1368,24 @@
     return ops;
   }
   function requeue(ops) {
-    // A send failed: put everything back, but anything typed meanwhile wins.
-    ops.forEach(function (op) {
-      if (op.patch) {
-        var p = pendingPatch[op.rid] || (pendingPatch[op.rid] = {});
-        for (var k in op.patch) if (!(k in p)) p[k] = op.patch[k];
-      } else {
-        pendingOps.unshift(op);
+    // A send failed: put the whole batch back exactly as it was -- edits
+    // included -- ahead of anything queued since. Order is the point: that
+    // batch happened first (a Delete then its Undo, an edit then a newer one),
+    // and whatever was typed meanwhile is sent after it, so it still wins.
+    pendingOps = ops.concat(pendingOps);
+  }
+
+  // A reply only counts if it is a real success. An error from the server
+  // still arrives as JSON; treating it as success would drop the edits that
+  // were taken off the queue for this send.
+  function draftReply(r) {
+    return r.json().catch(function () { return null; }).then(function (d) {
+      if (!r.ok || !d || d.error) {
+        var e = new Error(d && d.error ? d.error : 'the server answered HTTP ' + r.status);
+        e.server = true;
+        throw e;
       }
+      return d;
     });
   }
 
@@ -1044,7 +1397,10 @@
     if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
     inFlight = true;
     var ops = takeOps();
-    var payload = { client: CLIENT, name: NAME, since: cursor, ops: ops };
+    sendingOps = ops.length;
+    // epoch: these edits are for the draft this page loaded. After a Reset or
+    // Restore the server drops them instead of starting stray half-rows.
+    var payload = { client: CLIENT, name: NAME, since: cursor, epoch: epoch, ops: ops };
     var now = Date.now();
     if (focusRid !== sentFocus || now - presenceSentAt > 25000) {
       payload.presence = { rid: focusRid };
@@ -1056,17 +1412,22 @@
       body: JSON.stringify(payload),
       keepalive: !!keepalive
     })
-      .then(function (r) { return r.json(); })
+      .then(draftReply)
       .then(function (d) {
-        inFlight = false;
+        inFlight = false; sendingOps = 0;
         saveFlushTries = 0;
         apply(d);
         afterTick();
       })
-      .catch(function () {
-        inFlight = false;
+      .catch(function (e) {
+        inFlight = false; sendingOps = 0;
         requeue(ops);
-        if (ops.length) setStatus('warn', 'Connection hiccup — your last edits are queued and will retry.');
+        if (e && e.server) {
+          setStatus('warn', 'The shared draft is not answering properly (' + e.message + ')' +
+                            (localPending() ? ' — your last edits are queued and will retry.' : ' — retrying.'));
+        } else if (ops.length) {
+          setStatus('warn', 'Connection hiccup — your last edits are queued and will retry.');
+        }
         afterTick();
       });
   }
@@ -1110,7 +1471,13 @@
     if (booted && d.epoch !== epoch) {
       // Somebody reset or restored the draft. Local queues target dead rids --
       // drop them, and unless this response carries the full table, fetch it.
+      // A Save still waiting for those edits is off too: it would publish the
+      // version just loaded, which nobody here has looked at yet.
       pendingPatch = {}; pendingOps = [];
+      if (saveAfterFlush) {
+        saveAfterFlush = false; saveFlushTries = 0; saving = false;
+        saveDropped = true;
+      }
       if (!d.full) { epoch = d.epoch; cursor = 0; tick(); return; }
     }
     epoch = d.epoch;
@@ -1140,18 +1507,30 @@
       if (booted && d.reset.who !== NAME) {
         setStatus('warn', (d.reset.who || 'Someone') + ' ' +
           (d.reset.note ? d.reset.note + ' — the table reloaded to match.'
-                        : 'reset the draft to the last saved catalog.'));
+                        : 'reset the draft to the last saved version of the ' + DOC.what + '.') +
+          (saveDropped ? '\nYour Save was NOT sent: check the table, then press Save again.' : ''));
+        saveDropped = false;
       }
       lastResetAt = d.reset.at;
+    }
+    if (saveDropped && d.full) {
+      saveDropped = false;
+      setStatus('warn', 'The draft was reset or restored while your Save was waiting, so it was NOT sent. ' +
+                        'Check the table, then press Save again.');
     }
     if (d.presence) renderPresence(d.presence);
     updateDirty();
     booted = true;
+    if (rawKept) keptBlock();
   }
 
   function renderFull(d) {
     clearHistory();
     if (d.categories && d.categories.length) CATEGORIES = d.categories;
+    if (DOC.onData) DOC.onData(d);
+    var reopen = drawerRow ? drawerRow.rid : null;
+    var reopenId = drawerRow ? String(drawerRow.data.id || '') : '';
+    closeDrawer(true);
     var list = d.rows.slice().sort(function (a, b) {
       return a.pos - b.pos || (String(a.rid) < String(b.rid) ? -1 : 1);
     });
@@ -1172,15 +1551,24 @@
     // poll then fetched and redrew the whole table, wiping focus and undo.
     cursor = Number(d.seq) || 0;
     d.rows.forEach(function (r) { if (r.seq > cursor) cursor = r.seq; });
+    // The same post again: by rid, or by permalink after a Reset / Restore
+    // (which gives every row a new rid).
+    var back = (reopen && byRid[reopen]) ||
+               (reopenId && rows.filter(function (r) { return r.data.id === reopenId; })[0]);
+    if (back) {
+      openDrawer(back);
+      if (rawKept && (rawKept.rid === back.rid || (rawKept.id && rawKept.id === back.data.id))) restoreRaw();
+    }
   }
 
   function applyRemoteRow(r) {
     var row = byRid[r.rid];
     if (r.del) {
       if (row) {
-        var wasFocused = row.el.contains(document.activeElement);
+        var wasFocused = row.el.contains(document.activeElement) || drawerRow === row;
         removeRowLocal(row);
-        if (wasFocused) setStatus('warn', 'The row you were editing was deleted by another editor.');
+        if (wasFocused) setStatus('warn', 'The ' + (DOC.drawer ? DOC.one : 'row') +
+                                          ' you were editing was deleted by another editor.');
       }
       delete pendingPatch[r.rid];
       return;
@@ -1204,10 +1592,18 @@
     if (active && row.el.contains(active) && active.closest) {
       var td = active.closest('td[data-field]');
       focusField = td ? td.getAttribute('data-field') : null;
+    } else if (drawerRow === row && active && active.closest && $('drawer').contains(active)) {
+      var df = active.closest('[data-dfield]');       // typing in the side panel
+      focusField = df ? df.getAttribute('data-dfield') : null;
     }
     var keep = {};
     for (var k in mine) keep[k] = row.data[k];
-    if (focusField && !(focusField in keep)) {
+    // The field under the cursor keeps its local value -- except a long field
+    // (a blog article) with nothing unsent, and a button (the article cell):
+    // those take the colleague's version, so the next keystroke can never
+    // send an old copy of a whole article back over their change.
+    if (focusField && !(focusField in keep) && !LIVE_FIELDS[focusField] &&
+        !(active && active.tagName === 'BUTTON')) {
       keep[focusField] = row.data[focusField];
       if (focusField === 'cat') keep.catLabel = row.data.catLabel;
     }
@@ -1219,12 +1615,16 @@
     FIELDS.forEach(function (f) {
       var input = fieldInput(row, f);
       if (!input || input === active) return;
+      var K = kindOf(f);
+      if (K) { K.write(input, row.data[f], row); return; }
       var want = row.data[f] === undefined ? '' : String(row.data[f]);
       if (input.value !== want) {
         input.value = want;
         if (f === DOC.thumb) setThumb(row);
       }
     });
+    refreshDrawer(row);
+    rowDecor(row);
     schedulePreview();
   }
 
@@ -1324,12 +1724,14 @@
     var tag = t.tagName, k = ev.key;
 
     if (k === 'Enter') {
+      if (tag === 'BUTTON') return;      // the article button opens the side panel
       // In desc/note, Shift+Enter keeps its meaning: a new line.
       if (tag === 'TEXTAREA' && ev.shiftKey) return;
       ev.preventDefault();
       moveFocus(row, field, ev.shiftKey && tag !== 'TEXTAREA' ? -1 : 1, 0);
     } else if (k === 'ArrowDown' || k === 'ArrowUp') {
       if (tag === 'SELECT') return;      // native option cycling stays
+      if (t.type === 'datetime-local') return;   // arrows step the date parts
       if (tag === 'TEXTAREA') {
         // Hop rows only from the very start / very end of the text.
         var atS = t.selectionStart === 0 && t.selectionEnd === 0;
@@ -1340,7 +1742,8 @@
       ev.preventDefault();
       moveFocus(row, field, k === 'ArrowDown' ? 1 : -1, 0);
     } else if (k === 'ArrowLeft' || k === 'ArrowRight') {
-      if (tag !== 'SELECT') {
+      if (t.type === 'datetime-local') return;
+      if (tag !== 'SELECT' && tag !== 'BUTTON') {
         // Hop cells only when the caret is already at the edge of the text.
         if (t.selectionStart !== t.selectionEnd) return;
         if (k === 'ArrowLeft' && t.selectionStart !== 0) return;
@@ -1352,28 +1755,35 @@
   });
 
   // ----------------------------------------------------------------- load
-  function parseProductsJs(text) {
-    var body = text.replace(/\/\*[\s\S]*?\*\//g, '');
-    body = body.slice(body.indexOf('['), body.lastIndexOf(']') + 1);
-    return JSON.parse(body.replace(/,(\s*])/g, '$1'));
-  }
-
+  var bootTries = 0;
   function boot() {
-    clearStatus();
     fetch(DOC.draftApi + (DOC.draftApi.indexOf('?') < 0 ? '?' : '&') + 'since=0', { cache: 'no-store' })
       .then(function (r) {
-        if (!r.ok) throw new Error('no draft api');
-        return r.json();
+        // 404 = there is no shared draft here (the local python editor, or
+        // Functions not deployed): the original one-screen editor. Any other
+        // failure is a hiccup -- retry; never quietly edit a private copy,
+        // whose Save would bypass everyone else's draft.
+        if (r.status === 404) return { mode: 'solo' };
+        return draftReply(r);
       })
       .then(function (d) {
         if (d.mode !== 'sync') { enterSolo(); return; }
         mode = 'sync';
         if (!NAME) promptName(false);
+        clearStatus();
         apply(d);
         enterSyncChrome();
         schedulePoll();
+        if (DOC.ready) DOC.ready();
       })
-      .catch(function () { enterSolo(); });
+      .catch(function (e) {
+        mode = 'boot';
+        bootTries++;
+        var wait = Math.min(30, 3 * bootTries);
+        setStatus('err', 'Could not load the shared draft (' + (e && e.message ? e.message : e) + '). ' +
+                         'Trying again in ' + wait + ' s — nothing can be edited until it loads.');
+        setTimeout(boot, wait * 1000);
+      });
   }
 
   function enterSolo() {
@@ -1384,7 +1794,7 @@
   function enterSyncChrome() {
     $('reload').textContent = 'Reset draft';
     $('reload').title = 'Throw away ALL unpublished edits (everyone\'s) and reload the draft ' +
-                        'from the last saved catalog';
+                        'from the last saved version of the ' + DOC.what;
     $('save').title = DOC.saveTitle;
     $('hist').style.display = '';
     $('who').style.cursor = 'pointer';
@@ -1403,6 +1813,7 @@
       })
       .then(function (d) {
         if (d.categories && d.categories.length) CATEGORIES = d.categories;
+        if (DOC.onData) DOC.onData(d);
         liveEditor = true;
         // Sent back on save so a second editor cannot silently overwrite us.
         baseSha = d.sha || null;
@@ -1411,6 +1822,7 @@
           : 'backups: ' + (d.backups === undefined ? '–' : d.backups);
         render(d[DOC.listKey] || []);
         markDirty(false);
+        if (DOC.ready) DOC.ready();
       })
       .catch(function () {
         // No editor server -- fall back to reading the file so the page is at
@@ -1419,7 +1831,7 @@
           .then(function (r) { return r.text(); })
           .then(function (t) {
             liveEditor = false;
-            render(parseProductsJs(t));
+            render(DOC.parseFile(t));
             markDirty(false);
             $('save').disabled = true;
             $('backups').textContent = 'read-only';
@@ -1435,6 +1847,7 @@
 
   // ----------------------------------------------------------------- save
   function save() {
+    if (mode === 'boot') return;       // nothing is loaded yet: never publish an empty list
     var bad = problems();
     if (bad.length) {
       setStatus('err', 'Not saved — fix these first' +
@@ -1453,7 +1866,7 @@
     // solo mode: original save path
     $('save').disabled = true;
     setStatus('warn', 'Saving…');
-    var body = { sha: baseSha || undefined };
+    var body = { sha: baseSha || undefined, author: NAME || undefined };
     body[DOC.listKey] = rows.map(function (r) { return r.data; });
     fetch(DOC.saveApi, {
       method: 'POST',
@@ -1498,7 +1911,7 @@
     fetch(DOC.saveApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromDraft: true, author: NAME || undefined })
+      body: JSON.stringify({ fromDraft: true, epoch: epoch, author: NAME || undefined })
     })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
@@ -1696,6 +2109,1779 @@
     sync();
   }
 
+  // ======================================================= blog + team views
+  // Everything below is only reached from the Blog and Team sections: the
+  // products and partners tables never define kinds or a side panel.
+
+  var SKIP = {};               // a kind's read(): "leave the value alone"
+  var LIVE_FIELDS = { contentHTML: 1 };   // long fields: never kept stale under the cursor
+  var BLOG_CATS = [];          // categories in js/blogs.js (from the draft / API)
+  var EXTRA_CATS = [];         // new ones made in this tab, until a row uses them
+  var TEAM_OPTIONS = [];       // people for the blog author menu
+  var drawerRow = null;        // the row open in the side panel
+  var drawerCtl = [];          // its controls: {field, el, write(value)}
+
+  function kindOf(field) { return DOC.kinds ? DOC.kinds[field] : undefined; }
+  function clone(v) { return v === undefined ? undefined : JSON.parse(JSON.stringify(v)); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // Relative images (images/…) belong to the site root, not to /admin/.
+  function siteSrc(v) {
+    v = String(v || '').trim();
+    return !v || /^(https?:|data:|\/)/i.test(v) ? v : '/' + v;
+  }
+
+  // `window.NAME = [...]` from a data file, as JSON. A string-aware scan, never
+  // a regex over the whole file: blogs.js holds two lists, article HTML is full
+  // of brackets, and any text may contain "/*", "*\/" or ", ]". The same scan
+  // as extractArray() in functions/_shared/js-data.js. Throws when unreadable.
+  function parseList(text, name) {
+    var at = new RegExp('^[ \\t]*window\\.' + name + '\\s*=\\s*\\[', 'm').exec(text);
+    if (!at) throw new Error('window.' + name + ' = [ ... ] not found');
+    var open = at.index + at[0].length - 1, depth = 0, inStr = false, esc = false, end = -1, i, c;
+    for (i = open; i < text.length; i++) {
+      c = text[i];
+      if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; continue; }
+      if (c === '/' && text[i + 1] === '*') {            // a /* comment */ between entries
+        var close = text.indexOf('*/', i + 2);
+        if (close < 0) break;
+        i = close + 1;
+        continue;
+      }
+      if (c === '"') inStr = true;
+      else if (c === '[') depth++;
+      else if (c === ']' && --depth === 0) { end = i; break; }
+    }
+    if (end < 0) throw new Error('window.' + name + ': the list is never closed');
+    // Comments and trailing commas out -- only outside strings.
+    var body = text.slice(open, end + 1), json = '', s = false, e = false, j;
+    for (i = 0; i < body.length; i++) {
+      c = body[i];
+      if (s) { json += c; if (e) e = false; else if (c === '\\') e = true; else if (c === '"') s = false; continue; }
+      if (c === '"') { s = true; json += c; continue; }
+      if (c === '/' && body[i + 1] === '*') {
+        j = body.indexOf('*/', i + 2);
+        i = j < 0 ? body.length : j + 1;
+        continue;
+      }
+      if (c === ',') {
+        j = i + 1;
+        while (j < body.length) {
+          if (/\s/.test(body[j])) { j++; continue; }
+          if (body[j] === '/' && body[j + 1] === '*') { var k = body.indexOf('*/', j + 2); j = k < 0 ? body.length : k + 2; continue; }
+          break;
+        }
+        if (body[j] === ']' || body[j] === '}') continue;
+      }
+      json += c;
+    }
+    var list = JSON.parse(json);
+    if (!Array.isArray(list)) throw new Error('window.' + name + ' is not a list');
+    return list;
+  }
+  // The same, for read-only lookups (author menu, product links): [] if unreadable.
+  function listFrom(text, name) {
+    try { return parseList(text, name); } catch (e) { return []; }
+  }
+
+  // ---- Michigan time: the site's clock, whatever the editor's computer says.
+  var TZ = 'America/Detroit';
+  var tzParts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric',
+    month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  var tzLabel = new Intl.DateTimeFormat('en-US', { timeZone: TZ, month: 'long', day: 'numeric', year: 'numeric' });
+  function partsOf(ms) {
+    var o = {};
+    tzParts.formatToParts(new Date(ms)).forEach(function (p) { o[p.type] = p.value; });
+    if (o.hour === '24') o.hour = '00';
+    return o;
+  }
+  function toZoned(ms) {                   // ms -> "2026-09-23T14:05" in Michigan
+    var p = partsOf(ms);
+    return p.year + '-' + p.month + '-' + p.day + 'T' + p.hour + ':' + p.minute;
+  }
+  function fromZoned(str) {                // "2026-09-23T14:05" in Michigan -> ms
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(str || ''));
+    if (!m) return NaN;
+    var want = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]), guess = want;
+    for (var i = 0; i < 3; i++) {          // walk the UTC offset in (DST-safe)
+      var p = partsOf(guess);
+      var diff = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - want;
+      if (!diff) break;
+      guess -= diff;
+    }
+    return guess;
+  }
+  function dateLabelOf(ms) { return tzLabel.format(new Date(ms)); }
+  function nowMinute() { return Math.floor(Date.now() / 60000) * 60000; }
+
+  function plainText(html) {
+    if (!html) return '';
+    // A space after each block, so "<p>a b</p><p>c</p>" is three words, not two.
+    html = String(html).replace(/<\/(p|h[1-6]|li|blockquote|td|th|figcaption|pre)\s*>|<br\s*\/?>/gi, '$& ');
+    var d = new DOMParser().parseFromString('<body>' + html + '</body>', 'text/html');
+    return (d.body.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+  function wordCount(html) {
+    var t = plainText(html);
+    return t ? t.split(' ').length : 0;
+  }
+
+  // ---- blog categories: the file's list, anything rows use, anything new
+  function blogCategories() {
+    var out = [], seen = {};
+    function add(id, label) {
+      if (id && !seen[id]) { seen[id] = 1; out.push({ id: id, label: label || id }); }
+    }
+    BLOG_CATS.forEach(function (c) { add(c.id, c.label); });
+    rows.forEach(function (r) { add(r.data.cat, r.data.catLabel); });
+    EXTRA_CATS.forEach(function (c) { add(c.id, c.label); });
+    return out;
+  }
+  function catLabelOf(id) {
+    var cats = blogCategories();
+    for (var i = 0; i < cats.length; i++) if (cats[i].id === id) return cats[i].label;
+    return id;
+  }
+  // The image most recently used in a category -- posts share one per category.
+  function categoryImage(cat, except) {
+    var best = null;
+    rows.forEach(function (r) {
+      if (r === except || r.data.cat !== cat || !r.data.img) return;
+      if (!best || (r.data.dateMs || 0) > (best.data.dateMs || 0)) best = r;
+    });
+    return best ? best.data.img : '';
+  }
+  function fillCats(sel, value) {
+    var cats = blogCategories();
+    var key = JSON.stringify(cats) + '|' + value;
+    if (sel.__key === key) return;
+    sel.__key = key;
+    sel.textContent = '';
+    var known = false;
+    cats.forEach(function (c) {
+      var o = el('option', '', c.label); o.value = c.id; sel.appendChild(o);
+      if (c.id === value) known = true;
+    });
+    if (value && !known) { var o = el('option', '', value); o.value = value; sel.appendChild(o); }
+    if (!value) { var none = el('option', '', '— choose —'); none.value = ''; sel.insertBefore(none, sel.firstChild); }
+    var add = el('option', '', '+ New category…'); add.value = '__new'; sel.appendChild(add);
+    sel.value = value || '';
+  }
+
+  // ---- team members, for the blog author menu (the shared team draft, so a
+  // person added a minute ago is already there; the published file if not).
+  var teamLoaded = false;             // false after a failed load: boot tries again
+  function loadTeamOptions() {
+    fetch('/api/draft?doc=team&since=0', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('no draft'); return r.json(); })
+      .then(function (d) {
+        if (d.mode !== 'sync' || !d.rows) throw new Error('no draft');
+        TEAM_OPTIONS = d.rows.filter(function (r) { return !r.del; })
+          .sort(function (a, b) { return a.pos - b.pos; })
+          .map(function (r) { return r.data; });
+        teamLoaded = true;
+      })
+      .catch(function () {
+        // No shared draft: the latest saved team (GitHub), else the published file.
+        return fetch('/api/team', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (d && Array.isArray(d.team)) { TEAM_OPTIONS = d.team; teamLoaded = true; return; }
+            return fetch('/js/team.js', { cache: 'no-store' })
+              .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+              .then(function (t) { TEAM_OPTIONS = parseList(t, 'TEAM'); teamLoaded = true; });
+          })
+          .catch(function () { TEAM_OPTIONS = []; });
+      })
+      .then(function () {
+        rows.forEach(function (r) {
+          var sel = fieldInput(r, 'author');
+          if (sel) DOC.kinds.author.write(sel, r.data.author, r);
+        });
+        if (drawerRow) refreshDrawer(drawerRow);
+      });
+  }
+  function teamIdForName(name) {
+    name = String(name || '').trim().toLowerCase();
+    if (!name) return '';
+    for (var i = 0; i < TEAM_OPTIONS.length; i++) {
+      var t = TEAM_OPTIONS[i];
+      if (t.id && String(t.name || '').trim().toLowerCase() === name) return t.id;
+    }
+    return '';
+  }
+
+  // A permalink no other row uses: base, base-2, base-3…
+  function freeSlug(base, row) {
+    base = base || DOC.one;
+    var taken = {};
+    rows.forEach(function (r) { if (r !== row && r.data.id) taken[r.data.id] = true; });
+    var id = base, n = 2;
+    while (taken[id]) { id = base + '-' + n; n++; }
+    return id;
+  }
+
+  // ---- kinds: special editors for one field, used in a cell and the panel
+  //   make(row) -> element · write(el, value, row) · read(el, row) -> value
+  //   couple(row, value) -> other fields that change with it · self: redraw
+  //   the element after an edit (selects only)
+  function statusKind() {
+    return {
+      self: true,
+      make: function () {
+        var s = el('select', 'st');
+        [['live', 'Published'], ['draft', 'Draft (hidden)']].forEach(function (o) {
+          var opt = el('option', '', o[1]); opt.value = o[0]; s.appendChild(opt);
+        });
+        return s;
+      },
+      write: function (s, v) {
+        s.value = v ? 'draft' : 'live';
+        s.className = 'st ' + (v ? 'st-draft' : 'st-live');
+      },
+      read: function (s) { return s.value === 'draft' ? true : undefined; }
+    };
+  }
+  function dateKind() {
+    return {
+      make: function () {
+        var i = el('input');
+        i.type = 'datetime-local';
+        i.step = 60;
+        return i;
+      },
+      write: function (i, v) {
+        var want = v ? toZoned(v) : '';
+        if (i.value !== want) i.value = want;
+      },
+      read: function (i) {
+        var ms = fromZoned(i.value);
+        return isFinite(ms) ? ms : SKIP;
+      },
+      couple: function (row, v) { return { dateLabel: dateLabelOf(v) }; }
+    };
+  }
+  function blogCatKind() {
+    return {
+      self: true,
+      make: function () {
+        var s = el('select');
+        s.addEventListener('focus', function () { fillCats(s, s.value === '__new' ? '' : s.value); });
+        return s;
+      },
+      write: function (s, v) { fillCats(s, v || ''); s.value = v || ''; },
+      read: function (s, row) {
+        if (s.value !== '__new') return s.value || undefined;
+        var label = String(prompt('Name of the new blog category:', '') || '').trim();
+        var id = slugify(label);
+        if (!label || !id) { fillCats(s, row.data.cat || ''); s.value = row.data.cat || ''; return SKIP; }
+        var exists = blogCategories().some(function (c) { return c.id === id; });
+        if (!exists) EXTRA_CATS.push({ id: id, label: label });
+        return id;
+      },
+      couple: function (row, v) {
+        var out = { catLabel: v ? catLabelOf(v) : undefined };
+        if (v && !String(row.data.img || '').trim()) {
+          var img = categoryImage(v, row);
+          if (img) out.img = img;
+        }
+        return out;
+      }
+    };
+  }
+  function authorKind() {
+    return {
+      self: true,
+      make: function () { return el('select'); },
+      write: function (s, v, row) {
+        var legacy = row && row.data.authors && row.data.authors.length;
+        var key = JSON.stringify([v || '', legacy ? row.data.authors : 0, TEAM_OPTIONS.map(function (t) {
+          return [t.id, t.name, t.role];
+        })]);
+        if (s.__key === key) return;       // nothing it shows has changed
+        s.__key = key;
+        s.textContent = '';
+        var none = el('option', '', '— no byline —'); none.value = ''; s.appendChild(none);
+        if (legacy) {
+          var o = el('option', '', 'Current: ' + row.data.authors.join(' ').replace(/\s+/g, ' '));
+          o.value = '__legacy'; s.appendChild(o);
+        }
+        var known = false;
+        TEAM_OPTIONS.forEach(function (t) {
+          if (!t.id) return;
+          var opt = el('option', '', (t.name || t.id) + (t.role ? ' — ' + t.role : ''));
+          opt.value = t.id; s.appendChild(opt);
+          if (t.id === v) known = true;
+        });
+        if (v && !known) { var u = el('option', '', v + ' (not on the team list)'); u.value = v; s.appendChild(u); }
+        s.value = v || (legacy ? '__legacy' : '');
+      },
+      read: function (s) { return s.value === '__legacy' ? SKIP : (s.value || undefined); },
+      // A team author replaces the old free-text byline.
+      couple: function () { return { authors: undefined }; }
+    };
+  }
+  function bodyKind() {
+    return {
+      make: function (row) {
+        var b = el('button', 'body-btn');
+        b.type = 'button';
+        b.title = 'Open the article editor';
+        b.addEventListener('click', function () { openDrawer(row, 'contentHTML'); });
+        return b;
+      },
+      write: function (b, v) {
+        var n = wordCount(v);
+        b.textContent = n ? '✎ ' + n.toLocaleString() + ' words' : '✎ Write…';
+        b.classList.toggle('empty', !n);
+      },
+      read: function () { return SKIP; }
+    };
+  }
+
+  // ---- edits that touch several fields at once, with one undo entry
+  function multiAction(row, fields) {
+    var a = { before: {}, after: {} };
+    fields.forEach(function (f) { a.before[f] = clone(row.data[f]); });
+    a.u = function () { row = liveRow(row); if (!rowAlive(row)) return false; applyFields(row, a.before); return true; };
+    a.r = function () { row = liveRow(row); if (!rowAlive(row)) return false; applyFields(row, a.after); return true; };
+    return a;
+  }
+
+  // Set fields on a row and push them everywhere: grid cells, side panel,
+  // thumbnail, and the shared draft (or the unsaved flag in solo mode).
+  function applyFields(row, changes, source) {
+    var patch = {};
+    Object.keys(changes).forEach(function (f) {
+      var v = changes[f];
+      if (v === undefined || v === null) { delete row.data[f]; patch[f] = null; }
+      else { row.data[f] = clone(v); patch[f] = clone(v); }
+      var input = fieldInput(row, f);
+      if (input && input !== source) {
+        var K = kindOf(f);
+        var want = row.data[f] === undefined ? '' : String(row.data[f]);
+        if (K) K.write(input, row.data[f], row);
+        else if (input.value !== want) input.value = want;
+      }
+      if (f === DOC.thumb) setThumb(row);
+    });
+    refreshDrawer(row, source);
+    rowDecor(row);
+    if (mode === 'sync' && row.rid) queuePatch(row.rid, patch);
+    else markDirty(true);
+    schedulePreview();
+  }
+
+  // One undo entry per stay in a control (like a cell), then it tracks the
+  // latest value until focus leaves.
+  function commitEdit(row, changes, holder) {
+    var fields = Object.keys(changes);
+    if (holder) {
+      if (!holder.__act) { holder.__act = multiAction(row, fields); pushAction(holder.__act); }
+      fields.forEach(function (f) {
+        if (!(f in holder.__act.before)) holder.__act.before[f] = clone(row.data[f]);
+      });
+    }
+    applyFields(row, changes, holder);
+    if (holder) {
+      Object.keys(holder.__act.before).forEach(function (f) { holder.__act.after[f] = clone(row.data[f]); });
+    }
+    clearStatus();
+  }
+
+  function onKindEdit(row, field, input) {
+    var K = kindOf(field);
+    var v = K.read(input, row);
+    if (v === SKIP) return;
+    var changes = {};
+    changes[field] = v;
+    if (K.couple) {
+      var extra = K.couple(row, v);
+      for (var k in extra) changes[k] = extra[k];
+    }
+    commitEdit(row, changes, input);
+    if (K.self) K.write(input, row.data[field], row);
+  }
+
+  function rowDecor(row) {
+    if (DOC.kinds && DOC.kinds.hidden) row.el.classList.toggle('is-draft', !!row.data.hidden);
+  }
+
+  // ---------------------------------------------------------- side panel
+  function openDrawer(row, focusField) {
+    if (!DOC.drawer || !row) return;
+    if (drawerRow && closeDrawer() === false) return;   // kept open: unapplied raw block
+    drawerRow = row;
+    var body = $('drBody');
+    body.textContent = '';
+    drawerCtl = [];
+    DOC.drawer.forEach(function (spec) {
+      if (spec[0] === '|') {
+        var g = el('div', 'dr-grid');
+        spec.slice(1).forEach(function (sp) { g.appendChild(drawerField(row, sp)); });
+        body.appendChild(g);
+      } else {
+        body.appendChild(drawerField(row, spec));
+      }
+    });
+    $('drMode').hidden = !DOC.raw;
+    raw.reset();
+    paintMode(false);
+    refreshDrawer(row);
+    $('drawer').hidden = false;
+    $('drawerShade').hidden = false;
+    body.scrollTop = 0;
+    focusRid = row.rid;
+    for (var i = 0; i < drawerCtl.length; i++) {
+      if (drawerCtl[i].field === (focusField || 'name')) {
+        drawerCtl[i].focus();
+        if (drawerCtl[i].scroll) drawerCtl[i].el.scrollIntoView({ block: 'start' });
+        break;
+      }
+    }
+  }
+
+  // silent: closed by the program (row deleted, draft reset) rather than by the
+  // person -- no questions, and nothing written to a row that is going away.
+  // Returns false when the person chose to keep the panel open.
+  function closeDrawer(silent) {
+    if (!drawerRow) return true;
+    var row = drawerRow;
+    if (!silent && raw.dirty() &&
+        !confirm('Discard the raw block? It has changes that were not applied to the post.')) return false;
+    // Closed by the program (the post was deleted, the draft reset or
+    // restored) with an unapplied block in the box: keep it -- renderFull puts
+    // it back on the same post, or keptBlock() offers a copy.
+    if (silent && raw.dirty()) {
+      rawKept = { text: raw.parts.text.value, rid: row.rid, id: String(row.data.id || ''),
+                  name: String(row.data.name || '') };
+    }
+    // A title with no permalink yet gets one on the way out, as on blur.
+    if (!silent && FIELDS.indexOf('id') > -1 && rowAlive(row) && !String(row.data.id || '').trim() &&
+        String(row.data.name || '').trim()) {
+      commitEdit(row, { id: freeSlug(slugify(row.data.name), row) }, {});
+    }
+    drawerRow = null;
+    drawerCtl = [];
+    raw.reset();
+    $('drawer').hidden = true;
+    $('drawerShade').hidden = true;
+    $('drBody').textContent = '';
+    focusRid = null;
+    return true;
+  }
+
+  function refreshDrawer(row, except) {
+    if (!drawerRow || drawerRow !== row) return;
+    var skip = except && except.nodeType ? except : null;   // the control being typed in
+    drawerCtl.forEach(function (c) {
+      if (skip && (c.el === skip || c.el.contains(skip))) return;
+      c.write(row.data[c.field], row);
+    });
+    var d = row.data;
+    $('drTitle').textContent = (DOC.one.charAt(0).toUpperCase() + DOC.one.slice(1)) + ': ' +
+                               (d.name || 'untitled');
+    var meta = [];
+    if (DOC.kinds && DOC.kinds.hidden) meta.push(d.hidden ? 'Draft — not on the site' : 'Published');
+    if (DOC.kinds && DOC.kinds.contentHTML) meta.push(wordCount(d.contentHTML).toLocaleString() + ' words');
+    meta.push(mode === 'sync' ? 'changes sync to the shared draft; Save publishes' : 'Save to publish');
+    $('drMeta').textContent = '· ' + meta.join(' · ');
+    var url = DOC.viewUrl ? DOC.viewUrl(d) : '';
+    $('drView').hidden = !url;
+    if (url) $('drView').href = url;
+    if (raw.on) raw.refresh(row);
+  }
+
+  function drawerField(row, spec) {
+    var field = spec[0], label = spec[1], type = spec[2], hint = spec[3];
+    var wrap = el('div', 'dr-field');
+    wrap.setAttribute('data-dfield', field);
+    var id = 'df-' + field;
+    var lab = el('label', '', label);
+    lab.htmlFor = id;
+    wrap.appendChild(lab);
+    var ctl;
+
+    if (type === 'kind') {
+      var K = kindOf(field);
+      var input = K.make(row, field);
+      input.id = id;
+      var h = function () { onKindEdit(row, field, input); };
+      input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', h);
+      if (input.tagName !== 'SELECT') input.addEventListener('change', h);
+      ctl = { field: field, el: input, write: function (v, r) { K.write(input, v, r); },
+              focus: function () { input.focus(); } };
+      if (hint === 'now') {
+        var line = el('div', 'dr-row');
+        line.appendChild(input);
+        var now = el('button', '', 'Now');
+        now.type = 'button';
+        now.title = 'Set to the current time';
+        now.addEventListener('click', function () {
+          var ms = nowMinute();
+          commitEdit(row, { dateMs: ms, dateLabel: dateLabelOf(ms) }, {});
+        });
+        line.appendChild(now);
+        wrap.appendChild(line);
+        hint = 'Shown as ' + '<span data-dlabel></span>' + '. Sorts the post among the others.';
+      } else {
+        wrap.appendChild(input);
+      }
+    } else if (type === 'rich') {
+      ctl = richControl(row, field);
+      ctl.scroll = true;
+      wrap.appendChild(ctl.el);
+    } else if (type === 'related') {
+      ctl = relatedControl(row, field);
+      wrap.appendChild(ctl.el);
+    } else {
+      var multi = type === 'textarea' || type === 'textarea-lg';
+      var box = el(multi ? 'textarea' : 'input', type === 'title' ? 'dr-title' : (type === 'textarea-lg' ? 'lg' : ''));
+      box.id = id;
+      if (!multi) box.type = 'text';
+      if (DOC.placeholder && DOC.placeholder[field]) box.placeholder = DOC.placeholder[field];
+      if (type === 'title') box.placeholder = DOC.one === 'post' ? 'Post title' : 'Full name';
+      box.addEventListener('input', function () {
+        var v = box.value;
+        var ch = {};
+        ch[field] = multi ? (v.trim() === '' ? undefined : v) : v;
+        commitEdit(row, ch, box);
+        if (preview) showPreview();
+      });
+      if (type === 'title' && FIELDS.indexOf('id') > -1) {
+        // The permalink follows the title once, the first time it is left empty.
+        box.addEventListener('blur', function () {
+          if (!rowAlive(row) || String(row.data.id || '').trim() || !box.value.trim()) return;
+          commitEdit(row, { id: freeSlug(slugify(box.value), row) }, {});
+        });
+      }
+      var preview = null, showPreview = null;
+      if (type === 'image') {
+        preview = el('img', 'dr-img');
+        preview.alt = '';
+        preview.onerror = function () { preview.hidden = true; };
+        preview.onload = function () { preview.hidden = false; };
+        showPreview = function () {
+          var v = siteSrc(row.data[field]);
+          preview.hidden = !v;
+          if (v && preview.getAttribute('src') !== v) preview.src = v;
+        };
+      }
+      if (type === 'slug') {
+        var row2 = el('div', 'dr-row');
+        row2.appendChild(box);
+        var gen = el('button', '', 'From title');
+        gen.type = 'button';
+        gen.title = 'Make the permalink from the ' + (DOC.one === 'post' ? 'title' : 'name');
+        gen.addEventListener('click', function () {
+          var want = freeSlug(slugify(row.data.name), row);
+          if (!want || want === row.data.id) return;
+          if (row.data.id && !row.data.hidden && DOC.one === 'post' &&
+              !confirm('This post is published. Changing its permalink breaks every existing link to it. Continue?')) return;
+          commitEdit(row, { id: want }, {});
+        });
+        row2.appendChild(gen);
+        wrap.appendChild(row2);
+        var url = el('div', 'dr-url');
+        wrap.appendChild(url);
+        ctl = { field: field, el: box, focus: function () { box.focus(); },
+                write: function (v) {
+                  var want = v === undefined ? '' : String(v);
+                  if (box.value !== want) box.value = want;
+                  url.textContent = want ? location.origin + (DOC.viewUrl({ id: want }) || '') : '';
+                } };
+      } else {
+        wrap.appendChild(box);
+        if (preview) wrap.appendChild(preview);
+        ctl = { field: field, el: box, focus: function () { box.focus(); },
+                write: function (v) {
+                  var want = v === undefined ? '' : String(v);
+                  if (box.value !== want) box.value = want;
+                  if (showPreview) showPreview();
+                } };
+      }
+    }
+
+    if (hint) {
+      var hn = el('div', 'hint');
+      hn.innerHTML = hint.indexOf('data-dlabel') > -1 ? hint : '';
+      if (!hn.innerHTML) hn.textContent = hint;
+      wrap.appendChild(hn);
+      var dl = hn.querySelector('[data-dlabel]');
+      if (dl) {
+        var inner = ctl.write;
+        ctl.write = function (v, r) { inner(v, r); dl.textContent = v ? dateLabelOf(v) : '—'; };
+      }
+    }
+    drawerCtl.push(ctl);
+    return wrap;
+  }
+
+  // Up to three "Continue reading" picks; blank slots are filled automatically.
+  function relatedControl(row, field) {
+    var wrap = el('div', 'rel-grid');
+    var sels = [], lastKey = '';
+    function pick(ev) {
+      var ids = [];
+      sels.forEach(function (s) { if (s.value && ids.indexOf(s.value) < 0) ids.push(s.value); });
+      var ch = {};
+      ch[field] = ids.length ? ids : undefined;
+      commitEdit(row, ch, ev.target);
+    }
+    for (var i = 0; i < 3; i++) {
+      var s = el('select');
+      s.setAttribute('aria-label', 'Continue reading, slot ' + (i + 1));
+      s.addEventListener('change', pick);
+      sels.push(s);
+      wrap.appendChild(s);
+    }
+    return {
+      field: field, el: wrap,
+      focus: function () { sels[0].focus(); },
+      write: function (v) {
+        var others = rows.filter(function (r) { return r !== row && r.data.id; })
+          .sort(function (a, b) { return (b.data.dateMs || 0) - (a.data.dateMs || 0); });
+        var key = JSON.stringify([v || [], others.map(function (r) {
+          return [r.data.id, r.data.name, !!r.data.hidden];
+        })]);
+        if (key === lastKey) return;       // nothing it shows has changed
+        lastKey = key;
+        sels.forEach(function (s, i) {
+          var want = (v || [])[i] || '';
+          s.textContent = '';
+          var auto = el('option', '', 'Automatic'); auto.value = ''; s.appendChild(auto);
+          others.forEach(function (r) {
+            var o = el('option', '', (r.data.hidden ? '[draft] ' : '') + (r.data.name || r.data.id));
+            o.value = r.data.id; s.appendChild(o);
+          });
+          if (want && !others.some(function (r) { return r.data.id === want; })) {
+            var gone = el('option', '', want + ' (no longer exists)'); gone.value = want; s.appendChild(gone);
+          }
+          s.value = want;
+        });
+      }
+    };
+  }
+
+  // ------------------------------------------------------ article editor
+  function richControl(row, field) {
+    var wrap = el('div', 'rich');
+    var bar = el('div', 'rich-bar');
+    var ed = el('div', 'rich-ed');
+    ed.contentEditable = 'true';
+    ed.id = 'df-' + field;
+    ed.setAttribute('data-native-undo', '');
+    ed.setAttribute('data-placeholder', 'Paste the article here (from Google Docs, Word or a web page), or type it.');
+    ed.setAttribute('role', 'textbox');
+    ed.setAttribute('aria-multiline', 'true');
+    var src = el('textarea', 'rich-src');
+    src.hidden = true;
+    src.spellcheck = false;
+    src.setAttribute('data-native-undo', '');
+    var foot = el('div', 'rich-foot');
+    var stats = el('span');
+    foot.appendChild(stats);
+    foot.appendChild(el('span', '', 'Formatting from pasted documents is cleaned up automatically. Ctrl+Z undoes typing.'));
+    var htmlBtn;
+
+    function value() { return cleanHtml(src.hidden ? ed.innerHTML : src.value); }
+    function commit(source) {
+      var v = value();
+      stats.textContent = wordCount(v).toLocaleString() + ' words';
+      // An input event that leaves the article as it was (a key that changed
+      // nothing, formatting with nothing selected) is not an edit: no undo
+      // entry, and no "unpublished changes" for a post nobody changed.
+      if ((v || undefined) === row.data[field]) return;
+      var ch = {};
+      ch[field] = v ? v : undefined;
+      commitEdit(row, ch, source);
+    }
+    ed.addEventListener('input', function () { commit(ed); });
+    src.addEventListener('input', function () { commit(src); });
+    ed.addEventListener('focus', function () {
+      try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
+    });
+    ed.addEventListener('paste', function (ev) {
+      var cd = ev.clipboardData;
+      if (!cd) return;
+      ev.preventDefault();
+      var html = cd.getData('text/html');
+      var clean = html ? cleanHtml(html) : textToHtml(cd.getData('text/plain'));
+      if (clean) document.execCommand('insertHTML', false, clean);
+    });
+    ed.addEventListener('drop', function (ev) {
+      if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) {
+        ev.preventDefault();
+        setStatus('warn', 'Images can’t be uploaded here. Put the image online (or in images/) and use the Image button with its address.');
+      }
+    });
+
+    function exec(cmd, arg) {
+      if (!src.hidden) return;
+      ed.focus();
+      document.execCommand(cmd, false, arg);
+      commit(ed);
+    }
+    function withSelection(fn) {
+      var sel = window.getSelection();
+      var range = sel.rangeCount && ed.contains(sel.anchorNode) ? sel.getRangeAt(0).cloneRange() : null;
+      var answer = fn();
+      ed.focus();
+      if (range) { sel.removeAllRanges(); sel.addRange(range); }
+      return answer;
+    }
+    function link() {
+      if (!src.hidden) return;
+      var url = withSelection(function () {
+        return prompt('Link address (https://…, or a page on this site like store.html):', 'https://');
+      });
+      url = String(url || '').trim();
+      if (!url || url === 'https://') return;
+      if (!/^(https?:\/\/|mailto:|\/|#|[a-z0-9-]+\.html)/i.test(url)) url = 'https://' + url;
+      var sel = window.getSelection();
+      if (sel.isCollapsed) exec('insertHTML', '<a href="' + escAttr(url) + '">' + escText(url) + '</a>');
+      else exec('createLink', url);
+    }
+    function image() {
+      if (!src.hidden) return;
+      var url = withSelection(function () { return prompt('Image address (https://…):', 'https://'); });
+      url = String(url || '').trim();
+      if (!/^https?:\/\/\S+$/i.test(url) && !/^\/?images\/\S+$/i.test(url)) return;
+      var alt = String(prompt('Describe the image in a few words (for screen readers and search):', '') || '').trim();
+      exec('insertHTML', '<p><img src="' + escAttr(url) + '" alt="' + escAttr(alt) + '"/></p>');
+    }
+    function toggleSource() {
+      if (src.hidden) {
+        src.value = pretty(value());
+        src.hidden = false;
+        ed.hidden = true;
+        htmlBtn.setAttribute('aria-pressed', 'true');
+        src.focus();
+      } else {
+        var v = value();
+        ed.innerHTML = v;
+        src.hidden = true;
+        ed.hidden = false;
+        htmlBtn.setAttribute('aria-pressed', 'false');
+        commit(ed);
+        ed.focus();
+      }
+    }
+    [
+      ['P', 'Normal paragraph', function () { exec('formatBlock', '<p>'); }],
+      ['H2', 'Heading', function () { exec('formatBlock', '<h2>'); }],
+      ['H3', 'Subheading', function () { exec('formatBlock', '<h3>'); }],
+      null,
+      ['B', 'Bold (Ctrl+B)', function () { exec('bold'); }],
+      ['I', 'Italic (Ctrl+I)', function () { exec('italic'); }],
+      null,
+      ['• List', 'Bulleted list', function () { exec('insertUnorderedList'); }],
+      ['1. List', 'Numbered list', function () { exec('insertOrderedList'); }],
+      ['“ Quote', 'Quote', function () { exec('formatBlock', '<blockquote>'); }],
+      null,
+      ['Link', 'Link the selected text', link],
+      ['Unlink', 'Remove the link', function () { exec('unlink'); }],
+      ['Image', 'Insert an image from its address', image],
+      ['Clear', 'Remove bold/italic/links from the selection', function () { exec('removeFormat'); exec('unlink'); }],
+      null,
+      ['HTML', 'Show / edit the HTML source', toggleSource]
+    ].forEach(function (t) {
+      if (!t) { bar.appendChild(el('span', 'sep')); return; }
+      var b = el('button', '', t[0]);
+      b.type = 'button';
+      b.title = t[1];
+      b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   // keep the selection
+      b.addEventListener('click', t[2]);
+      if (t[0] === 'HTML') { htmlBtn = b; b.setAttribute('aria-pressed', 'false'); }
+      bar.appendChild(b);
+    });
+
+    wrap.appendChild(bar);
+    wrap.appendChild(ed);
+    wrap.appendChild(src);
+    wrap.appendChild(foot);
+    return {
+      field: field, el: wrap,
+      focus: function () { (src.hidden ? ed : src).focus(); },
+      write: function (v) {
+        v = v || '';
+        // Called for changes that did not come from typing here (another
+        // editor, Undo, a Raw block). Show them even while the caret is in
+        // the article -- keeping the caret where it was -- so the next
+        // keystroke never sends an old copy back over someone else's change.
+        if (cleanHtml(ed.innerHTML) !== v) {
+          var inEd = document.activeElement === ed;
+          var at = inEd ? caretOffset(ed) : -1, was = ed.textContent;
+          ed.innerHTML = cleanHtml(v);
+          if (inEd) placeCaret(ed, keepCaret(was, ed.textContent, at));
+        }
+        if (!src.hidden && cleanHtml(src.value) !== v) {
+          var inSrc = document.activeElement === src;
+          var a = src.selectionStart, b = src.selectionEnd;
+          src.value = pretty(v);
+          if (inSrc) src.setSelectionRange(Math.min(a, src.value.length), Math.min(b, src.value.length));
+        }
+        stats.textContent = wordCount(v).toLocaleString() + ' words';
+      }
+    };
+  }
+
+  // Where the caret belongs once the text changed around it: the same count
+  // from the start if everything before it is unchanged; the same count from
+  // the END if everything after it is (text arrived above the caret); else
+  // where it was.
+  function keepCaret(before, after, at) {
+    if (at < 0 || after.slice(0, at) === before.slice(0, at)) return at;
+    var tail = before.slice(at);
+    if (after.length >= tail.length && after.slice(after.length - tail.length) === tail) return after.length - tail.length;
+    return Math.min(at, after.length);
+  }
+
+  // Caret position as a count of text characters from the start of root, and back.
+  function caretOffset(root) {
+    var sel = window.getSelection();
+    if (!sel.rangeCount || !root.contains(sel.focusNode)) return -1;
+    var here = sel.getRangeAt(0), r = document.createRange();
+    r.selectNodeContents(root);
+    r.setEnd(here.endContainer, here.endOffset);
+    return r.toString().length;
+  }
+  function placeCaret(root, offset) {
+    if (offset < 0) return;
+    var walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), node, left = offset;
+    var r = document.createRange();
+    r.selectNodeContents(root);
+    r.collapse(false);                          // default: the end
+    while ((node = walk.nextNode())) {
+      if (left <= node.nodeValue.length) { r.setStart(node, left); r.collapse(true); break; }
+      left -= node.nodeValue.length;
+    }
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
+  function escText(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escAttr(s) { return escText(s).replace(/"/g, '&quot;'); }
+
+  function pretty(html) {
+    return String(html || '')
+      .replace(/(<\/(p|h2|h3|h4|li|blockquote|ul|ol|table|tr|figure|pre)>)(?!\n)/g, '$1\n')
+      .replace(/(<(ul|ol|table|tbody|thead|tr)>)(?!\n)/g, '$1\n')
+      .replace(/(<(hr|br)\s*\/?>)(?!\n)/g, '$1\n')
+      .trim();
+  }
+
+  function textToHtml(text) {
+    text = String(text || '').replace(/\r\n?/g, '\n').trim();
+    if (!text) return '';
+    // No blank lines at all: treat each line as its own paragraph.
+    var paras = /\n\s*\n/.test(text) ? text.split(/\n\s*\n/) : text.split('\n');
+    return paras.map(function (p) { return p.trim(); }).filter(Boolean).map(function (p) {
+      return '<p>' + escText(p).replace(/\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
+  /*
+   * Clean pasted / edited HTML down to plain article structure: paragraphs,
+   * headings (h2–h4), lists, quotes, tables, bold/italic, links and images.
+   * Google Docs' bold/italic spans become <strong>/<em>; Word's mso-* markup,
+   * classes, inline styles, fonts, colours and scripts are all dropped.
+   * functions/api/blog.js applies the same rules again on Save.
+   */
+  var CLEAN_BLOCK = { p: 1, h2: 1, h3: 1, h4: 1, ul: 1, ol: 1, li: 1, blockquote: 1, hr: 1, table: 1,
+                      thead: 1, tbody: 1, tr: 1, td: 1, th: 1, figure: 1, figcaption: 1, pre: 1 };
+  var CLEAN_INLINE = { strong: 1, em: 1, u: 1, s: 1, sup: 1, sub: 1, a: 1, br: 1, img: 1, code: 1 };
+  var CLEAN_MAP = { b: 'strong', i: 'em', strike: 's', del: 's', h1: 'h2', h5: 'h4', h6: 'h4',
+                    div: 'p', section: 'p', article: 'p', header: 'p', footer: 'p', main: 'p' };
+  var CLEAN_DROP = { script: 1, style: 1, iframe: 1, frame: 1, object: 1, embed: 1, applet: 1, form: 1,
+                     input: 1, button: 1, select: 1, textarea: 1, option: 1, noscript: 1, template: 1,
+                     svg: 1, math: 1, link: 1, meta: 1, base: 1, title: 1, head: 1, video: 1, audio: 1,
+                     source: 1, canvas: 1, map: 1, dialog: 1, nav: 1,
+                     xmp: 1, noembed: 1, noframes: 1, plaintext: 1 };
+  var SAFE_HREF = /^(https?:\/\/|mailto:|tel:|#|\/(?![\/\\])|[a-z0-9-]+\.html(?:[?#]|$))/i;
+  var SAFE_SRC = /^(https?:\/\/\S+|\/?images\/\S+)$/i;
+
+  function cleanHtml(html) {
+    if (!html) return '';
+    var doc = new DOMParser().parseFromString('<!doctype html><body>' + html + '</body>', 'text/html');
+    var out = document.createElement('div');
+    cleanKids(doc.body, out);
+    tidyBlocks(out);
+    return out.innerHTML.trim();
+  }
+
+  function styleWraps(st) {
+    var w = [];
+    if (/font-weight\s*:\s*(bold|bolder|[6-9]00)\b/i.test(st)) w.push('strong');
+    if (/font-style\s*:\s*italic/i.test(st)) w.push('em');
+    if (/vertical-align\s*:\s*super/i.test(st)) w.push('sup');
+    else if (/vertical-align\s*:\s*sub/i.test(st)) w.push('sub');
+    return w;
+  }
+
+  function cleanKids(from, to) {
+    for (var n = from.firstChild; n; n = n.nextSibling) cleanNode(n, to);
+  }
+
+  function cleanNode(n, to) {
+    if (n.nodeType === 3) { to.appendChild(document.createTextNode(n.nodeValue)); return; }
+    if (n.nodeType !== 1) return;                        // comments, Word's <!--[if…]-->
+    var tag = n.tagName.toLowerCase();
+    if (CLEAN_DROP[tag] || tag.indexOf(':') > -1) return;   // <o:p>, <w:…>
+    var st = n.getAttribute('style') || '';
+    if (/display\s*:\s*none/i.test(st)) return;
+    // Google Docs wraps the whole clipboard in <b style="font-weight:normal">.
+    if (tag === 'b' && /font-weight\s*:\s*(normal|[1-5]00)\b/i.test(st)) { cleanKids(n, to); return; }
+    var t = CLEAN_MAP[tag] || tag;
+    if (t === 'p' && tag !== 'p' && n.querySelector('p,div,h1,h2,h3,h4,h5,h6,ul,ol,table,blockquote,section,article')) {
+      cleanKids(n, to);                                  // a wrapper, not a paragraph
+      return;
+    }
+    if (CLEAN_BLOCK[t] || CLEAN_INLINE[t]) {
+      var e = document.createElement(t);
+      if (t === 'a') {
+        var href = (n.getAttribute('href') || '').trim();
+        var g = /^https?:\/\/(www\.)?google\.com\/url\?q=([^&]+)/i.exec(href);   // Docs link wrapper
+        if (g) { try { href = decodeURIComponent(g[2]); } catch (x) {} }
+        if (!SAFE_HREF.test(href)) { cleanKids(n, to); return; }
+        e.setAttribute('href', href);
+      } else if (t === 'img') {
+        var srcv = (n.getAttribute('src') || '').trim();
+        if (!SAFE_SRC.test(srcv)) return;                // data: and blob: images are dropped
+        // A site image as a path from the root, so it shows in this editor
+        // (under /admin/) exactly as on the article page.
+        e.setAttribute('src', /^images\//i.test(srcv) ? '/' + srcv : srcv);
+        e.setAttribute('alt', (n.getAttribute('alt') || '').trim());
+        to.appendChild(e);
+        return;
+      } else if (t === 'td' || t === 'th') {
+        ['colspan', 'rowspan'].forEach(function (a) {
+          var v = n.getAttribute(a);
+          if (v && /^\d{1,3}$/.test(v) && v !== '1') e.setAttribute(a, v);
+        });
+      } else if (t === 'ol') {
+        var start = n.getAttribute('start');
+        if (start && /^\d{1,4}$/.test(start) && start !== '1') e.setAttribute('start', start);
+      }
+      var inner = e;
+      if (!/^h[234]$/.test(t)) {
+        styleWraps(st).forEach(function (w) {
+          if (w === t) return;
+          var x = document.createElement(w); inner.appendChild(x); inner = x;
+        });
+      }
+      cleanKids(n, inner);
+      to.appendChild(e);
+      return;
+    }
+    // span, font, and anything else: keep the text, carry bold/italic over.
+    var target = to;
+    styleWraps(st).forEach(function (w) {
+      var x = document.createElement(w); target.appendChild(x); target = x;
+    });
+    cleanKids(n, target);
+  }
+
+  function isBlock(n) { return n.nodeType === 1 && CLEAN_BLOCK[n.tagName.toLowerCase()]; }
+
+  function tidyBlocks(root) {
+    // Whitespace between list items / table cells is layout noise.
+    Array.prototype.forEach.call(root.querySelectorAll('ul,ol,table,thead,tbody,tr'), function (box) {
+      Array.prototype.slice.call(box.childNodes).forEach(function (n) {
+        if (n.nodeType === 3 && !n.nodeValue.trim()) n.remove();
+      });
+    });
+    // Google Docs puts a <p> inside every <li>.
+    Array.prototype.forEach.call(root.querySelectorAll('li > p'), function (p) {
+      var li = p.parentNode;
+      // Anything before it in the item (text, or an earlier paragraph that is
+      // already unwrapped) is kept apart from it by a line break.
+      var prev = p.previousSibling;
+      while (prev && prev.nodeType === 3 && !prev.nodeValue.trim()) prev = prev.previousSibling;
+      if (prev && !(prev.nodeType === 1 && prev.tagName === 'BR')) li.insertBefore(document.createElement('br'), p);
+      while (p.firstChild) li.insertBefore(p.firstChild, p);
+      p.remove();
+    });
+    // Loose text and inline runs at the top level become paragraphs.
+    var run = null;
+    Array.prototype.slice.call(root.childNodes).forEach(function (n) {
+      if (isBlock(n)) { run = null; return; }
+      if (n.nodeType === 3 && !run && !n.nodeValue.trim()) { n.remove(); return; }
+      if (n.nodeType === 1 && n.tagName === 'BR' && !run) { n.remove(); return; }
+      if (!run) { run = document.createElement('p'); root.insertBefore(run, n); }
+      run.appendChild(n);
+    });
+    // Empty wrappers left by the clean-up (an empty <strong>, <p><br></p>…).
+    for (var pass = 0; pass < 3; pass++) {
+      Array.prototype.forEach.call(root.querySelectorAll('strong,em,u,s,sup,sub,code,a'), function (x) {
+        if (!x.textContent.trim() && !x.querySelector('img')) {
+          if (x.firstChild && x.firstChild.nodeType === 3) x.parentNode.insertBefore(document.createTextNode(' '), x);
+          x.remove();
+        }
+      });
+      Array.prototype.forEach.call(root.querySelectorAll('p,h2,h3,h4,li,blockquote,figcaption'), function (x) {
+        if (!x.textContent.replace(/ /g, ' ').trim() && !x.querySelector('img,hr')) x.remove();
+      });
+    }
+    // Stray line breaks at the start or end of a block.
+    Array.prototype.forEach.call(root.querySelectorAll('p,h2,h3,h4,li'), function (b) {
+      while (b.firstChild && b.firstChild.nodeName === 'BR') b.firstChild.remove();
+      while (b.lastChild && b.lastChild.nodeName === 'BR') b.lastChild.remove();
+    });
+  }
+
+  // ------------------------------------------------ raw block (blog posts)
+  // The whole post as ONE block of text: its settings between two --- lines,
+  // then the article HTML. Copy it (e.g. to ask an AI for a new post in the
+  // same format), edit it, or paste a block back. Nothing reaches the shared
+  // draft until "Apply to this post", which runs checkBlock() first: errors
+  // block it, warnings need a confirm, and Undo reverts an Apply in one step.
+
+  var RAW_KEYS = {
+    'title': 'name', 'permalink': 'id', 'status': 'hidden', 'date': 'dateMs',
+    'category': 'cat', 'author': 'author', 'cover image': 'img', 'image': 'img',
+    'excerpt': 'excerpt', 'continue reading': 'related', 'related': 'related'
+  };
+  var RAW_KEY_LIST = 'title, permalink, status, date, category, author, cover image, excerpt, continue reading';
+  var SITE_PAGES = { 'index': 1, 'store': 1, 'blog': 1, 'about': 1, 'contact-us': 1, 'privacy-policy': 1,
+                     'terms': 1, 'product': 1, 'category': 1, 'merchant': 1, 'blog-post': 1, 'blog-category': 1 };
+  var CATALOG = null;          // product / merchant ids, for checking links in articles
+
+  function oneLine(s) { return String(s == null ? '' : s).replace(/\s*\n\s*/g, ' ').trim(); }
+
+  // A permalink as written, if it is already valid (any length -- existing
+  // posts have long ones); otherwise tidied like slugify(), without its
+  // 60-character cut, so a pasted permalink is never silently shortened.
+  function tidySlug(s) {
+    s = String(s || '').trim();
+    if (/^[a-z0-9][a-z0-9-]*$/.test(s)) return s;
+    return s.replace(/[™℠®©]/g, '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/['’"]/g, '').replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+/, '').slice(0, 120).replace(/-+$/, '');
+  }
+
+  function postToBlock(d) {
+    var lines = ['---',
+      'title: ' + oneLine(d.name),
+      'permalink: ' + oneLine(d.id),
+      'status: ' + (d.hidden ? 'draft' : 'published'),
+      'date: ' + (d.dateMs ? toZoned(d.dateMs).replace('T', ' ') : ''),
+      'category: ' + (d.cat ? catLabelOf(d.cat) : ''),
+      'author: ' + oneLine(d.author)];
+    if (!d.author && d.authors && d.authors.length) {
+      lines.push('# current byline: ' + oneLine(d.authors.join(' ')) +
+                 ' (kept while author is empty; "author: none" removes it)');
+    }
+    lines.push('cover image: ' + oneLine(d.img),
+      'excerpt: ' + oneLine(d.excerpt),
+      'continue reading: ' + (d.related || []).join(', '),
+      '---');
+    return lines.join('\n') + '\n' + pretty(d.contentHTML || '') + '\n';
+  }
+
+  // "2026-04-03 14:05", "2026-04-03T14:05", "2026-04-03" or "April 3, 2026" -- Michigan time.
+  var MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
+                'september', 'october', 'november', 'december'];
+  function pad2(n) { return ('0' + n).slice(-2); }
+  function realDay(y, mo, d) {                  // 2026-02-31 is not a date
+    var t = new Date(Date.UTC(y, mo - 1, d));
+    return d >= 1 && t.getUTCMonth() === mo - 1 && t.getUTCDate() === d;
+  }
+  function parseRawDate(v) {
+    var m = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T,]+(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)?)?$/i.exec(v);
+    if (m) {
+      var h = m[4] === undefined ? 0 : +m[4];
+      if (m[6]) {                                   // 12-hour clock
+        if (h < 1 || h > 12) return NaN;
+        h = (h % 12) + (/^p/i.test(m[6]) ? 12 : 0);
+      }
+      if (+m[2] < 1 || +m[2] > 12 || !realDay(+m[1], +m[2], +m[3]) || h > 23 || +(m[5] || 0) > 59) return NaN;
+      return fromZoned(m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]) + 'T' + pad2(h) + ':' + (m[5] || '00'));
+    }
+    m = /^([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})$/.exec(v);
+    if (m) {
+      var mi = -1;
+      MONTHS.forEach(function (name, i) { if (name.indexOf(m[1].toLowerCase()) === 0 && m[1].length >= 3) mi = i; });
+      if (mi < 0 || !realDay(+m[3], mi + 1, +m[2])) return NaN;
+      return fromZoned(m[3] + '-' + pad2(mi + 1) + '-' + pad2(m[2]) + 'T00:00');
+    }
+    return NaN;
+  }
+
+  function looksLikeMarkdown(t) {
+    if (/<[a-z][^>]*>/i.test(t)) return false;
+    return /^#{1,6}\s/m.test(t) || /^\s*[-*+]\s+\S/m.test(t) || /^\s*\d+[.)]\s+\S/m.test(t) ||
+           /\*\*[^*\n]+\*\*/.test(t) || /\[[^\]\n]+\]\([^)\s]+\)/.test(t);
+  }
+
+  // Enough Markdown for an AI's article: headings, lists, quotes, bold,
+  // italic, links, images, rules. (# and ## both become <h2>: the title is the page's h1.)
+  function markdownToHtml(md) {
+    var out = [], para = [], list = null;
+    function inline(t) {
+      return escText(t)
+        .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1">')
+        .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+        .replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?!\w)/g, '$1<em>$2</em>')
+        .replace(/(^|[^_\w])_([^_\s][^_]*?)_(?!\w)/g, '$1<em>$2</em>');
+    }
+    function flushPara() { if (para.length) { out.push('<p>' + inline(para.join(' ')) + '</p>'); para = []; } }
+    function flushList() {
+      if (!list) return;
+      out.push('<' + list.tag + '>' + list.items.map(function (i) { return '<li>' + inline(i) + '</li>'; }).join('') +
+               '</' + list.tag + '>');
+      list = null;
+    }
+    String(md).replace(/\r\n?/g, '\n').split('\n').forEach(function (line) {
+      var m;
+      if (!line.trim()) { flushPara(); flushList(); return; }
+      if ((m = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line))) {
+        flushPara(); flushList();
+        var h = Math.min(4, Math.max(2, m[1].length));
+        out.push('<h' + h + '>' + inline(m[2]) + '</h' + h + '>');
+        return;
+      }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flushPara(); flushList(); out.push('<hr>'); return; }
+      if ((m = /^\s*[-*+]\s+(.*)$/.exec(line))) {
+        flushPara();
+        if (!list || list.tag !== 'ul') { flushList(); list = { tag: 'ul', items: [] }; }
+        list.items.push(m[1]);
+        return;
+      }
+      if ((m = /^\s*\d+[.)]\s+(.*)$/.exec(line))) {
+        flushPara();
+        if (!list || list.tag !== 'ol') { flushList(); list = { tag: 'ol', items: [] }; }
+        list.items.push(m[1]);
+        return;
+      }
+      if ((m = /^\s*>\s?(.*)$/.exec(line))) { flushPara(); flushList(); out.push('<blockquote><p>' + inline(m[1]) + '</p></blockquote>'); return; }
+      if (list) flushList();
+      para.push(line.trim());
+    });
+    flushPara(); flushList();
+    return out.join('\n');
+  }
+
+  // A block's article as HTML: Markdown and plain text are converted first.
+  function articleHtml(body) {
+    if (!body) return '';
+    if (looksLikeMarkdown(body)) return markdownToHtml(body);
+    if (!/<[a-z][^>]*>/i.test(body)) return textToHtml(body);
+    return body;
+  }
+
+  // Code that has no place in an article, counted on the block as pasted
+  // (before cleaning) so the person sees what was there. Parsed with
+  // DOMParser -- inert: nothing runs or loads -- and judged on real elements
+  // and attributes, so text such as alt="step one = measure" is never
+  // mistaken for an event handler.
+  function unsafeParts(html) {
+    var found = [];
+    if (!html) return found;
+    var doc = new DOMParser().parseFromString('<!doctype html><body>' + html + '</body>', 'text/html');
+    function count(sel, label) {
+      var n = doc.querySelectorAll(sel).length;
+      if (n) found.push(n + ' × ' + label);
+    }
+    count('script', '<script> element');
+    count('style', '<style> element');
+    count('iframe, frame, frameset', '<iframe> embed');
+    count('object, embed, applet', 'embedded object');
+    count('form, input, button, select, textarea', 'form control');
+    count('link, meta, base', '<link>/<meta>/<base> tag');
+    count('xmp, noembed, noframes, plaintext, template, noscript', 'hidden raw-code block');
+    var handlers = 0, jsLinks = 0, dataFiles = 0;
+    Array.prototype.forEach.call(doc.querySelectorAll('*'), function (node) {
+      for (var i = 0; i < node.attributes.length; i++) {
+        var a = node.attributes[i], name = a.name.toLowerCase();
+        var val = String(a.value).replace(/[\s\u0000-\u001f]+/g, '').toLowerCase();
+        if (/^on/.test(name)) handlers++;
+        if (/^(href|src|action|formaction|xlink:href|data)$/.test(name)) {
+          if (/^(javascript|vbscript):/.test(val)) jsLinks++;
+          else if (/^data:/.test(val)) dataFiles++;
+        }
+      }
+    });
+    if (handlers) found.push(handlers + ' × event handler (onclick=, onerror=…)');
+    if (jsLinks) found.push(jsLinks + ' × javascript: link');
+    if (dataFiles) found.push(dataFiles + ' × embedded data: file');
+    return found;
+  }
+
+  function unclosedTags(html) {
+    var out = [];
+    ['strong', 'em', 'b', 'i', 'a', 'h2', 'h3', 'h4', 'ul', 'ol', 'blockquote', 'table'].forEach(function (t) {
+      var open = (html.match(new RegExp('<' + t + '(\\s[^>]*)?>', 'gi')) || []).length;
+      var close = (html.match(new RegExp('</' + t + '\\s*>', 'gi')) || []).length;
+      if (open !== close) out.push('<' + t + '> opened ' + open + '×, closed ' + close + '×');
+    });
+    return out;
+  }
+
+  // The latest SAVED catalog (from GitHub via /api/catalog), so a product
+  // saved a minute ago -- before the site has redeployed -- is not reported
+  // as missing; the published file is the fallback. Re-read at most once a
+  // minute.
+  function loadCatalogIds() {
+    if (CATALOG && Date.now() - CATALOG.at < 60000) return Promise.resolve(CATALOG);
+    function build(list) {
+      var c = { ok: list.length > 0, products: {}, merchants: {}, at: Date.now() };
+      list.forEach(function (p) { c.products[p.id] = 1; c.merchants[p.merchantSlug] = 1; });
+      if (c.ok) CATALOG = c;
+      return c;
+    }
+    return fetch('/api/catalog', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (d && Array.isArray(d.products)) return build(d.products);
+        return fetch('/js/products.js', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.text() : ''; })
+          .then(function (t) { return build(t ? listFrom(t, 'PRODUCTS') : []); });
+      })
+      .catch(function () { return { ok: false, products: {}, merchants: {}, at: 0 }; });
+  }
+
+  /*
+   * Split a block into its settings and its article. Tolerates what AI
+   * replies add: ``` fences around the block or the article, and a sentence
+   * before the first --- line. Returns { head, body, notes } or { error }.
+   */
+  function splitBlock(text) {
+    var notes = [];
+    var t = String(text || '').replace(/\r\n?/g, '\n').replace(/^﻿/, '');
+    var fence = /```[a-z]*[ \t]*\n([\s\S]*?)\n[ \t]*```/i.exec(t);
+    if (fence && /^---[ \t]*$/m.test(fence[1])) { t = fence[1]; notes.push('Took the block out of its ``` code fence.'); }
+    var open = /^---[ \t]*$/m.exec(t);
+    if (!open) {
+      return { error: 'The block must start with a line of three dashes (---), then the settings (one "name: value" ' +
+                      'per line), then another --- line, then the article.' };
+    }
+    if (t.slice(0, open.index).trim()) notes.push('Ignored the text before the first --- line.');
+    var rest = t.slice(open.index + open[0].length).replace(/^\n/, '');
+    var close = /^---[ \t]*$/m.exec(rest);
+    if (!close) return { error: 'The settings are never closed: add a line with just --- after them, before the article.' };
+    var body = rest.slice(close.index + close[0].length).replace(/^\n/, '').trim();
+    var bodyFence = /^```[a-z]*[ \t]*\n([\s\S]*?)\n[ \t]*```$/i.exec(body);
+    if (bodyFence) { body = bodyFence[1].trim(); notes.push('Took the article out of its ``` code fence.'); }
+    return { head: rest.slice(0, close.index), body: body, notes: notes };
+  }
+
+  /*
+   * Check a raw block against a post. Resolves to
+   *   { errors, warnings, notes, changes, unsafe }
+   * changes holds every field the block sets, ready for commitEdit().
+   */
+  function checkBlock(row, text) {
+    var R = { errors: [], warnings: [], notes: [], changes: null, unsafe: [] };
+    var d = row.data;
+    if (String(text || '').length > 300000) {
+      R.errors.push('The block is too long (over 300,000 characters).');
+      return Promise.resolve(R);
+    }
+    var parts = splitBlock(text);
+    if (parts.error) { R.errors.push(parts.error); return Promise.resolve(R); }
+    R.notes = parts.notes;
+    var head = parts.head, body = parts.body;
+
+    // ---- settings
+    var v = {}, lit = {};
+    head.split('\n').forEach(function (line, i) {
+      if (!line.trim() || /^\s*#/.test(line)) return;
+      var m = /^\s*([A-Za-z][A-Za-z ]*?)\s*:[ \t]?(.*)$/.exec(line);
+      if (!m) { R.errors.push('Settings line ' + (i + 1) + ' is not "name: value": ' + line.slice(0, 70)); return; }
+      var key = m[1].toLowerCase().replace(/\s+/g, ' ');
+      var f = RAW_KEYS[key];
+      if (!f) { R.errors.push('Unknown setting "' + m[1] + '" (line ' + (i + 1) + '). The settings are: ' + RAW_KEY_LIST + '.'); return; }
+      if (f in v) R.warnings.push('"' + m[1] + '" is set twice — the last one is used.');
+      // "Title" -> Title, but "Pack light," says Maya. "Really." stays as it is.
+      lit[f] = m[2].trim();
+      v[f] = lit[f].replace(/^(["'])((?:(?!\1).)*)\1$/, '$2').trim();
+    });
+    var ch = {};
+    // A line left as the block showed it means "unchanged": the post keeps its
+    // exact value -- a title that is itself in quotes, a multi-line excerpt --
+    // rather than the one-line form the block displays.
+    function same(f) {
+      var shown = oneLine(d[f]);
+      return f in lit && (lit[f] === shown || v[f] === shown);
+    }
+
+    if (!v.name) R.errors.push('title: missing — every post needs a title.');
+    else {
+      ch.name = same('name') ? d.name : v.name;
+      if (ch.name.length > 120) R.warnings.push('The title is ' + ch.name.length + ' characters; under ~70 reads best in search results.');
+    }
+
+    var others = rows.filter(function (r) { return r !== row; });
+    var byId = {};
+    others.forEach(function (r) { if (r.data.id) byId[r.data.id] = r; });
+    if (v.id) {
+      var slug = tidySlug(v.id);
+      if (slug !== v.id) R.notes.push('Permalink tidied to "' + slug + '".');
+      if (!slug) R.errors.push('permalink: "' + v.id + '" has no usable letters or numbers.');
+      else if (byId[slug]) {
+        ch.id = freeSlug(slugify(ch.name || v.id), row);
+        R.warnings.push('The permalink "' + slug + '" belongs to “' + (byId[slug].data.name || slug) +
+                        '”, so this post gets "' + ch.id + '" instead.');
+      } else ch.id = slug;
+    } else if (!d.id && ch.name) {
+      ch.id = freeSlug(slugify(ch.name), row);
+    }
+    if (ch.id && d.id && ch.id !== d.id && !d.hidden) {
+      R.warnings.push('This changes the permalink of a PUBLISHED post (' + d.id + ' → ' + ch.id + '): existing links to it will break.');
+    }
+
+    if (v.hidden) {
+      var st = v.hidden.toLowerCase();
+      if (/^(draft|hidden|unpublished)$/.test(st)) ch.hidden = true;
+      else if (/^(published|publish|live|public)$/.test(st)) {
+        ch.hidden = undefined;
+        if (d.hidden) R.notes.push('Status is published: this post goes live on the next Save.');
+      } else R.errors.push('status: "' + v.hidden + '" — use draft or published.');
+    }
+
+    if (v.dateMs) {
+      var ms = parseRawDate(v.dateMs);
+      if (!isFinite(ms)) R.errors.push('date: "' + v.dateMs + '" — write it as 2026-09-23 14:30 (Michigan time) or September 23, 2026.');
+      else {
+        if (d.dateMs && toZoned(d.dateMs) === toZoned(ms)) ms = d.dateMs;   // same time as shown: unchanged
+        ch.dateMs = ms; ch.dateLabel = dateLabelOf(ms);
+        if (ms > Date.now() + 365 * 86400000) R.warnings.push('The date is more than a year away (' + ch.dateLabel + ').');
+      }
+    } else if (!d.dateMs) {
+      ch.dateMs = nowMinute(); ch.dateLabel = dateLabelOf(ch.dateMs);
+    }
+
+    if (v.cat) {
+      var want = v.cat.toLowerCase(), hit = null;
+      blogCategories().forEach(function (c) {
+        if (c.id === want || String(c.label).toLowerCase() === want) hit = c;
+      });
+      if (hit) { ch.cat = hit.id; ch.catLabel = hit.label; }
+      else {
+        R.errors.push('category: "' + v.cat + '" is not a blog category. Use one of: ' +
+          blogCategories().map(function (c) { return c.label; }).join(', ') +
+          ' — or create it first with “+ New category…” in the form.');
+      }
+    }
+
+    if (v.author) {
+      var who = v.author.toLowerCase();
+      if (/^(none|no byline|-)$/.test(who)) { ch.author = undefined; ch.authors = undefined; }
+      else {
+        var person = null;
+        TEAM_OPTIONS.forEach(function (tm) {
+          if (tm.id && (tm.id === who || String(tm.name || '').toLowerCase() === who)) person = tm;
+        });
+        if (person) { ch.author = person.id; ch.authors = undefined; }
+        else if (v.author === d.author) { /* unchanged: keep it */ }
+        else {
+          R.errors.push('author: "' + v.author + '" is not on the Team tab. Use one of: ' +
+            (TEAM_OPTIONS.filter(function (tm) { return tm.id; }).map(function (tm) { return tm.id; }).join(', ') || '(nobody yet)') +
+            ' — or leave it empty.');
+        }
+      }
+    }
+
+    if (v.img) {
+      if (!LOGO_RE.test(v.img)) R.errors.push('cover image: must be a full https:// image address (or a path under images/).');
+      else {
+        ch.img = v.img;
+        if (/^http:\/\//i.test(v.img)) R.warnings.push('The cover image uses http:// — browsers may block it on this https site; use https://.');
+      }
+    }
+
+    if ('excerpt' in v) {
+      ch.excerpt = same('excerpt') ? d.excerpt : (v.excerpt || undefined);
+      if (v.excerpt.length > 320) R.warnings.push('The excerpt is ' + v.excerpt.length + ' characters; cards show about the first 150.');
+    }
+
+    if ('related' in v) {
+      var picks = [];
+      v.related.split(/[,\n]+/).map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (x) {
+        var r = byId[x] || byId[tidySlug(x)];
+        if (!r) others.forEach(function (o) { if (String(o.data.name || '').toLowerCase() === x.toLowerCase()) r = o; });
+        if (!r) R.warnings.push('continue reading: no post "' + x + '" — left out.');
+        else if (picks.indexOf(r.data.id) < 0) picks.push(r.data.id);
+      });
+      if (picks.length > 3) { R.warnings.push('continue reading: only the first 3 are used.'); picks = picks.slice(0, 3); }
+      ch.related = picks.length ? picks : undefined;
+    }
+
+    // ---- the article
+    var html = articleHtml(body);
+    if (body && looksLikeMarkdown(body)) R.notes.push('The article was Markdown; converted it to HTML.');
+    else if (body && !/<[a-z][^>]*>/i.test(body)) R.notes.push('The article was plain text; made paragraphs from it.');
+    R.unsafe = unsafeParts(html);
+    if (R.unsafe.length) {
+      R.errors.push('The article contains code that is not allowed in posts: ' + R.unsafe.join(', ') +
+                    '. Press “Remove unsafe parts”, or delete it yourself.');
+    }
+    unclosedTags(html).forEach(function (u) { R.warnings.push('Unbalanced HTML: ' + u + ' — check the formatting.'); });
+    var n;
+    if ((n = (html.match(/\sstyle\s*=/gi) || []).length)) R.notes.push('Removed ' + n + ' inline style' + (n === 1 ? '' : 's') + ' (the site’s own styling is used).');
+    if ((n = (html.match(/\sclass\s*=/gi) || []).length)) R.notes.push('Removed ' + n + ' class attribute' + (n === 1 ? '' : 's') + '.');
+    if (/<h1\b/i.test(html)) R.notes.push('Turned <h1> into <h2> — the page title is the only h1.');
+    var clean = cleanHtml(html);
+
+    // An AI often repeats the title as the first heading; the page already shows it.
+    if (ch.name) {
+      var doc0 = new DOMParser().parseFromString('<body>' + clean + '</body>', 'text/html');
+      var first = doc0.body.firstElementChild;
+      if (first && /^H[234]$/.test(first.tagName) &&
+          first.textContent.trim().toLowerCase() === ch.name.toLowerCase()) {
+        first.remove();
+        clean = doc0.body.innerHTML;
+        R.notes.push('Removed the first heading: it repeated the title, which the page already shows.');
+      }
+    }
+    if (clean.length > 200000) R.errors.push('The article is too long (over 200,000 characters of HTML).');
+    if (clean && clean !== (d.contentHTML || '') && plainText(clean) === plainText(d.contentHTML)) {
+      R.notes.push('The article text is unchanged; only its HTML was tidied (e.g. empty attributes removed).');
+    }
+    if (!clean && wordCount(d.contentHTML)) {
+      R.warnings.push('The block has no article, so applying it REMOVES the current article (' +
+                      wordCount(d.contentHTML).toLocaleString() + ' words).');
+    }
+    ch.contentHTML = clean || undefined;
+
+    // ---- whole-post rules (the same ones Save uses)
+    var hidden = 'hidden' in ch ? ch.hidden : d.hidden;
+    var words = wordCount(clean);
+    if (!hidden) {
+      if (!('cat' in ch ? ch.cat : d.cat)) R.errors.push('A published post needs a category (or set status: draft).');
+      if (!('img' in ch ? ch.img : d.img)) R.errors.push('A published post needs a cover image (or set status: draft).');
+      if (!words) R.errors.push('The article is empty (or set status: draft).');
+      else if (words < 150) R.warnings.push('The article is only ' + words + ' words long.');
+    }
+    var allText = [ch.name || '', ch.excerpt || '', plainText(clean)].join(' ');
+    var ph = /\[(?:[^\]\n]{0,40})(?:insert|write|topic|describe|todo|tbd|placeholder|your )[^\]\n]{0,40}\]|lorem ipsum|\bTODO\b|\bTBD\b/i.exec(allText);
+    if (ph) R.warnings.push('Looks like placeholder text is left in: “' + ph[0] + '”.');
+
+    // ---- links: pages on this site that do not exist would show "not found"
+    var doc = new DOMParser().parseFromString('<body>' + clean + '</body>', 'text/html');
+    var links = Array.prototype.map.call(doc.querySelectorAll('a[href]'), function (a) { return a.getAttribute('href'); });
+    Array.prototype.forEach.call(doc.querySelectorAll('img'), function (im) {
+      if (/^http:\/\//i.test(im.getAttribute('src'))) R.warnings.push('An image uses http:// and may be blocked: ' + im.getAttribute('src'));
+      if (!im.getAttribute('alt')) R.notes.push('An image has no description (alt text): ' + im.getAttribute('src'));
+    });
+    var dropped = (html.match(/<img\b/gi) || []).length - doc.querySelectorAll('img').length;
+    if (dropped > 0) R.warnings.push(dropped + ' image' + (dropped === 1 ? ' was' : 's were') + ' left out: images need a full https:// address.');
+
+    R.changes = ch;
+    return loadCatalogIds().then(function (cat) {
+      var postIds = {};
+      rows.forEach(function (r) { if (r.data.id) postIds[r.data.id] = r; });
+      if (ch.id) postIds[ch.id] = row;
+      var blogCats = {};
+      blogCategories().forEach(function (c) { blogCats[c.id] = 1; });
+      var checked = 0;
+      links.forEach(function (href) {
+        var m = /^(?:https?:\/\/(?:www\.)?mycampuskorner\.com)?\/?([a-z-]+?)(?:\.html)?(?:\?id=([^&#]*))?(?:[#&].*)?$/i.exec(href);
+        if (!m || /^https?:/i.test(href) && !/mycampuskorner\.com/i.test(href)) return;
+        var page = m[1].toLowerCase(), id = null;
+        if (m[2]) {
+          try { id = decodeURIComponent(m[2]); } catch (e) {
+            R.warnings.push('A link has a broken address (bad % code): ' + href);
+            return;
+          }
+        }
+        if (!SITE_PAGES[page]) { R.warnings.push('Link to a page this site doesn’t have: ' + href); return; }
+        if (id === null) return;
+        checked++;
+        var ok = page === 'product' ? (!cat.ok || cat.products[id])
+               : page === 'merchant' ? (!cat.ok || cat.merchants[id])
+               : page === 'category' ? CATEGORIES.some(function (c) { return c[0] === id; })
+               : page === 'blog-post' ? !!postIds[id]
+               : page === 'blog-category' ? !!blogCats[id] : true;
+        if (!ok) R.warnings.push('Link to a ' + page.replace('-', ' ') + ' that doesn’t exist (visitors would see “not found”): ' + href);
+        else if (page === 'blog-post' && postIds[id].data.hidden && postIds[id] !== row) {
+          R.warnings.push('Link to a post that is still a draft: ' + href);
+        }
+      });
+      if (checked && !cat.ok) R.notes.push('Could not load the catalog, so product links were not checked.');
+      return R;
+    });
+  }
+
+  function aiInstructions(block) {
+    var cats = blogCategories().map(function (c) { return c.label; }).join(', ');
+    var people = TEAM_OPTIONS.filter(function (t) { return t.id; }).map(function (t) {
+      return t.id + ' (' + (t.name || t.id) + (t.role ? ', ' + t.role : '') + ')';
+    }).join('; ');
+    return [
+      'Write a NEW blog post for MyCampusKorner, a website that recommends college essentials to students and their parents.',
+      '',
+      'Topic: [DESCRIBE THE NEW POST HERE]',
+      '',
+      'Reply with ONE block in exactly the format of the example at the end, and nothing else — no introduction and no code fences:',
+      '- Between the two --- lines, keep one "name: value" setting per line, using the same names as the example.',
+      '- title: a new, specific title.',
+      '- permalink: leave it empty (it is made from the title).',
+      '- status: draft',
+      '- date: leave it as it is.',
+      '- category: exactly one of: ' + cats,
+      '- author: ' + (people ? 'one of these ids: ' + people + ' — or leave it empty.' : 'leave it empty.'),
+      '- cover image: keep the example’s address unless you are given another https:// image address.',
+      '- excerpt: one or two plain sentences that make people want to read the post.',
+      '- continue reading: leave it empty.',
+      '- After the second --- line, write the article in simple HTML using only <p>, <h2>, <h3>, <strong>, <em>, <ul>, <ol>, <li>, <blockquote> and <a href="https://...">. No <h1> (the title is shown separately), no <html>, <head>, <body>, <style> or <script>, no class or style attributes, and no Markdown.',
+      '- Only include links you were given or are certain exist. Never invent product links.',
+      '',
+      'Example:',
+      '',
+      block.trim()
+    ].join('\n') + '\n';
+  }
+
+  function copyText(text, button) {
+    function done(ok) {
+      var was = button.textContent;
+      button.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text and copy it';
+      setTimeout(function () { button.textContent = was; }, ok ? 1600 : 3200);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallback()); });
+    } else {
+      done(fallback());
+    }
+    function fallback() {
+      var ta = el('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      return ok;
+    }
+  }
+
+  // The panel. raw.on = showing; the textarea keeps what the person typed until
+  // Apply / Reset, even when the post changes underneath (they get a notice).
+  var raw = {
+    on: false, row: null, base: '', stale: false, parts: null,
+    dirty: function () { return !!(raw.on && raw.parts && raw.parts.text.value !== raw.base); },
+    reset: function () {
+      raw.on = false; raw.row = null; raw.base = ''; raw.stale = false; raw.parts = null;
+      $('drRaw').textContent = '';
+    },
+    build: function (row) {
+      var box = $('drRaw');
+      box.textContent = '';
+      var bar = el('div', 'raw-bar');
+      var copy = el('button', '', 'Copy block');
+      var copyAi = el('button', '', 'Copy with AI instructions');
+      var reset = el('button', '', 'Reset to current');
+      var check = el('button', '', 'Check');
+      var apply = el('button', 'primary', 'Apply to this post');
+      var strip = el('button', 'ghost-danger', 'Remove unsafe parts');
+      [copy, copyAi, reset, check, apply, strip].forEach(function (b) { b.type = 'button'; });
+      copy.title = 'Copy the block exactly as it is below';
+      copyAi.title = 'Copy the block with instructions for ChatGPT, Claude, etc. to write a new post in the same format';
+      reset.title = 'Throw away changes in the box and show the post as it is now';
+      strip.hidden = true;
+      bar.appendChild(copy); bar.appendChild(copyAi);
+      bar.appendChild(el('span', 'spacer'));
+      bar.appendChild(reset); bar.appendChild(check); bar.appendChild(apply);
+      var help = el('p', 'raw-help',
+        'The whole post as one block: its settings between the two --- lines, then the article HTML. Copy it — for ' +
+        'example to ask an AI for a new post in the same format — edit it here, or paste a new block over it. ' +
+        'Nothing changes until “Apply to this post”, which checks the block first; Undo reverts an Apply. ' +
+        'Dates are Michigan time. Leave a setting empty to keep what the post has (an empty excerpt means “from the article”).');
+      var stale = el('div', 'raw-stale',
+        'This post changed after the block was made (in the form, or by another editor). Applying would overwrite ' +
+        'those changes — press “Reset to current” to start from the latest.');
+      stale.hidden = true;
+      var text = el('textarea', 'raw-text');
+      text.spellcheck = false;
+      text.setAttribute('data-native-undo', '');
+      text.setAttribute('aria-label', 'The post as one raw block');
+      var report = el('div', 'raw-report');
+      report.setAttribute('aria-live', 'polite');
+      box.appendChild(bar); box.appendChild(help); box.appendChild(stale);
+      box.appendChild(text); box.appendChild(report); box.appendChild(strip);
+      raw.parts = { text: text, report: report, stale: stale, strip: strip, apply: apply, check: check };
+      raw.row = row;
+      raw.base = postToBlock(row.data);
+      text.value = raw.base;
+      raw.stale = false;
+
+      copy.addEventListener('click', function () { copyText(text.value, copy); });
+      copyAi.addEventListener('click', function () { copyText(aiInstructions(text.value), copyAi); });
+      reset.addEventListener('click', function () {
+        if (raw.dirty() && !confirm('Throw away the changes in the box?')) return;
+        raw.base = postToBlock(row.data);
+        text.value = raw.base;
+        raw.stale = false; stale.hidden = true;
+        report.textContent = ''; strip.hidden = true;
+      });
+      check.addEventListener('click', function () { raw.run(false); });
+      apply.addEventListener('click', function () { raw.run(true); });
+      strip.addEventListener('click', function () {
+        var parts = splitBlock(text.value);
+        if (parts.error) return;
+        text.value = '---\n' + parts.head.replace(/\n*$/, '\n') + '---\n' + pretty(cleanHtml(articleHtml(parts.body))) + '\n';
+        strip.hidden = true;
+        raw.run(false);
+      });
+    },
+    run: function (applyIt) {
+      var row = raw.row, p = raw.parts;
+      if (!row || !p || !rowAlive(row)) return;
+      p.apply.disabled = p.check.disabled = true;
+      p.report.textContent = 'Checking…';
+      var sent = p.text.value;
+      checkBlock(row, sent).then(function (R) {
+        p.apply.disabled = p.check.disabled = false;
+        // The panel was closed, reopened or switched meanwhile: this block is gone.
+        if (raw.parts !== p || raw.row !== row || !rowAlive(row)) return;
+        // Typed into while it was being checked: that result is for an older
+        // text -- applying it would overwrite what was just typed.
+        if (p.text.value !== sent) {
+          p.report.textContent = 'The block changed while it was being checked. Press “' +
+                                 (applyIt ? 'Apply to this post' : 'Check') + '” again.';
+          return;
+        }
+        raw.show(R);
+        if (!applyIt || R.errors.length) return;
+        if (raw.stale && !confirm('This post changed after the block was made. Apply anyway and overwrite those changes?')) return;
+        if (R.warnings.length && !confirm('Apply with ' + R.warnings.length + ' warning' +
+            (R.warnings.length === 1 ? '' : 's') + '?\n\n' + R.warnings.join('\n'))) return;
+        var changes = {};
+        Object.keys(R.changes).forEach(function (f) {
+          if (JSON.stringify(R.changes[f]) !== JSON.stringify(row.data[f])) changes[f] = R.changes[f];
+        });
+        if (!Object.keys(changes).length) {
+          p.report.insertBefore(el('div', 'r-ok', 'Nothing to apply — the post already matches the block.'), p.report.firstChild);
+          return;
+        }
+        commitEdit(row, changes, {});
+        raw.base = postToBlock(row.data);
+        p.text.value = raw.base;
+        raw.stale = false; p.stale.hidden = true;
+        p.report.insertBefore(el('div', 'r-ok', 'Applied ✓ ' + Object.keys(changes).length + ' field' +
+          (Object.keys(changes).length === 1 ? '' : 's') + ' updated in the shared draft. Undo reverts it; Save publishes.'),
+          p.report.firstChild);
+      }, function (e) {
+        p.apply.disabled = p.check.disabled = false;
+        p.report.textContent = 'Could not check the block: ' + (e && e.message ? e.message : e);
+      });
+    },
+    show: function (R) {
+      var p = raw.parts;
+      p.report.textContent = '';
+      function section(cls, title, items) {
+        if (!items.length) return;
+        var s = el('div', cls);
+        s.appendChild(el('h4', '', title));
+        var ul = el('ul');
+        items.forEach(function (x) { ul.appendChild(el('li', '', x)); });
+        s.appendChild(ul);
+        p.report.appendChild(s);
+      }
+      if (!R.errors.length) {
+        p.report.appendChild(el('div', 'r-ok', R.warnings.length
+          ? 'The block can be applied — read the warnings first.' : 'The block looks good and can be applied.'));
+      }
+      section('r-err', 'Fix before applying', R.errors);
+      section('r-warn', 'Warnings', R.warnings);
+      section('r-note', 'Tidied automatically', R.notes);
+      p.strip.hidden = !R.unsafe.length;
+    },
+    refresh: function (row) {
+      if (!raw.parts || raw.row !== row) return;
+      var now = postToBlock(row.data);
+      if (now === raw.base) return;
+      if (raw.parts.text.value === raw.base) {          // untouched: follow the post
+        raw.base = now;
+        raw.parts.text.value = now;
+      } else {
+        raw.stale = true;
+        raw.parts.stale.hidden = false;
+      }
+    }
+  };
+
+  function paintMode(on) {
+    Array.prototype.forEach.call($('drMode').querySelectorAll('button'), function (b) {
+      b.setAttribute('aria-pressed', String((b.getAttribute('data-mode') === 'raw') === on));
+    });
+    $('drBody').hidden = on;
+    $('drRaw').hidden = !on;
+  }
+
+  // An unapplied block the program closed (see closeDrawer). Back into the
+  // Raw block of its post, marked as made from an older version...
+  var rawKept = null;
+  function restoreRaw() {
+    var k = rawKept;
+    rawKept = null;
+    setRawMode(true);
+    if (!raw.parts) return;
+    raw.parts.text.value = k.text;
+    raw.stale = true;
+    raw.parts.stale.hidden = false;
+    raw.parts.report.textContent = 'Your unapplied block was kept: the post reloaded underneath it (see the ' +
+                                   'notice at the top). Check it, then apply — or Reset to current.';
+  }
+  // ...or, when that post is gone, a copy offered under the status line.
+  function keptBlock() {
+    var k = rawKept, st = $('status');
+    rawKept = null;
+    if (!k) return;
+    if (!/\bshow\b/.test(st.className)) st.className = 'show warn';
+    var line = el('div', 'kept', 'Your unapplied Raw block for “' + (k.name || 'a post') + '” was closed: ' +
+                                 'that post is not in the draft any more. ');
+    var b = el('button', '', 'Copy the block');
+    b.type = 'button';
+    b.addEventListener('click', function () { copyText(k.text, b); });
+    line.appendChild(b);
+    st.appendChild(line);
+  }
+
+  function setRawMode(on) {
+    if (on === raw.on) return;
+    if (!on && raw.dirty() && !confirm('Leave the raw block without applying it? Its changes are thrown away.')) {
+      return;
+    }
+    var row = drawerRow;
+    paintMode(on);
+    if (on && row) {
+      raw.build(row);
+      raw.on = true;
+      raw.parts.text.focus();
+      raw.parts.text.setSelectionRange(0, 0);
+      raw.parts.text.scrollTop = 0;
+    } else {
+      raw.reset();
+      if (row) refreshDrawer(row);
+    }
+  }
+
+  function initDrawer() {
+    if (!DOC.drawer) return;
+    $('drClose').addEventListener('click', function () { closeDrawer(); });
+    $('drawerShade').addEventListener('click', function () { closeDrawer(); });
+    Array.prototype.forEach.call($('drMode').querySelectorAll('button'), function (b) {
+      b.addEventListener('click', function () { setRawMode(b.getAttribute('data-mode') === 'raw'); });
+    });
+    $('drawer').addEventListener('focusin', function () { if (drawerRow) focusRid = drawerRow.rid; });
+    $('drawer').addEventListener('focusout', function (ev) {
+      if (ev.target && ev.target.__act) ev.target.__act = null;
+    });
+  }
+
   // ------------------------------------------------------------- controls
   function toggleMenu(id) {
     var el = $(id);
@@ -1721,6 +3907,7 @@
   });
 
   $('add').addEventListener('click', function () {
+    if (mode === 'boot') return;       // wait until the list has loaded
     var pos, row;
     if (DOC.addAtEnd) {
       pos = rows.length ? rows[rows.length - 1].pos + 1 : 1;
@@ -1743,6 +3930,7 @@
     pushAction(createAction(row));
     $('q').value = ''; filter();
     row.el.scrollIntoView({ block: 'center' });
+    if (DOC.openOnAdd) { openDrawer(row, 'name'); return; }
     var nameInput = fieldInput(row, 'name');
     nameInput.focus();
     if (FIELDS.indexOf('id') < 0) return;
@@ -1760,8 +3948,9 @@
   });
 
   $('reload').addEventListener('click', function () {
+    if (mode === 'boot') return;
     if (mode === 'sync') {
-      if (!confirm('Reset the shared draft for EVERYONE back to the last saved catalog?\n' +
+      if (!confirm('Reset the shared draft for EVERYONE back to the last saved version of the ' + DOC.what + '?\n' +
                    'All unpublished edits — yours and anyone else\'s — are discarded.')) return;
       pendingPatch = {}; pendingOps = [];
       setStatus('warn', 'Resetting draft…');
@@ -1770,10 +3959,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client: CLIENT, name: NAME, reset: true })
       })
-        .then(function (r) { return r.json(); })
+        .then(draftReply)
         .then(function (d) {
           apply(d);
-          setStatus('warn', 'Draft reset to the last saved catalog.');
+          setStatus('warn', 'Draft reset to the last saved ' + DOC.what + '.');
           schedulePoll();
         })
         .catch(function (e) { setStatus('err', 'Reset failed: ' + e.message); });
@@ -1799,28 +3988,48 @@
         return;
       }
       // Cell edits get a spreadsheet-wide undo, so the browser's per-input
-      // text undo is deliberately overridden (the filter box keeps its own).
-      if (ev.target !== $('q')) {
+      // text undo is deliberately overridden (the filter box keeps its own,
+      // and so does the article editor -- see [data-native-undo]).
+      if (ev.target !== $('q') &&
+          !(ev.target.closest && ev.target.closest('[data-native-undo]'))) {
         if (k === 'z') { ev.preventDefault(); if (ev.shiftKey) redo(); else undo(); return; }
         if (k === 'y') { ev.preventDefault(); redo(); return; }
       }
       return;
     }
+    if (ev.key === 'Escape' && drawerRow) {
+      ev.preventDefault();
+      closeDrawer();
+      return;
+    }
     if (ev.key === '/' && !ev.altKey) {
       var t = ev.target;
-      var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
+      var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' ||
+                         t.isContentEditable);
       if (!typing) { ev.preventDefault(); $('q').focus(); $('q').select(); }
     }
   });
 
+  // Edits the server has not confirmed yet: queued, waiting for the debounce,
+  // or riding on the request in flight.
+  function unsentEdits() {
+    if (pendingOps.length || flushTimer || sendingOps) return true;
+    for (var k in pendingPatch) return true;
+    return false;
+  }
   window.addEventListener('beforeunload', function (ev) {
-    if (mode === 'sync') return;       // pagehide flushes the last keystrokes
-    if (dirty) { ev.preventDefault(); ev.returnValue = ''; }
+    // Sync mode: edits normally reach the draft within half a second, so this
+    // only asks when some have not (a slow or dropped connection).
+    if (mode === 'sync' ? unsentEdits() : dirty) { ev.preventDefault(); ev.returnValue = ''; }
   });
   window.addEventListener('pagehide', function () {
-    if (mode === 'sync' && (pendingOps.length || Object.keys(pendingPatch).length)) {
-      tick(true);                      // keepalive lets it outlive the tab
-    }
+    if (mode !== 'sync' || !(pendingOps.length || Object.keys(pendingPatch).length)) return;
+    if (!inFlight) { tick(true); return; }   // keepalive lets it outlive the tab
+    // A poll is on its way: send the rest alongside it rather than not at all.
+    fetch(DOC.draftApi, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+      body: JSON.stringify({ client: CLIENT, name: NAME, since: cursor, epoch: epoch, ops: takeOps() })
+    }).catch(function () {});
   });
 
   // Diagnostics handle for the browser console: catalogSync.state(), and
@@ -1856,6 +4065,8 @@
   buildColsMenu();
   undoUI();
   initPreview();
+  initDrawer();
+  if (DOC.boot) DOC.boot();
   boot();
 })();
 </script>

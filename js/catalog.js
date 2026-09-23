@@ -130,9 +130,7 @@
 
       var radioBlock = form.querySelector('.filter_block');
       if (radioBlock) {
-        radioBlock.addEventListener('click', function (ev) {
-          var label = ev.target.closest ? ev.target.closest('label.radio-filter') : null;
-          if (!label) return;
+        var pickCategory = function (label) {
           var input = label.querySelector('input');
           state.cat = input && input.value !== 'Radio' ? input.value : '';
           state.shown = pageSize;
@@ -140,6 +138,15 @@
             l.classList.toggle('fs-cmsfilter_active', l === label);
           });
           apply();
+        };
+        radioBlock.addEventListener('click', function (ev) {
+          var label = ev.target.closest ? ev.target.closest('label.radio-filter') : null;
+          if (label) pickCategory(label);
+        });
+        // Keyboard: arrow keys move between the (visually hidden) radios.
+        radioBlock.addEventListener('change', function (ev) {
+          var label = ev.target.closest ? ev.target.closest('label.radio-filter') : null;
+          if (label && !label.classList.contains('fs-cmsfilter_active')) pickCategory(label);
         });
       }
 

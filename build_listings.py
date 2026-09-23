@@ -62,27 +62,110 @@ class BuildError(Exception):
     pass
 
 
-# --------------------------------------------------------------- load catalog
-def load_products(path):
-    """Parse a products.js file. It is JSON objects one per line inside a JS
-    array, so stripping the wrapper and any trailing comma is enough."""
+# ------------------------------------------------------------ reading data
+# Half of a surrogate pair: half an emoji, e.g. "\ud83d" in a data file. No
+# UTF-8 page can hold one, so it becomes U+FFFD -- the replacement character
+# a browser shows for it anyway.
+LONE_SURROGATE = re.compile('[\ud800-\udfff]')
+TRAILING_COMMA = re.compile(r'\s*[\]}]')
+
+
+def _well_formed(value, fixed):
+    if isinstance(value, str):
+        clean, n = LONE_SURROGATE.subn('�', value)
+        fixed[0] += n
+        return clean
+    if isinstance(value, list):
+        return [_well_formed(v, fixed) for v in value]
+    if isinstance(value, dict):
+        return dict((_well_formed(k, fixed), _well_formed(v, fixed)) for k, v in value.items())
+    return value
+
+
+def extract_array(source, name, path, quiet=False):
+    """`window.NAME = [...]` as JSON. A string-aware scan, never a regex over
+    the whole file: blogs.js holds two lists, article HTML is full of brackets,
+    and any text may contain "/*", "*/" or ", ]" -- stripping those blindly
+    deletes real entries. /* comments */ between entries and trailing commas
+    are allowed, as the browser allows them. Same scan as extractArray() in
+    functions/_shared/js-data.js."""
+    at = re.search(r'^[ \t]*window\.%s\s*=\s*\[' % re.escape(name), source, re.M)
+    if not at:
+        raise BuildError('%s: window.%s = [ ... ] not found' % (path, name))
+    start = at.end() - 1
+
+    out, depth, in_str, esc, i, closed = [], 0, False, False, start, False
+    while i < len(source):
+        c = source[i]
+        if in_str:
+            out.append(c)
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+            i += 1
+            continue
+        if c == '/' and source[i + 1:i + 2] == '*':             # skip a comment
+            close = source.find('*/', i + 2)
+            if close < 0:
+                break
+            i = close + 2
+            continue
+        if c == '"':
+            in_str = True
+        elif c == '[':
+            depth += 1
+        elif c == ']':
+            depth -= 1
+        out.append(c)
+        i += 1
+        if depth == 0:
+            closed = True
+            break
+    if not closed:
+        raise BuildError('%s: window.%s is never closed' % (path, name))
+
+    # drop trailing commas (legal JS, not JSON) -- outside strings only
+    body, cleaned, in_str, esc = ''.join(out), [], False, False
+    for j, c in enumerate(body):
+        if in_str:
+            cleaned.append(c)
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+            cleaned.append(c)
+        elif c == ',' and TRAILING_COMMA.match(body, j + 1):
+            pass
+        else:
+            cleaned.append(c)
+    try:
+        data = json.loads(''.join(cleaned))
+    except ValueError as exc:
+        raise BuildError('%s: could not parse window.%s (%s).\n'
+                         '    Usually a missing comma between entries, or a " inside a value\n'
+                         '    that needs to be written as \\".' % (path, name, exc))
+    if not isinstance(data, list):
+        raise BuildError('%s: window.%s is not a list' % (path, name))
+    fixed = [0]
+    data = _well_formed(data, fixed)
+    if fixed[0] and not quiet:
+        print('warning: %s: %d broken character(s) (half of an emoji?) in window.%s '
+              'are shown as a replacement character' % (path, fixed[0], name))
+    return data
+
+
+def load_products(path, quiet=False):
+    """The list in a products.js file (`window.PRODUCTS = [...]`)."""
     if not os.path.isfile(path):
         raise BuildError('catalog not found: %s' % path)
-    src = open(path, encoding='utf-8').read()
-    src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
-    if '[' not in src or ']' not in src:
-        raise BuildError('%s: no array found -- is this a products.js file?' % path)
-    body = src[src.index('['):src.rindex(']') + 1]
-    body = re.sub(r',(\s*])', r'\1', body)
-    try:
-        data = json.loads(body)
-    except ValueError as exc:
-        raise BuildError('%s: could not parse the array (%s).\n'
-                         '    Usually a missing comma between entries, a stray comma at the end,\n'
-                         '    or a " inside a value that needs to be written as \\".' % (path, exc))
-    if not isinstance(data, list):
-        raise BuildError('%s: expected an array of products' % path)
-    return data
+    return extract_array(open(path, encoding='utf-8').read(), 'PRODUCTS', path, quiet)
 
 
 def validate(products):
@@ -103,6 +186,11 @@ def validate(products):
         for field in REQUIRED:
             if not p.get(field):
                 errors.append('%s: missing "%s"' % (where, field))
+            elif not isinstance(p[field], str):
+                errors.append('%s: "%s" must be text' % (where, field))
+        for field in ('desc', 'note'):
+            if field in p and not isinstance(p[field], str):
+                errors.append('%s: "%s" must be text' % (where, field))
 
         pid = p.get('id')
         if pid:
@@ -283,16 +371,35 @@ def set_empty_state(doc, is_empty, container_re=GRID):
     return doc[:m.start()] + repl + doc[m.end():]
 
 
-def list_elements(products):
+SITE = 'https://mycampuskorner.com'
+
+
+def prices_shown(root):
+    """SHOW_PRICES in js/site-config.js. Structured data may only state what
+    the page shows, so prices go into it only when the site displays them."""
+    try:
+        src = open(os.path.join(root, 'js', 'site-config.js'), encoding='utf-8').read()
+    except OSError:
+        return False
+    return re.search(r'var\s+SHOW_PRICES\s*=\s*true\b', src) is not None
+
+
+def list_elements(products, show_prices=False):
+    """The listing as schema.org ListItems. With prices hidden each entry is
+    just the product page (full URL) and its name -- a Product without a price
+    would be reported as incomplete, and a hidden price must not be stated."""
     out = []
     for i, p in enumerate(products):
-        item = {'@type': 'Product', 'name': p['name'], 'image': p['img'],
-                'category': p['catLabel'], 'url': 'product.html?id=' + p['id']}
-        if 'price' in p:
-            item['offers'] = {'@type': 'Offer', 'price': str(p['price']),
-                              'priceCurrency': 'USD',
-                              'seller': {'@type': 'Organization', 'name': p['merchant']}}
-        out.append({'@type': 'ListItem', 'position': i + 1, 'item': item})
+        url = SITE + '/product?id=' + p['id']
+        if show_prices and 'price' in p:
+            item = {'@type': 'Product', 'name': p['name'], 'image': p['img'],
+                    'category': p['catLabel'], 'url': url,
+                    'offers': {'@type': 'Offer', 'price': str(p['price']),
+                               'priceCurrency': 'USD',
+                               'seller': {'@type': 'Organization', 'name': p['merchant']}}}
+            out.append({'@type': 'ListItem', 'position': i + 1, 'item': item})
+        else:
+            out.append({'@type': 'ListItem', 'position': i + 1, 'url': url, 'name': p['name']})
     return out
 
 
@@ -315,7 +422,7 @@ def find_itemlist(node):
     return None
 
 
-def replace_itemlist_ld(doc, products, label):
+def replace_itemlist_ld(doc, products, label, show_prices=False):
     """Rewrite just the itemListElement of the page's ItemList, in place."""
     for m in re.finditer(r'<script type="application/ld\+json">(.*?)</script>', doc, re.S):
         raw = m.group(1)
@@ -328,42 +435,67 @@ def replace_itemlist_ld(doc, products, label):
         lst = find_itemlist(data)
         if lst is None:
             continue
-        lst['itemListElement'] = list_elements(products)
+        lst['itemListElement'] = list_elements(products, show_prices)
         lst['numberOfItems'] = len(products)
-        return doc[:m.start(1)] + json.dumps(data, ensure_ascii=False) + doc[m.end(1):]
+        # "<" escaped, so no value can close the <script> it sits in.
+        return doc[:m.start(1)] + json.dumps(data, ensure_ascii=False).replace('<', '\\u003c') + doc[m.end(1):]
     return doc
 
 
 # --------------------------------------------------------------------- pages
-def write_if_changed(path, doc, check):
-    before = open(path, encoding='utf-8', newline='').read()
-    if before == doc:
-        return 'unchanged'
+def encode_pages(built):
+    """Every built page as UTF-8 bytes, before any file is touched: a page that
+    cannot be encoded stops the build with every file as it was."""
+    out = []
+    for name, n, path, doc in built:
+        try:
+            out.append((name, n, path, doc.encode('utf-8')))
+        except UnicodeEncodeError as exc:
+            raise BuildError('%s: could not be written as UTF-8 (%s)' % (name, exc.reason))
+    return out
+
+
+def write_if_changed(path, data, check):
+    """Write bytes (from encode_pages) only if they differ. Through a temporary
+    file and a rename, so the page is either the old one or the new one --
+    never half-written, or empty."""
+    with open(path, 'rb') as f:
+        if f.read() == data:
+            return 'unchanged'
     if check:
         return 'would change'
-    # the repo uses LF; keep it that way when run on Windows
-    open(path, 'w', encoding='utf-8', newline='\n').write(doc)
+    tmp = path + '.tmp'
+    try:
+        with open(tmp, 'wb') as f:
+            f.write(data)
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
     return 'updated'
 
 
-def build_store(root, products, check):
+# Both pages are built in memory first and written only when both succeeded,
+# so a problem in one never leaves the other half-updated.
+def build_store(root, products, show_prices=False):
     path = os.path.join(root, 'store.html')
     doc = open(path, encoding='utf-8', newline='').read()
     doc = replace_inner(doc, GRID, ''.join(grid_card(p) for p in products), 'store.html grid')
     doc = replace_inner(doc, RADIOS, category_radios(products), 'store.html category filter')
-    doc = replace_itemlist_ld(doc, products, 'store.html')
+    doc = replace_itemlist_ld(doc, products, 'store.html', show_prices)
     doc = set_empty_state(doc, not products)
-    return 'store.html', len(products), write_if_changed(path, doc, check)
+    return 'store.html', len(products), path, doc
 
 
-def build_index(root, products, check):
+def build_index(root, products, show_prices=False):
     path = os.path.join(root, 'index.html')
     doc = open(path, encoding='utf-8', newline='').read()
     featured = products[:FEATURED]
     doc = replace_inner(doc, SLIDER, ''.join(slide_card(p) for p in featured),
                         'index.html featured rail')
-    doc = replace_itemlist_ld(doc, featured, 'index.html')
-    return 'index.html', len(featured), write_if_changed(path, doc, check)
+    doc = replace_itemlist_ld(doc, featured, 'index.html', show_prices)
+    return 'index.html', len(featured), path, doc
 
 
 # ------------------------------------------------------- consistency safety
@@ -386,7 +518,8 @@ def baked_ids(root):
 def runtime_ids(root):
     """Product ids the browser will actually find at runtime."""
     try:
-        return set(p.get('id') for p in load_products(os.path.join(root, 'js', 'products.js')))
+        return set(p.get('id') for p in load_products(os.path.join(root, 'js', 'products.js'), quiet=True)
+                   if isinstance(p, dict))
     except BuildError:
         return None
 
@@ -540,12 +673,13 @@ def main():
              len(set(p['merchantSlug'] for p in products))))
 
     try:
-        rows = [build_store(root, products, args.check),
-                build_index(root, products, args.check)]
+        show = prices_shown(root)
+        built = encode_pages([build_store(root, products, show), build_index(root, products, show)])
     except BuildError as exc:
         print('error: %s' % exc)
         print('\nnothing was written.')
         return 1
+    rows = [(name, n, write_if_changed(path, doc, args.check)) for name, n, path, doc in built]
 
     for name, n, state in rows:
         print('  %-14s %3d products   %s%s'

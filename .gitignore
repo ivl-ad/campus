@@ -18,6 +18,9 @@ js/products.real.js
 # duplicates js/products.js in the repo
 js/products.sample.js
 
+# Local test runs of `wrangler pages dev` (cache and local database state)
+.wrangler/
+
 # Python / OS noise
 __pycache__/
 *.pyc

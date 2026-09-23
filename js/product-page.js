@@ -13,6 +13,13 @@
 (function () {
   'use strict';
 
+  // The page's Function (functions/*.js) usually writes a fuller title and
+  // description into the HTML itself. Only fill them in when it did not --
+  // i.e. the page still has its template title -- so search engines, which
+  // read the page after scripts run, see the same text either way.
+  var TEMPLATE_TITLE = /^(Product|Category|Store|Article|Blog Category) \| MyCampusKorner$/;
+  function headIsTemplate() { return TEMPLATE_TITLE.test(document.title); }
+
   var SWIPER_OPTS = {
     spaceBetween: 16,
     slidesPerView: 'auto',
@@ -26,8 +33,12 @@
       .replace(/"/g, '&quot;');
   }
 
+  // "$1,299.00" -- the same figure the baked store cards (build_listings.py)
+  // and the category pages (listing-page.js) show.
   function money(n) {
-    return '$' + Number(n).toFixed(2);
+    return '$' + Number(n).toLocaleString('en-US', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
   }
 
   function byId(id) { return document.getElementById(id); }
@@ -91,6 +102,7 @@
   }
 
   function fillHead(p) {
+    if (!headIsTemplate()) return;    // the Function already wrote this page's head
     var title = p.name + ' | MyCampusKorner';
     document.title = title;
     var pairs = [
@@ -109,25 +121,32 @@
 
     var ld = byId('p-jsonld');
     if (ld) {
-      var data = {
+      // Only reached when the page is served without its Function (which
+      // writes this markup server-side). Same rule: a price is stated only
+      // when the site shows prices, and no stock level is ever claimed.
+      var data = window.SHOW_PRICES && typeof p.price === 'number' ? {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: p.name,
         image: p.img,
         category: p.catLabel,
-        url: location.href
-      };
-      if (p.price !== undefined) {
-        data.offers = {
+        url: location.href,
+        brand: { '@type': 'Brand', name: p.merchant },
+        offers: {
           '@type': 'Offer',
           price: String(p.price),
           priceCurrency: 'USD',
-          availability: 'https://schema.org/InStock',
           url: p.url,
           seller: { '@type': 'Organization', name: p.merchant }
-        };
-      }
-      ld.textContent = JSON.stringify(data);
+        }
+      } : {
+        '@context': 'https://schema.org',
+        '@type': 'ItemPage',
+        name: p.name,
+        url: location.href,
+        primaryImageOfPage: { '@type': 'ImageObject', url: p.img }
+      };
+      ld.textContent = JSON.stringify(data).replace(/</g, '\\u003c');
     }
   }
 
@@ -177,7 +196,8 @@
     }
 
     var buy = byId('p-buy');
-    if (buy) buy.setAttribute('href', product.url);
+    // Only a real web address becomes the Buy link (never "javascript:" etc.).
+    if (buy) buy.setAttribute('href', /^https?:\/\//i.test(product.url || '') ? product.url : 'store.html');
     setText('p-buy-text', 'Buy at ' + product.merchant);
 
     var storeLink = byId('p-store-link');

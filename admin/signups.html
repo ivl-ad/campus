@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Signups · Catalog editor</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta name="robots" content="noindex, nofollow"/>
+<style>
+  /* Same look as the catalog editor (admin/index.html). */
+  :root{
+    --bg:#f6f6f3; --panel:#fff; --ink:#17210f; --muted:#6b7466; --line:#dcdcd4;
+    --green:#2e6b22; --green-dark:#1d4a15; --red:#b23b32; --head:#eef0ea;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;
+         display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  .tabs{display:flex;gap:2px;background:var(--head);border-radius:7px;padding:2px;margin-right:4px}
+  .tabs a{padding:4px 12px;border-radius:5px;color:var(--muted);text-decoration:none;font-weight:600;white-space:nowrap}
+  .tabs a:hover{color:var(--ink)}
+  .tabs a[aria-current]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(23,33,15,.16)}
+  .spacer{flex:1}
+  button,.btn{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);
+         padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+  button:hover,.btn:hover{background:#f0f0ea}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--green-dark)}
+  main{padding:18px 14px 40px;max-width:1200px}
+  .seg{display:inline-flex;gap:2px;background:var(--head);border-radius:7px;padding:2px}
+  .seg button{border:0;background:transparent;color:var(--muted);font-weight:600;padding:5px 12px}
+  .seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(23,33,15,.16)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  .stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.2}
+  .stat span{color:var(--muted);font-size:12.5px}
+  .wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto}
+  table{border-collapse:collapse;width:100%}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--head);font-size:12.5px;color:var(--muted);font-weight:600;position:sticky;top:0}
+  tr:last-child td{border-bottom:0}
+  td.when{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
+  td.msg{white-space:pre-wrap;min-width:260px;max-width:520px}
+  td.x{width:1%;white-space:nowrap}
+  td.x button{padding:2px 8px;font-size:12px;color:var(--red);border-color:#e3c6c3}
+  .empty,.err{padding:28px;text-align:center;color:var(--muted)}
+  .err{color:var(--red)}
+  .note{color:var(--muted);font-size:12.5px;margin-top:12px}
+  .tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+  .tools input{font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:6px;min-width:260px}
+  .tools .shown{color:var(--muted);font-size:13px}
+  .more{margin:12px 0 0}
+  td.x a{font-size:12px;margin-right:6px;color:var(--green-dark)}
+</style>
+</head>
+<body>
+<header>
+  <nav class="tabs" aria-label="Section">
+    <a href="./">Products</a>
+    <a href="./?view=partners">Partners</a>
+    <a href="./?view=blog">Blog</a>
+    <a href="./?view=team">Team</a>
+    <a href="signups" aria-current="page">Signups</a>
+  </nav>
+  <div class="seg" role="group" aria-label="List">
+    <button type="button" data-list="newsletter" aria-pressed="true">Newsletter</button>
+    <button type="button" data-list="contact" aria-pressed="false">Contact messages</button>
+  </div>
+  <span class="spacer"></span>
+  <button type="button" id="refresh">Refresh</button>
+  <a class="btn primary" id="csv" href="../api/signups?list=newsletter&amp;format=csv">Download CSV</a>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="tools">
+    <input type="search" id="q" placeholder="Search names, emails, messages…" autocomplete="off"/>
+    <span class="shown" id="shown"></span>
+  </div>
+  <div class="wrap" id="table"><div class="empty">Loading…</div></div>
+  <button type="button" class="more" id="more" hidden>Show more</button>
+  <p class="note">
+    Sign-ups come from the email boxes on the home page and blog; messages come from the Contact page.
+    Download CSV opens in Excel / Google Sheets, or import it into Mailchimp, Kit, Beehiiv etc. to send a newsletter.
+    Remove deletes a row permanently (use it for unsubscribe or "delete my data" requests).
+  </p>
+</main>
+<script>
+(function () {
+  'use strict';
+  var list = 'newsletter';
+  var COLS = {
+    newsletter: [['created_at', 'Signed up'], ['email', 'Email'], ['page', 'From page'], ['country', 'Country']],
+    contact: [['created_at', 'Received'], ['name', 'Name'], ['email', 'Email'], ['reason', 'Reason'],
+              ['message', 'Message'], ['page', 'From page'], ['country', 'Country']]
+  };
+  var KEY = { newsletter: 'email', contact: 'id' };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  };
+  var when = function (ms) {
+    return new Date(ms).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  };
+
+  function stat(n, label) { return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
+
+  // Every row is loaded, newest first, a page at a time ("Show more"); the
+  // search box filters what is loaded. Download CSV always has everything.
+  var loaded = [], total = 0, more = false, noun = '';
+
+  function mailto(r) {
+    var subject = list === 'contact' ? 'Re: your message to MyCampusKorner' : 'MyCampusKorner';
+    return 'mailto:' + encodeURIComponent(r.email || '').replace(/%40/g, '@') + '?subject=' + encodeURIComponent(subject);
+  }
+
+  function draw() {
+    var cols = COLS[list];
+    var q = $('q').value.trim().toLowerCase();
+    var rows = !q ? loaded : loaded.filter(function (r) {
+      return cols.some(function (c) { return String(r[c[0]] == null ? '' : r[c[0]]).toLowerCase().indexOf(q) > -1; });
+    });
+    $('shown').textContent = q ? rows.length + ' of ' + loaded.length + ' loaded match'
+                               : 'Showing ' + loaded.length + ' of ' + total;
+    $('more').hidden = !more;
+    if (!loaded.length) { $('table').innerHTML = '<div class="empty">No ' + noun + ' yet.</div>'; return; }
+    if (!rows.length) { $('table').innerHTML = '<div class="empty">Nothing matches “' + esc(q) + '”.</div>'; return; }
+    $('table').innerHTML = '<table><thead><tr>' +
+      cols.map(function (c) { return '<th>' + c[1] + '</th>'; }).join('') + '<th></th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr>' + cols.map(function (c) {
+          var v = r[c[0]];
+          if (c[0] === 'created_at') return '<td class="when">' + esc(when(v)) + '</td>';
+          if (c[0] === 'email') return '<td><a href="' + esc(mailto(r)) + '">' + esc(v) + '</a></td>';
+          return '<td' + (c[0] === 'message' ? ' class="msg"' : '') + '>' + esc(v) + '</td>';
+        }).join('') + '<td class="x">' +
+          (list === 'contact' ? '<a href="' + esc(mailto(r)) + '">Reply</a>' : '') +
+          '<button type="button" data-remove="' + esc(r[KEY[list]]) + '">Remove</button></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function fetchPage(offset) {
+    return fetch('../api/signups?list=' + list + '&offset=' + offset, { cache: 'no-store' })
+      .then(function (r) { return r.json().then(function (b) { if (!r.ok) throw new Error(b.error || r.status); return b; }); });
+  }
+
+  function load() {
+    $('csv').href = '../api/signups?list=' + list + '&format=csv';
+    noun = list === 'newsletter' ? 'subscribers' : 'messages';
+    // Forget the other list's rows first: its Remove buttons must never show under this one.
+    loaded = []; total = 0; more = false;
+    $('more').hidden = true;
+    $('shown').textContent = '';
+    $('table').innerHTML = '<div class="empty">Loading…</div>';
+    var want = list;
+    fetchPage(0)
+      .then(function (d) {
+        if (want !== list) return;                 // switched lists meanwhile
+        loaded = d.rows; total = d.total; more = d.more;
+        $('stats').innerHTML = stat(d.total, 'total ' + noun) + stat(d.last7, 'last 7 days') + stat(d.last30, 'last 30 days');
+        draw();
+      })
+      .catch(function (e) {
+        if (want !== list) return;                 // an error for the list we left
+        $('stats').innerHTML = '';
+        $('more').hidden = true;
+        $('table').innerHTML = '<div class="err">Could not load: ' + esc(e.message) + '</div>';
+      });
+  }
+
+  $('more').addEventListener('click', function () {
+    var want = list;
+    $('more').disabled = true;
+    fetchPage(loaded.length).then(function (d) {
+      if (want !== list) return;
+      loaded = loaded.concat(d.rows); total = d.total; more = d.more;
+      draw();
+    }).catch(function (e) { alert('Could not load more: ' + e.message); })
+      .then(function () { $('more').disabled = false; });
+  });
+  $('q').addEventListener('input', draw);
+
+  document.addEventListener('click', function (e) {
+    var seg = e.target.closest('[data-list]');
+    if (seg) {
+      list = seg.getAttribute('data-list');
+      document.querySelectorAll('[data-list]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b === seg));
+      });
+      load();
+      return;
+    }
+    var rm = e.target.closest('[data-remove]');
+    if (rm) {
+      var what = rm.getAttribute('data-remove'), from = list;
+      if (!confirm('Permanently delete ' + (from === 'newsletter' ? what : 'this message') + '?')) return;
+      rm.disabled = true;
+      fetch('../api/signups', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list: from, remove: from === 'contact' ? Number(what) : what })
+      })
+        .then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (b) {
+            if (!r.ok || b.error) throw new Error(b.error || 'HTTP ' + r.status);
+          });
+        })
+        .then(function () { if (list === from) load(); })
+        .catch(function (err) {
+          rm.disabled = false;
+          alert('Could not delete it (' + err.message + '). Press Refresh to see whether it is still there, ' +
+                'then try again.');
+        });
+    }
+  });
+  $('refresh').addEventListener('click', load);
+  load();
+})();
+</script>
+</body>
+</html>

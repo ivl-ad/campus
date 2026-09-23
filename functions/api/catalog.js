@@ -21,6 +21,9 @@
  *   GITHUB_BRANCH    plain   optional, defaults to main
  */
 
+import { draftMarks, baseMismatch, recordSave, epochMoved, RACE_MESSAGE, RESET_MESSAGE } from '../_shared/draft-save.js';
+import { jsValue, extractArray, headerBefore } from '../_shared/js-data.js';
+
 const FILE = 'js/products.js';
 
 const FIELD_ORDER = ['id', 'name', 'cat', 'catLabel', 'merchant', 'merchantSlug',
@@ -64,28 +67,20 @@ export function encodeBase64(text) {
 }
 
 // ------------------------------------------------------------- products.js
-export function parseProducts(source) {
-  const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '');
-  const open = stripped.indexOf('[');
-  const close = stripped.lastIndexOf(']');
-  if (open < 0 || close < 0) throw new Error('no product array found in ' + FILE);
-  return JSON.parse(stripped.slice(open, close + 1).replace(/,(\s*])/g, '$1'));
-}
-
-export function readHeader(source) {
-  const i = source.indexOf('window.PRODUCTS');
-  return i > 0 ? source.slice(0, i).replace(/\n+$/, '') : '';
-}
+export const parseProducts = (source) => extractArray(source, 'PRODUCTS');
+export const readHeader = (source) => headerBefore(source, 'PRODUCTS');
 
 export function tidy(product) {
   const out = {};
   const put = (k) => {
     let v = product[k];
     if (v === undefined || v === null || v === '') return;
-    // JSON has one number type, so 199.0 arrives as 199. Keep prices as
-    // floats so the committed file stays byte-stable between saves.
+    // Whole cents, so every page shows the same figure (the build scripts
+    // and the browser would each round 19.999 their own way). JSON has one
+    // number type, so 199.0 arrives as 199; priceLiteral writes it back as
+    // 199.0, keeping the committed file byte-stable between saves.
     if (k === 'price' && typeof v === 'number' && isFinite(v)) {
-      out[k] = v;
+      out[k] = Math.round(v * 100) / 100;
       return;
     }
     out[k] = v;
@@ -107,7 +102,7 @@ export function serialise(product) {
     if (k === 'price' && typeof v === 'number') {
       return JSON.stringify(k) + ': ' + priceLiteral(v);
     }
-    return JSON.stringify(k) + ': ' + JSON.stringify(v);
+    return JSON.stringify(k) + ': ' + jsValue(v);
   });
   return '{' + parts.join(', ') + '}';
 }
@@ -137,8 +132,19 @@ export function validate(products) {
     ['id', 'name', 'cat', 'catLabel', 'merchant', 'merchantSlug', 'url', 'img']
       .forEach((f) => {
         if (!p[f] || !String(p[f]).trim()) errors.push(where + ': missing "' + f + '"');
+        else if (typeof p[f] !== 'string') errors.push(where + ': "' + f + '" must be text');
       });
+    ['desc', 'note'].forEach((f) => {
+      if (p[f] !== undefined && p[f] !== null && typeof p[f] !== 'string') {
+        errors.push(where + ': "' + f + '" must be text');
+      }
+    });
 
+    // The id is the product page's address (product?id=...): anything but
+    // lowercase letters, digits and dashes makes a broken link somewhere.
+    if (p.id && !/^[a-z0-9][a-z0-9-]*$/.test(String(p.id))) {
+      errors.push(where + ': id must be lowercase letters, numbers and dashes');
+    }
     if (p.id) {
       if (seen.has(p.id)) {
         errors.push(where + ': duplicate id -- also used by product #' + seen.get(p.id));
@@ -154,6 +160,14 @@ export function validate(products) {
     if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(String(p.merchantSlug))) {
       errors.push(where + ': merchantSlug must be lowercase letters, numbers and dashes');
     }
+    // url becomes the Buy button's link and img an image source on the site:
+    // only real web addresses (a "javascript:" link would run on the page).
+    if (p.url && !/^https?:\/\/[^\s<>"']+$/i.test(String(p.url).trim())) {
+      errors.push(where + ': url must be a full web address starting with https://');
+    }
+    if (p.img && !/^(https?:\/\/[^\s<>"']+|\/?images\/[^\s<>"']+)$/i.test(String(p.img).trim())) {
+      errors.push(where + ': img must be a full https:// image address (or a path under images/)');
+    }
   });
   return errors;
 }
@@ -167,12 +181,15 @@ export function config(env) {
     throw new Error('GITHUB_REPO and GITHUB_TOKEN must be set on this Pages project ' +
                     'before the editor can read or save the catalog.');
   }
-  return { repo, token, branch };
+  // GITHUB_API is only for local testing against a stand-in server; leave it
+  // unset on Cloudflare.
+  const api = String(env.GITHUB_API || 'https://api.github.com').replace(/\/+$/, '');
+  return { repo, token, branch, api };
 }
 
 // file defaults to the catalog; /api/partners passes js/partners.js.
 export async function github(cfg, method, body, file) {
-  const url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + (file || FILE) +
+  const url = (cfg.api || 'https://api.github.com') + '/repos/' + cfg.repo + '/contents/' + (file || FILE) +
               (method === 'GET' ? '?ref=' + encodeURIComponent(cfg.branch) : '');
   const res = await fetch(url, {
     method,
@@ -232,14 +249,15 @@ export async function onRequestPost({ request, env }) {
     return json(400, { error: 'expected a JSON body' });
   }
   let products = body && body.products;
-  let draftSeq = 0;
+  let draftSeq = 0, draftEpoch = null;
   if (body && body.fromDraft) {
     // The synced editor sends no products: publish the shared draft exactly as
     // it stands in D1 (see functions/api/draft.js), including edits made on
     // other screens. Counter first, then rows -- an edit landing in between
     // shows as "unpublished" afterwards instead of being silently published.
     if (!env.DB) return json(400, { error: 'The shared draft has no DB binding on this Pages project.' });
-    draftSeq = Number(await env.DB.prepare("SELECT v FROM draft_meta WHERE k='seq'").first('v')) || 0;
+    ({ seq: draftSeq, epoch: draftEpoch } = await draftMarks(env.DB, 'draft_meta'));
+    if (epochMoved(body, draftEpoch)) return json(409, { error: RESET_MESSAGE });
     const got = await env.DB.prepare('SELECT data FROM draft_rows WHERE deleted=0 ORDER BY pos, rid').all();
     products = got.results.map((r) => JSON.parse(r.data));
   }
@@ -261,11 +279,14 @@ export async function onRequestPost({ request, env }) {
 
   if (body.fromDraft) {
     // The draft remembers the sha it was seeded from; a mismatch means somebody
-    // committed js/products.js directly in git while the draft was live.
-    const base = await env.DB.prepare("SELECT v FROM draft_meta WHERE k='base_sha'").first('v');
-    if (base && base !== current.data.sha) {
+    // committed js/products.js directly in git while the draft was live (or,
+    // briefly, that another editor's Save is landing -- see draft-save.js).
+    const mismatch = await baseMismatch(env.DB, 'draft_meta', current.data.sha);
+    if (mismatch === 'race') return json(409, { error: RACE_MESSAGE });
+    if (mismatch) {
       return json(409, {
-        error: 'js/products.js changed on GitHub outside this editor (a direct commit).\n' +
+        error: 'js/products.js changed on GitHub since this draft was loaded (a direct commit in git, or a\n' +
+               'Save that finished while the draft was being reset).\n' +
                'Press "Reset draft" to start over from that newer version (unpublished ' +
                'edits are discarded), or reconcile the two in git first.'
       });
@@ -279,7 +300,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   const content = render(header, products);
-  const who = (body.author || '').toString().slice(0, 40).replace(/[^\w .@-]/g, '');
+  const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
   const message = 'Catalog: ' + products.length + ' products, edited in the web editor' +
                   (who ? ' by ' + who : '');
 
@@ -291,6 +312,9 @@ export async function onRequestPost({ request, env }) {
   });
 
   if (!put.ok) {
+    // GitHub's own check: the file moved on between our read and our write --
+    // in practice another editor's Save landing in the same second.
+    if (put.status === 409 && body.fromDraft) return json(409, { error: RACE_MESSAGE });
     return json(put.status === 409 ? 409 : 502, {
       error: 'GitHub refused the commit (HTTP ' + put.status + '). ' +
              (put.data && put.data.message ? put.data.message : '')
@@ -304,10 +328,7 @@ export async function onRequestPost({ request, env }) {
     // save.seq is what the "unpublished changes" indicator compares against.
     const note = JSON.stringify({ who: who, at: Date.now(), count: products.length,
                                   seq: draftSeq, commit: commit || '' });
-    const up = (k, v) => env.DB
-      .prepare('INSERT INTO draft_meta(k,v) VALUES(?1,?2) ON CONFLICT(k) DO UPDATE SET v=?2')
-      .bind(k, v);
-    await env.DB.batch([up('base_sha', newSha), up('save', note)]);
+    await recordSave(env.DB, 'draft_meta', draftEpoch, [['base_sha', newSha], ['save', note]]);
   }
 
   return json(200, {

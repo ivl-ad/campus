@@ -1,0 +1,9 @@
+# https://mycampuskorner.com/robots.txt
+User-agent: *
+Allow: /
+# The catalog editor and its API are password-protected; keep them out of search.
+Disallow: /admin/
+Disallow: /api/
+Disallow: /forms/
+
+Sitemap: https://mycampuskorner.com/sitemap.xml

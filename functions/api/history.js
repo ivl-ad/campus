@@ -21,18 +21,22 @@
  * The fine-grained token from SETUP.md step 1 already covers this: listing
  * commits and reading a file at a ref are both "Contents: read".
  *
- * ?doc=partners does the same for js/partners.js and the partner draft.
+ * ?doc=partners does the same for js/partners.js and the partner draft;
+ * ?doc=blog for js/blogs.js (posts) and ?doc=team for js/team.js.
  */
 
 import { config, decodeBase64, parseProducts } from './catalog.js';
 import { ensure, reseed, putMeta, docFor, DOCS } from './draft.js';
 import { FILE as PARTNERS_FILE, parsePartners } from './partners.js';
+import { FILE as BLOG_FILE, parsePosts } from './blog.js';
+import { FILE as TEAM_FILE, parseTeam } from './team.js';
 
 function target(request) {
   const doc = docFor(request);
-  return doc === DOCS.partners
-    ? { doc, file: PARTNERS_FILE, parse: parsePartners, noun: 'partners' }
-    : { doc, file: 'js/products.js', parse: parseProducts, noun: 'products' };
+  if (doc === DOCS.partners) return { doc, file: PARTNERS_FILE, parse: parsePartners, noun: 'partners' };
+  if (doc === DOCS.blog) return { doc, file: BLOG_FILE, parse: parsePosts, noun: 'posts' };
+  if (doc === DOCS.team) return { doc, file: TEAM_FILE, parse: parseTeam, noun: 'people' };
+  return { doc, file: 'js/products.js', parse: parseProducts, noun: 'products' };
 }
 
 const json = (status, body) => new Response(JSON.stringify(body), {
@@ -44,7 +48,7 @@ const json = (status, body) => new Response(JSON.stringify(body), {
 // history also needs the commits list and contents-at-a-ref, so this is the
 // generic read-only variant.
 async function gh(cfg, path) {
-  const res = await fetch('https://api.github.com/repos/' + cfg.repo + '/' + path, {
+  const res = await fetch((cfg.api || 'https://api.github.com') + '/repos/' + cfg.repo + '/' + path, {
     headers: {
       'Authorization': 'Bearer ' + cfg.token,
       'Accept': 'application/vnd.github+json',
@@ -108,7 +112,7 @@ export async function onRequestPost({ request, env }) {
     return json(400, { error: 'That version cannot be read as a list of ' + noun + ': ' + e.message });
   }
 
-  const who = (body.author || '').toString().slice(0, 40).replace(/[^\w .@-]/g, '');
+  const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
   try {
     await ensure(env.DB, doc);
     await reseed(env.DB, products, null, doc);
