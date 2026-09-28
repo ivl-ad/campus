@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "vaio-budget-laptops", "name": "vaio budget laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.kqzyfj.com/click-101879885-15619457", "img": "https://www.awltovhc.com/image-101879885-15619457"},
   {"id": "vaio-laptops", "name": "vaio laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.kqzyfj.com/click-101879885-15619460", "img": "https://www.lduhtrp.net/image-101879885-15619460"},
   {"id": "champion", "name": "Champion Rally Pro", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "Champion", "merchantSlug": "champion", "url": "https://track.flexlinkspro.com/p.ashx?foc=107&fos=6&fopid=1485277.170182.1.C54.6E2E1F9C235238BA.46051809067200", "img": "https://cdn.shopify.com/s/files/1/0665/9001/5680/files/CPS10126M-2_esyb7b.jpg?v=1780042897"},
   {"id": "zulily-corner-shelf", "name": "Zulily corner shelf", "cat": "living-social-spaces", "catLabel": "Living & Social Spaces", "merchant": "Zulily", "merchantSlug": "zulily", "url": "https://click.linksynergy.com/link?id=MdERYhlEo38&offerid=1987947.5416711621458230540046419&type=2&murl=https%3a%2f%2fwww.zulily.com%2fproducts%2fassembled-black-foldable-corner-shelving-unit-2-sizes%3fvariant%3d44613829853253", "img": "https://cdn.shopify.com/s/files/1/0471/0885/files/7054-bk_1_lg.webp?v=1770336908", "price": 181.0},
