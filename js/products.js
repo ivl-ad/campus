@@ -19,7 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
-  {"id": "acer-laptops", "name": "Acer laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "acer", "merchantSlug": "acer", "url": "https://track.flexlinkspro.com/g.ashx?foid=156392.4360.0&trid=1485277.248446&foc=16&fot=9999&fos=6", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/248446.png"},
+  {"id": "resume-express", "name": "Resume Corner", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "Resume Corner", "merchantSlug": "resume", "url": "https://www.awin1.com/cread.php?s=4376985&v=118585&q=569984&r=3045715", "img": "https://static.shareasale.com/image/rcc_468_60.gif"},
   {"id": "vaio-budget-laptops", "name": "vaio budget laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.kqzyfj.com/click-101879885-15619457", "img": "https://www.awltovhc.com/image-101879885-15619457"},
   {"id": "vaio-laptops", "name": "vaio laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.kqzyfj.com/click-101879885-15619460", "img": "https://www.lduhtrp.net/image-101879885-15619460"},
   {"id": "champion", "name": "Champion Rally Pro", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "Champion", "merchantSlug": "champion", "url": "https://track.flexlinkspro.com/p.ashx?foc=107&fos=6&fopid=1485277.170182.1.C54.6E2E1F9C235238BA.46051809067200", "img": "https://cdn.shopify.com/s/files/1/0665/9001/5680/files/CPS10126M-2_esyb7b.jpg?v=1780042897"},
