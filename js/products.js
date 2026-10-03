@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "dustbuster", "name": "Dustbuster", "cat": "laundry-cleaning", "catLabel": "Laundry & Cleaning", "merchant": "B&D", "merchantSlug": "black", "url": "https://track.flexlinkspro.com/p.ashx?foc=107&fos=6&fopid=1485277.234710.156052.273F.39C0E0A1E1C2E13D.HNVC115J22", "img": "https://cdn.shopify.com/s/files/1/0640/1409/0461/products/HNVC115J22_1_Primary.jpg?v=1663288152"},
   {"id": "huffy-womens-bikes", "name": "Huffy womens bikes", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "Huffy", "merchantSlug": "huffy", "url": "https://track.flexlinkspro.com/g.ashx?foid=156099.22353.964941&trid=1485277.229259&foc=16&fot=9999&fos=6", "img": "http://www.avantlink.com/gbi/22353/964941/132893/160597/image.jpg"},
   {"id": "huffy-bikes", "name": "Huffy bikes", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "Huffy", "merchantSlug": "huffy", "url": "https://track.flexlinkspro.com/g.ashx?foid=156099.22353.964913&trid=1485277.229259&foc=16&fot=9999&fos=6", "img": "http://www.avantlink.com/gbi/22353/964913/132893/160597/image.jpg"},
   {"id": "marriot-bonvoy", "name": "Marriot Bonvoy", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Bonvoy", "merchantSlug": "bonvoy", "url": "https://marriott.pxf.io/jRA6Re", "img": "https://cdn3.impact.com/display-campaign-image/38448.gif"},
