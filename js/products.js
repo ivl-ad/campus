@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "hisense-flat-screen", "name": "Hisense Flat Screen", "cat": "living-social-spaces", "catLabel": "Living & Social Spaces", "merchant": "Hisense", "merchantSlug": "hisense", "url": "https://bestbuy.7tiv.net/c/5891219/3984503/56105?prodsku=6684763&u=https%3A%2F%2Fwww.bestbuy.com%2Fproduct%2Fhisense-58-class-qd50-hi-qled-series-4k-uhd-smart-roku-tv-2026%2FJ3Z9Z42T8S&intsrc=PUI2_35615", "img": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/70cedbe1-01d0-4415-bb49-5f40e5716df2.png"},
   {"id": "resume-express", "name": "Resume Corner", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Resume Corner", "merchantSlug": "resume", "url": "https://www.awin1.com/cread.php?s=4376985&v=118585&q=569984&r=3045715", "img": "https://static.shareasale.com/image/rcc_468_60.gif"},
   {"id": "vaio-budget-laptops", "name": "vaio budget laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.kqzyfj.com/click-101879885-15619457", "img": "https://www.awltovhc.com/image-101879885-15619457"},
   {"id": "vaio-laptops", "name": "vaio laptops", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.kqzyfj.com/click-101879885-15619460", "img": "https://www.lduhtrp.net/image-101879885-15619460"},
