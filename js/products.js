@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "art-supplies", "name": "art supplies", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "blick", "merchantSlug": "blick", "url": "https://www.awin1.com/cread.php?s=4861370&v=88183&q=577484&r=3045715", "img": "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png"},
   {"id": "corp-direct", "name": "Corp Direct", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Corp Direct", "merchantSlug": "corpdirect", "url": "https://corporatedirectinc.pxf.io/VO3DOA", "img": "https://cdn2.impact.com/display-campaign-image/175043.gif"},
   {"id": "grad-guard", "name": "Grad Guard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Grad Guard", "merchantSlug": "gradguard", "url": "https://gradguard.sjv.io/c/5891219/2331223/29624?trafsrc=affiliate", "img": "https://cdn2.impact.com/display-campaign-image/166289.gif"},
   {"id": "moving", "name": "Moving", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
