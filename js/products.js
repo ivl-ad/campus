@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "moving", "name": "Moving", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
   {"id": "bradford", "name": "Bradford", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "bradford", "merchantSlug": "bradford", "url": "https://bradfordexchangechecks.fxo.co/g/1485277/159735/537509/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/159735.png"},
   {"id": "spot-loan", "name": "Spot Light Loans", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "spotlight", "merchantSlug": "spotlight", "url": "https://theofferstream.fxo.co/g/1485277/235731/6659397/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/235731.png"},
   {"id": "b-d-tool-set", "name": "B&D Tool Set", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "B&D", "merchantSlug": "black", "url": "https://track.flexlinkspro.com/p.ashx?foc=107&fos=6&fopid=1485277.234710.156052.273F.23504FB7938A6F76.BDCDD12PK", "img": "https://cdn.shopify.com/s/files/1/0640/1409/0461/files/BLACK_DECKER_Drill_and_Driver_plus_59_piece_project_kit..jpg?v=1726492851"},
