@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "corp-direct", "name": "Corp Direct", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "Corp Direct", "merchantSlug": "corpdirect", "url": "https://corporatedirectinc.pxf.io/VO3DOA", "img": "https://cdn2.impact.com/display-campaign-image/175043.gif"},
   {"id": "grad-guard", "name": "Grad Guard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Grad Guard", "merchantSlug": "gradguard", "url": "https://gradguard.sjv.io/c/5891219/2331223/29624?trafsrc=affiliate", "img": "https://cdn2.impact.com/display-campaign-image/166289.gif"},
   {"id": "firstcard", "name": "firstcard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "First Card", "merchantSlug": "firstcard", "url": "https://firstcard.sjv.io/c/5891219/2161945/17039", "img": "https://cdn2.impact.com/display-campaign-image/172725.gif"},
   {"id": "moving", "name": "Moving", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
