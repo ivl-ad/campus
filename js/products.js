@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "firstcard", "name": "firstcard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "First Card", "merchantSlug": "firstcard", "url": "https://firstcard.sjv.io/c/5891219/2161945/17039", "img": "https://cdn2.impact.com/display-campaign-image/172725.gif"},
   {"id": "moving", "name": "Moving", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
   {"id": "bradford", "name": "Bradford", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "bradford", "merchantSlug": "bradford", "url": "https://bradfordexchangechecks.fxo.co/g/1485277/159735/537509/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/159735.png"},
   {"id": "spot-loan", "name": "Spot Light Loans", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "spotlight", "merchantSlug": "spotlight", "url": "https://theofferstream.fxo.co/g/1485277/235731/6659397/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/235731.png"},
