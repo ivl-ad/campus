@@ -19,6 +19,7 @@
  * price, and the UI hides the price line rather than inventing one.
  */
 window.PRODUCTS = [
+  {"id": "grad-guard", "name": "Grad Guard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Grad Guard", "merchantSlug": "gradguard", "url": "https://gradguard.sjv.io/c/5891219/2331223/29624?trafsrc=affiliate", "img": "https://cdn2.impact.com/display-campaign-image/166289.gif"},
   {"id": "firstcard", "name": "firstcard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "First Card", "merchantSlug": "firstcard", "url": "https://firstcard.sjv.io/c/5891219/2161945/17039", "img": "https://cdn2.impact.com/display-campaign-image/172725.gif"},
   {"id": "moving", "name": "Moving", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
   {"id": "bradford", "name": "Bradford", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "bradford", "merchantSlug": "bradford", "url": "https://bradfordexchangechecks.fxo.co/g/1485277/159735/537509/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/159735.png"},
