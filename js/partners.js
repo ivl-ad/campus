@@ -14,6 +14,7 @@
  */
 window.PARTNERS = [
   {"name": "Vans", "url": "https://vans.pxf.io/vDvaD3", "logo": "https://www.vans.com/favicon.ico"},
+  {"name": "Vans 2 test", "url": "https://vans.pxf.io/vDvaD3", "logo": "https://www.vans.com/favicon.ico"},
   {"name": "Fanatics", "url": "https://fanatics.93n6tx.net/9VZnM0", "logo": "https://www.fanatics.com/content/ws/all/b88152dc-ebb5-4bbb-a3fe-fe3b2f15de08.svg"},
   {"name": "Belkin", "url": "https://belkin.evyy.net/YVY9nO", "logo": "https://www.belkin.com/on/demandware.static/Sites-BELKUS-Site/-/default/dw39bf336a/images/brand/belkin_logo_notm.svg"},
   {"name": "Gemini", "url": "https://gemini.sjv.io/1GkNbz", "logo": "https://www.gemini.com/favicon.ico"},
