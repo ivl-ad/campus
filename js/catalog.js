@@ -173,9 +173,62 @@
     apply();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
+  // ---------------------------------------------------- product card images
+  // Cards fit each image whole inside a white, inset box (object-fit:
+  // contain -- "product card images" in css/site-custom.css). An image that
+  // is already the card's own shape gains nothing from that but a white
+  // border, so it fills the card instead (.fills: cover, no inset).
+  // The card's shape is measured, not assumed: the box is a fixed height and
+  // its column's width, so it changes with the screen -- a square photo fills
+  // a phone's near-square card but is framed in a wide desktop one.
+  // FILL_TOLERANCE is how far the proportions may differ; cover then trims at
+  // most half of it from each side, evenly -- a few pixels, never a visible cut.
+  var FILL_TOLERANCE = 0.05;
+
+  function fitCard(img) {
+    var box = img && img.parentNode;
+    if (!box || !img.naturalWidth || !img.naturalHeight || !box.clientWidth || !box.clientHeight) return;
+    var off = (img.naturalWidth / img.naturalHeight) / (box.clientWidth / box.clientHeight) - 1;
+    img.classList.toggle('fills', Math.abs(off) <= FILL_TOLERANCE);
+  }
+
+  function isCardImage(el) {
+    return el && el.tagName === 'IMG' && el.classList.contains('full-img') &&
+           el.parentNode && el.parentNode.classList && el.parentNode.classList.contains('product-img-wrap');
+  }
+
+  function watchCards() {
+    // Re-measured whenever a box changes size: a resize, a different column
+    // count, or a hidden card (store paging) becoming visible.
+    var ro = window.ResizeObserver ? new ResizeObserver(function (entries) {
+      entries.forEach(function (e) { fitCard(e.target.querySelector('.full-img')); });
+    }) : null;
+    function track(img) {
+      if (ro && !img.__fitWatched) { img.__fitWatched = true; ro.observe(img.parentNode); }
+      fitCard(img);
+    }
+    Array.prototype.slice.call(document.querySelectorAll('.product-img-wrap > .full-img')).forEach(track);
+    // Images arrive later (they load lazily), and some cards are drawn after
+    // this runs (category, merchant and product pages). "load" does not
+    // bubble, but it can be caught on its way down.
+    document.addEventListener('load', function (ev) {
+      if (isCardImage(ev.target)) track(ev.target);
+    }, true);
+    if (!ro) {
+      window.addEventListener('resize', function () {
+        Array.prototype.slice.call(document.querySelectorAll('.product-img-wrap > .full-img')).forEach(fitCard);
+      });
+    }
+  }
+
+  function start() {
     init();
+    watchCards();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
 })();

@@ -40,9 +40,53 @@ var SOCIAL_LINKS = {
 };
 
 
+/* ----------------------------------------------------- product page photo ---
+ * The photo on a product page fills its panel, so a small image (a 150 x 150
+ * ad banner, say) is blown up and looks blurry. This caps how far it is
+ * enlarged, as a multiple of its real size:
+ *
+ *   0 = no cap: every photo fills the panel, however small it is
+ *   2 = never more than twice its size: a small image is shown smaller,
+ *       centred on white, and stays reasonably sharp
+ *
+ * TRY IT FIRST on the live site, in your browser only: open any page with
+ * ?imgcap=2 added to its address (?imgcap=0 to see it off). Your browser
+ * remembers it -- a small label in the corner says so -- and visitors see no
+ * change. ?imgcap=site goes back to the value set here.
+ */
+var IMAGE_ENLARGE_LIMIT = 0;
+
+
 (function () {
   'use strict';
   window.SHOW_PRICES = SHOW_PRICES;
+
+  // IMAGE_ENLARGE_LIMIT, unless this browser is previewing another value
+  // (?imgcap=N, remembered; ?imgcap=site forgets it). js/product-page.js
+  // applies it.
+  window.IMAGE_ENLARGE_LIMIT = IMAGE_ENLARGE_LIMIT;
+  var capPreview = null;
+  try {
+    var asked = new URLSearchParams(window.location.search).get('imgcap');
+    if (asked === 'site') window.localStorage.removeItem('mck-imgcap');
+    else if (asked !== null && asked !== '' && isFinite(Number(asked)) && Number(asked) >= 0) {
+      window.localStorage.setItem('mck-imgcap', String(Number(asked)));
+    }
+    capPreview = window.localStorage.getItem('mck-imgcap');
+  } catch (e) { /* no storage: no preview */ }
+  if (capPreview !== null) {
+    window.IMAGE_ENLARGE_LIMIT = Number(capPreview);
+    document.addEventListener('DOMContentLoaded', function () {
+      var tag = document.createElement('div');
+      tag.textContent = 'Preview (this browser only): product photos ' +
+        (Number(capPreview) > 0 ? 'enlarged at most ' + Number(capPreview) + '×' : 'not limited') +
+        ' — ?imgcap=site to stop';
+      tag.setAttribute('style', 'position:fixed;left:12px;bottom:12px;z-index:99999;' +
+        'background:#1d4a15;color:#fff;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;' +
+        'border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;opacity:.92');
+      document.body.appendChild(tag);
+    });
+  }
   // css/site-custom.css keys off this class on <html>.
   if (!SHOW_PRICES) {
     document.documentElement.className += ' prices-hidden';

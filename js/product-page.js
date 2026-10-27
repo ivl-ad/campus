@@ -169,6 +169,38 @@
     if (about) about.style.display = 'none';
   }
 
+  // The photo fills its panel (object-fit: contain, see #p-image in
+  // product.html), so a small image is blown up and looks blurry. With
+  // IMAGE_ENLARGE_LIMIT (js/site-config.js) above 0 it is enlarged at most
+  // that many times instead: its inset grows until the space it is fitted
+  // into is exactly the capped size, so it sits centred and smaller. The
+  // panel itself never changes size, so nothing around it moves.
+  function capPhoto(img) {
+    var limit = Number(window.IMAGE_ENLARGE_LIMIT) || 0;
+    img.style.padding = '';
+    if (limit <= 0 || !img.naturalWidth || !img.naturalHeight) return;
+    var cs = window.getComputedStyle(img);
+    var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    var padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    var w = img.clientWidth - padX, h = img.clientHeight - padY;
+    if (w <= 0 || h <= 0) return;
+    if (Math.min(w / img.naturalWidth, h / img.naturalHeight) <= limit) return;
+    var cw = img.naturalWidth * limit, ch = img.naturalHeight * limit;
+    img.style.padding = ((img.clientHeight - ch) / 2) + 'px ' + ((img.clientWidth - cw) / 2) + 'px';
+  }
+
+  // Again whenever the panel changes size (a resize, or the narrow layout,
+  // where the photo stacks under the text). The panel, not the photo: the
+  // photo's own inner size changes with every capPhoto(), the panel's never.
+  function watchPhoto(img) {
+    var panel = img.parentNode;
+    if (window.ResizeObserver && panel) {
+      new ResizeObserver(function () { capPhoto(img); }).observe(panel);
+    } else {
+      window.addEventListener('resize', function () { capPhoto(img); });
+    }
+  }
+
   function init() {
     var all = window.PRODUCTS || [];
     var id = new URLSearchParams(window.location.search).get('id');
@@ -206,8 +238,10 @@
 
     var img = byId('p-image');
     if (img) {
+      img.addEventListener('load', function () { capPhoto(img); });
       img.setAttribute('src', product.img);
       img.setAttribute('alt', product.name);
+      watchPhoto(img);
     }
 
     var rail = byId('p-related');

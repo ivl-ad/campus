@@ -41,7 +41,12 @@ only ancestor that matters.
 ### Round 3 — what changed since the round-2 deploy
 
 ```
-css/site-custom.css                     card images fit whole: object-fit contain
+css/site-custom.css                     card images fit whole: object-fit contain;
+                                        one already card-shaped fills it (.fills)
+js/catalog.js                           measures each card image, adds .fills
+fetch_images.py                         finds the full-size version of a pasted thumbnail (3.9)
+js/site-config.js, js/product-page.js   IMAGE_ENLARGE_LIMIT, off; ?imgcap=N preview (3.9)
+admin/index.html                        product thumbnails show the site's copy (3.9)
 *.html (13 pages)                       site-custom.css?v=20261027 (cache bump)
 fetch_images.py                         NEW — stores image copies, writes js/local-images.js
 js/local-images.js                      NEW, GENERATED — original address -> copy
@@ -512,6 +517,14 @@ stretched. It is the treatment `product.html` already gave its main photo
 (`#p-image`). Only `.product-img-wrap` uses it, and that class is only ever a
 product card (home rail, store, category, merchant, product-page rail).
 
+An image that is already (within 5%) its card's own shape fills the card
+edge to edge instead of sitting in a white frame: `js/catalog.js`
+(`watchCards()`) measures each image against its actual box — which changes
+with the screen, since the box is a fixed height and its column's width — and
+adds `.fills` (cover, no inset), trimming the small difference evenly from
+both sides, a few pixels at most. A `ResizeObserver` re-measures on resize
+and when a hidden card (the store's paging) is revealed.
+
 A small image is still scaled up to fill the box and can look soft; that is
 the "manual fix" case. The editor marks those thumbnails **low-res** (long
 side under 300 px — `lowRes` in the products `DOCS` entry, `LOW_RES` in
@@ -566,6 +579,53 @@ log says so.
 * To fetch an image again (the retailer replaced the picture at the same
   address): `python fetch_images.py --refresh <product id>`, or delete the
   file and run it.
+
+### 3.9 Small product images: a full-size version is fetched automatically, and an optional enlargement limit
+
+Measured on the product page (photo area ~650 × 540 on a desktop): 9 images
+were blown up 2.2–4.3×, 11 by 1–2×, 30 shown at or below natural size. The
+worst 9 are all fixed-size affiliate ad creatives (150 × 150, 180 × 150,
+300 × 250), for which no bigger version of that file exists.
+
+**B — a pasted thumbnail is swapped for its full-size version
+(`fetch_images.py`, automatic).** When a product image's copy is first made
+and comes out under 800 px, `upgrade_candidates()` rewrites the address
+without its size markers (Shopify `_200x200` / `?width=`, Walmart `odnWidth`,
+Best Buy `;maxWidth=`, WordPress `-300x250`, Amazon `._AC_SX300_`, Wix,
+Cloudinary-style `/c_fill,w_300/`, Squarespace `?format=300w`, Salesforce
+Commerce `?sw=`) and `find_bigger()` downloads at most four candidates. One is
+used only if it is bigger and **the same picture**: same shape within 3%, and
+alike within 12/255 when both are shrunk to 16 × 16 *colour* pixels (grey
+alone let a red and a blue product variant pass — the colour check is there
+because of that test). An address with no size marker costs no requests.
+Once per image, when its copy is made; the data keeps the pasted address.
+Product images only — partner logos are shown small, and a full-size logo is
+weight with no visible gain. Verified against real CDNs from thumbnail
+addresses: Shopify 200 → 1000, Walmart 180 → 2500, Best Buy 200 → 2000, and
+end to end in the admin (paste a thumbnail → "low-res" → Save → rebuild →
+the copy is 1000 × 1000 and the mark is gone). `--retry-small` ran once over
+the existing copies: no current product image has a bigger version at its
+address (they are the fixed-size creatives above).
+
+The admin's product thumbnails now show the **copy the site shows**
+(`siteCopy()`, reading `js/local-images.js`), so the low-res mark reflects
+what visitors see; a product with no copy yet, or set to "retailer's
+address", shows its pasted address.
+
+**A — the enlargement limit (`IMAGE_ENLARGE_LIMIT` in `js/site-config.js`,
+applied by `capPhoto()` in `js/product-page.js`).** Ships at **0 (off)**.
+With a value above 0, the product page photo is never enlarged more than that
+many times: the photo's inset grows so the space it is fitted into is exactly
+the capped size, so the panel never changes size and nothing moves.
+**Preview on the live site without affecting anyone:** `?imgcap=2` on any
+page sets it for that browser only (localStorage, with a small label in the
+corner); `?imgcap=0` previews "off"; `?imgcap=site` forgets the preview. To
+adopt it, set `IMAGE_ENLARGE_LIMIT = 2` and push; to undo, set it back (or
+revert that commit). Cards are not limited — they fill or frame as in 3.8.
+
+AI upscaling was considered and deferred (the operator may run it locally
+later); if it comes back, the advice was to do it in the same rebuild step,
+never at Save, and to leave affiliate creatives alone.
 
 **Affiliate impressions — the per-product opt-out.** 19 of the 50 images were
 affiliate-network creatives at the time (Impact, Awin, CJ, ShareASale,
@@ -725,7 +785,7 @@ the file. It serves GitHub's `git/blobs` endpoint (the merge's base version)
 and Pages' `env.ASSETS` binding, so `/sitemap.xml` works locally; the other
 SEO functions rewrite pages with `HTMLRewriter` and fall back to the plain page.
 
-**The suite is 199 checks and should be 0 failures.** Two tests report as
+**The suite is 210 checks and should be 0 failures.** Two tests report as
 *skipped*: both need `HTMLRewriter`, a Cloudflare runtime API with no Node
 equivalent, used to sanitise pasted article HTML. There is
 deliberately no polyfill — a hand-made one would let the suite claim a

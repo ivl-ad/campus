@@ -52,6 +52,14 @@
   object-position: center;
   padding: 12px;
 }
+/* An image that is already (within 5%) the card's own shape fills it edge to
+   edge rather than sitting in a white frame. js/catalog.js measures each one
+   against its card and adds .fills; cover then trims the small difference
+   evenly from both sides -- a few pixels at most. */
+.product-img-wrap > .full-img.fills {
+  object-fit: cover;
+  padding: 0;
+}
 
 /* --------------------------------------------------------- price visibility -
  * Driven by SHOW_PRICES in js/site-config.js, which puts .prices-hidden on

@@ -385,9 +385,11 @@
       ],
       text: ['desc', 'note'],
       thumb: 'img',
-      // An image stored on the site (images/...) is relative to the site,
-      // not to /admin/.
-      thumbSrc: siteSrc,
+      // The thumbnail is what the SITE shows: the copy kept on the site when
+      // there is one (see siteCopy()), so its low-res mark is right even when
+      // the rebuild found a bigger version than the address pasted here.
+      thumbSrc: function (v, row) { return siteCopy(v, row) || siteSrc(v); },
+      boot: function () { loadSiteCopies(); },
       // Smaller than this on its long side and it looks soft on the site's
       // cards (~350 x 300): the thumbnail says so. Same limit as LOW_RES in
       // fetch_images.py, which reports them in the rebuild log.
@@ -1084,6 +1086,30 @@
   }
 
   // The image preview cell follows the img (products) / logo (partners) field.
+  // Products: the copies the site actually shows, from js/local-images.js
+  // (written by fetch_images.py at each rebuild): original address -> copy.
+  // That copy can be a bigger version than the address an editor pasted --
+  // the rebuild looks for one when a copy comes out small -- so thumbnails
+  // and their low-res mark use it. A product with no copy yet (saved a
+  // minute ago), or set to "retailer's address", shows its address itself.
+  var SITE_COPIES = null;
+  function loadSiteCopies() {
+    fetch('/js/local-images.js', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (t) {
+        var m = /window\.LOCAL_IMAGES\s*=\s*(\{[\s\S]*?\})\s*;/.exec(t || '');
+        SITE_COPIES = m ? JSON.parse(m[1]) : {};
+        rows.forEach(setThumb);
+      })
+      .catch(function () { SITE_COPIES = {}; });
+  }
+  function siteCopy(v, row) {
+    var key = String(v || '').trim();
+    if (!SITE_COPIES || !row || row.data.imgFrom === 'retailer' ||
+        !Object.prototype.hasOwnProperty.call(SITE_COPIES, key)) return '';
+    return '/' + SITE_COPIES[key];
+  }
+
   function setThumb(row) {
     var img = row.el.querySelector('.thumb');
     if (!img) return;
@@ -1092,7 +1118,7 @@
     // Unhide before the new src: Chrome holds back a lazy image that is
     // visibility:hidden, so a row added blank never showed its image.
     img.style.visibility = v ? 'visible' : 'hidden';
-    img.src = DOC.thumbSrc ? DOC.thumbSrc(v) : v;
+    img.src = DOC.thumbSrc ? DOC.thumbSrc(v, row) : v;
   }
 
   function uniqueId(base) {
@@ -2745,7 +2771,7 @@
         if (K) K.write(input, row.data[f], row);
         else if (input.value !== want) input.value = want;
       }
-      if (f === DOC.thumb) setThumb(row);
+      if (f === DOC.thumb || f === 'imgFrom') setThumb(row);   // imgFrom: copy or address
     });
     refreshDrawer(row, source);
     rowDecor(row);

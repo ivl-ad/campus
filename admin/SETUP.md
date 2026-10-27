@@ -465,7 +465,9 @@ sections: `all` (default), `products`, `partners`, `blog`, `team`,
 
 **Any image address works, whatever its shape.** Every card shows the whole
 image, centred on white — never cropped, never stretched — so wide logos,
-tall banners and square photos all sit happily side by side.
+tall banners and square photos all sit happily side by side. An image that is
+already the card's shape fills the card edge to edge instead (on phones, where
+cards are nearly square, that includes square product photos).
 
 **The site keeps its own copy.** You still paste the retailer's image address
 in the editor. After you Save, the rebuild (about two minutes, the Actions
@@ -473,11 +475,25 @@ tab) downloads a copy into `images/products/` (logos: `images/partners/`) and
 the site shows that copy, not the retailer's file. Until then, or if a
 retailer refuses the download, the image simply shows from its own address.
 
-**"low-res" under a thumbnail** (Products tab) means the image is under 300
-pixels on its long side; the card scales it up, so it looks soft. Hover for
-its size. To fix it, give that product a larger image address — or save a
-better image into `images/products/` in GitHub and type its path
+**Pasted a thumbnail? That's fine.** If an image comes out small, the
+rebuild after Save looks for the full-size version of the same picture at the
+same address (Shopify, Walmart, Best Buy, Amazon, most shop platforms) and
+uses it automatically. Your img url stays as you pasted it; the thumbnail in
+the editor switches to the bigger copy once the rebuild has run (reload).
+
+**"low-res" under a thumbnail** (Products tab) means the image the site
+shows is under 300 pixels on its long side, even after that search — usually
+a fixed-size affiliate ad. Hover for its size. To fix it, give that product a
+larger image address (most networks offer each banner in several sizes) — or
+save a better image into `images/products/` in GitHub and type its path
 (`images/products/name.jpg`) as the img url.
+
+**Product page photo size limit (optional, off).** A small image fills the
+product page's big photo area and looks blurry. Set `IMAGE_ENLARGE_LIMIT = 2`
+in `js/site-config.js` to show such images at most twice their size instead
+(smaller, centred, sharper). **Try it first:** open the live site with
+`?imgcap=2` at the end of any address — only your browser sees it, and a
+label in the corner says so. `?imgcap=site` turns the preview off.
 
 **The retailer changed the picture but kept the address?** The site keeps its
 first copy. Delete that file from `images/products/` in GitHub (the name

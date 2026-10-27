@@ -37,6 +37,15 @@ never touched (only files this script recorded are). To fetch one again --
 the retailer replaced the picture at the same address -- use --refresh, or
 delete the file and run the script.
 
+Bigger versions: a product image that comes out small (under UPGRADE_BELOW)
+is very often the thumbnail of a bigger one, with the size written into its
+address (Shopify's _300x300, ?width=, Walmart's odnWidth, -150x150.jpg...).
+When its copy is made -- once, never again -- the address is tried without
+those markers, and a bigger version is used for the copy only if it is the
+same picture (find_bigger()). The data file keeps the address as pasted.
+Product images only: partner logos are shown small. --retry-small does the
+same for copies made before this existed (run once, by hand).
+
 With Pillow installed (the GitHub Action installs it), an image over MAX_SIDE
 pixels is scaled down to fit and saved as WebP, and an AVIF one is converted
 to WebP so every browser can show it. Nothing is ever scaled up, cropped or
@@ -57,6 +66,7 @@ import os
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from build_listings import BuildError, extract_array, read_local_images as read_manifest
@@ -74,12 +84,29 @@ LOW_RES = 300
 MAX_DOWNLOAD = 15 * 1024 * 1024
 TIMEOUT = 25
 
+# Bigger versions (see find_bigger()). A copy smaller than UPGRADE_BELOW on
+# its long side is checked once, when it is made, for a full-size version at
+# the same address minus its size markers; at most UPGRADE_TRIES addresses
+# are tried. A candidate counts only if it is the same picture: the same
+# shape within SAME_SHAPE, and alike within SAME_PICTURE (mean difference
+# out of 255) once both are shrunk to 16 x 16 colour pixels.
+UPGRADE_BELOW = 800
+UPGRADE_TRIES = 4
+SAME_SHAPE = 0.03
+SAME_PICTURE = 12
+# Query parameters that only choose a size (compared lowercased).
+SIZE_PARAMS = {'w', 'h', 'width', 'height', 'size', 'sz', 'maxwidth', 'maxheight', 'resize',
+               'fit', 'crop', 'sw', 'sh', 'sm', 'odnwidth', 'odnheight', 'wid', 'hei',
+               'imwidth', 'imheight', 'dw', 'dh', 'scale', 'dpr'}
+
 MANIFEST = os.path.join('js', 'local-images.js')
 SOURCES = (
-    # data file, array, field, folder, what, warn below this many pixels
-    # (partner logos are shown small, so they are not held to card size)
-    (os.path.join('js', 'products.js'), 'PRODUCTS', 'img', 'images/products', 'product', LOW_RES),
-    (os.path.join('js', 'partners.js'), 'PARTNERS', 'logo', 'images/partners', 'partner', 0),
+    # data file, array, field, folder, what, warn below this many pixels,
+    # look for bigger versions. Partner logos are shown small, so they are
+    # neither held to card size nor swapped for a heavier full-size file.
+    (os.path.join('js', 'products.js'), 'PRODUCTS', 'img', 'images/products', 'product', LOW_RES,
+     True),
+    (os.path.join('js', 'partners.js'), 'PARTNERS', 'logo', 'images/partners', 'partner', 0, False),
 )
 
 # A browser's request, minus AVIF: some CDNs answer with AVIF when it is
@@ -223,15 +250,114 @@ def optimise(data, fmt):
     return data, fmt
 
 
+# ---------------------------------------------------------- bigger versions
+# A small image is often a thumbnail of a bigger one on the same server, with
+# the size written into its address. An editor pastes what they can find --
+# frequently the thumbnail -- so when a copy comes out small, the address is
+# tried again without those markers. Nothing here is trusted: find_bigger()
+# keeps a candidate only if it really is the same picture, and bigger. The
+# data file keeps the address the editor gave; only the copy changes.
+def upgrade_candidates(url):
+    """Addresses that may hold a bigger version of the same image, most
+    likely first. [] when the address carries no size marker at all."""
+    parts = urllib.parse.urlsplit(url)
+    path = parts.path
+    big = path
+    # Shopify and many others: name_300x300.jpg, name_300x.jpg, name_x300.jpg,
+    # name_300x300_crop_center.jpg, name_300x300@2x.jpg, name_grande.jpg
+    big = re.sub(r'_(?:\d+x\d*|x\d+)(?:_crop_[a-z]+)?(?:@\dx)?(?=\.\w+$)', '', big, flags=re.I)
+    big = re.sub(r'_(?:pico|icon|thumb|small|compact|medium|large|grande)(?=\.\w+$)', '', big,
+                 flags=re.I)
+    # WordPress / WooCommerce: name-300x250.jpg
+    big = re.sub(r'-\d{2,4}x\d{2,4}(?=\.\w+$)', '', big)
+    # Amazon: name._AC_SX300_.jpg
+    big = re.sub(r'\._[A-Z0-9_,]+_(?=\.\w+$)', '', big)
+    # Best Buy and others: name.jpg;maxHeight=200;maxWidth=200
+    big = re.sub(r';(?:maxheight|maxwidth|height|width)=\d+', '', big, flags=re.I)
+    # Wix: /media/ID~mv2.jpg/v1/fill/w_300,h_300,.../name.jpg -> /media/ID~mv2.jpg
+    big = re.sub(r'(/media/[^/]+~mv2\.\w+)/v1/.*$', r'\1', big)
+    # Cloudinary-style transformation segments: /c_fill,w_300,h_300/ /dpr_2.0/
+    big = '/'.join(s for s in big.split('/')
+                   if not (re.fullmatch(r'[a-z]{1,4}_[^/,]+(?:,[a-z]{1,4}_[^/,]+)*', s) and
+                           re.search(r'(?:^|,)(?:w|h|c|dpr|t)_', s)))
+    query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+    sized = [(k, v) for k, v in query if k.lower() in SIZE_PARAMS]
+    plain = [(k, v) for k, v in query if k.lower() not in SIZE_PARAMS]
+    # Squarespace: ?format=300w
+    plain = [(k, '2500w' if k == 'format' and re.fullmatch(r'\d+w', v) else v) for k, v in plain]
+    as_big = [(k, '2000' if k.lower() in SIZE_PARAMS and v.isdigit() else v) for k, v in query]
+
+    def build(p, q):
+        return urllib.parse.urlunsplit((parts.scheme, parts.netloc, p, urllib.parse.urlencode(q),
+                                        parts.fragment))
+    out = []
+    for cand in (build(big, plain), build(big, query), build(path, plain),
+                 build(big, as_big) if sized else None):
+        if cand and cand != url and cand not in out:
+            out.append(cand)
+    return out[:UPGRADE_TRIES]
+
+
+def picture(data):
+    """A Pillow image of the first frame, transparency laid on white."""
+    im = Image.open(io.BytesIO(data))
+    im.seek(0)
+    im = ImageOps.exif_transpose(im)
+    if im.mode in ('P', 'PA', 'LA', 'RGBA') or 'transparency' in im.info:
+        im = im.convert('RGBA')
+        flat = Image.new('RGBA', im.size, (255, 255, 255, 255))
+        im = Image.alpha_composite(flat, im)
+    return im.convert('RGB')
+
+
+def same_picture(a, b):
+    """True when a and b (RGB) are the same image at different sizes. In
+    colour, not grey: a product's red and blue versions can be identical in
+    grey, and swapping one for the other is exactly the mistake to avoid."""
+    if abs((a.width / a.height) / (b.width / b.height) - 1) > SAME_SHAPE:
+        return False
+    ca = a.resize((16, 16), Image.BOX).tobytes()      # RGB, 3 bytes a pixel
+    cb = b.resize((16, 16), Image.BOX).tobytes()
+    return sum(abs(x - y) for x, y in zip(ca, cb)) / (256.0 * 3) <= SAME_PICTURE
+
+
+def find_bigger(url, data):
+    """(bytes, format, size, address) of a bigger version of the image in
+    data, found by upgrade_candidates(url) -- or None."""
+    if Image is None:
+        return None
+    try:
+        ref = picture(data)
+    except Exception:
+        return None
+    best = None
+    for cand in upgrade_candidates(url):
+        try:
+            got = download(cand)
+            fmt = sniff(got)
+            if fmt not in ('png', 'jpeg', 'webp', 'avif'):
+                continue
+            im = picture(got)
+        except Exception:
+            continue                                  # a 404 or an error page: next
+        if max(im.size) < max(ref.size) * 1.25 or not same_picture(ref, im):
+            continue
+        if best is None or max(im.size) > max(best[2]):
+            best = (got, fmt, im.size, cand)
+        if max(im.size) >= MAX_SIDE:
+            break                                     # big enough: stop asking
+    return best
+
+
 # --------------------------------------------------------------------- main
 def wanted(root):
     """Every image in use. Returns (external, named):
-      external  address -> (folder, name hint, low-res threshold)
+      external  address -> (folder, name hint, low-res threshold, look for bigger)
       named     files the data names directly ("images/products/x.jpg") --
                 those are never deleted, even if they began life as a copy:
                 pointing a product at its copy is a perfectly good manual fix."""
     out, named = {}, set()
-    for rel, array, field, folder, what, low in SOURCES:
+    for rel, array, field, folder, what, low, bigger in SOURCES:
         path = os.path.join(root, rel)
         if not os.path.isfile(path):
             continue
@@ -243,7 +369,7 @@ def wanted(root):
             url = str(item.get(field) or '').strip()
             if re.match(r'^https?://', url, re.I):
                 if url not in out:
-                    out[url] = (folder, slug(item.get('id') or item.get('name'), what), low)
+                    out[url] = (folder, slug(item.get('id') or item.get('name'), what), low, bigger)
             elif url:
                 named.add(url.lstrip('/'))
     return out, named
@@ -253,36 +379,72 @@ def matches(url, hint, refresh):
     return any(r == url or slug(r, '') == hint for r in refresh)
 
 
-def run(root, check=False, refresh=()):
+def dimensions_of(root, rel):
+    with Image.open(os.path.join(root, rel)) as im:
+        return im.size
+
+
+def small_copy(path):
+    """True for a stored raster copy under UPGRADE_BELOW on its long side."""
+    if Image is None or not path.endswith(('.png', '.jpg', '.webp', '.avif')):
+        return False
+    try:
+        with Image.open(path) as im:
+            return max(im.size) < UPGRADE_BELOW
+    except Exception:
+        return False
+
+
+def run(root, check=False, refresh=(), retry_small=False):
+    """retry_small: also look once for bigger versions of copies already
+    stored (new copies always get that look when they are made)."""
     manifest = read_manifest(root)
     need, named = wanted(root)
-    entries, report = {}, {'stored': [], 'kept': 0, 'failed': [], 'low': [], 'dropped': []}
+    entries, report = {}, {'stored': [], 'kept': 0, 'failed': [], 'low': [], 'dropped': [],
+                           'bigger': []}
 
-    for url, (folder, hint, low) in sorted(need.items()):
+    for url, (folder, hint, low, bigger) in sorted(need.items()):
         have = manifest.get(url)
         fresh = matches(url, hint, refresh)
         if have and os.path.isfile(os.path.join(root, have)) and not fresh:
-            entries[url] = have
-            report['kept'] += 1
-            continue
-        if check:
+            if not (retry_small and bigger and not check and small_copy(os.path.join(root, have))):
+                entries[url] = have
+                report['kept'] += 1
+                continue
+            found = find_bigger(url, open(os.path.join(root, have), 'rb').read())
+            if not found:
+                entries[url] = have
+                report['kept'] += 1
+                continue
+            data, fmt, size, via = found
+            report['bigger'].append((hint, '%dx%d' % dimensions_of(root, have), '%dx%d' % size, via))
+            data, fmt = optimise(data, fmt)
+        elif check:
             report['stored'].append((hint, url, 'would download'))
             continue
-        try:
-            data = download(url)
-            fmt = sniff(data)
-            if fmt is None:
-                raise ValueError('the answer is not an image')
-            if fmt == 'svg' and unsafe_svg(data):
-                raise ValueError('an SVG containing script -- refused')
-            size = dimensions(data, fmt)
-            data, fmt = optimise(data, fmt)
-        except (urllib.error.URLError, ValueError, OSError) as exc:
-            report['failed'].append((hint, url, str(getattr(exc, 'reason', exc))))
-            continue
-        except Exception as exc:                     # a file Pillow cannot read
-            report['failed'].append((hint, url, '%s: %s' % (type(exc).__name__, exc)))
-            continue
+        else:
+            try:
+                data = download(url)
+                fmt = sniff(data)
+                if fmt is None:
+                    raise ValueError('the answer is not an image')
+                if fmt == 'svg' and unsafe_svg(data):
+                    raise ValueError('an SVG containing script -- refused')
+                size = dimensions(data, fmt)
+                # Small? Perhaps it is the thumbnail of a bigger version.
+                if (bigger and size and max(size) < UPGRADE_BELOW and
+                        fmt in ('png', 'jpeg', 'webp', 'avif')):
+                    found = find_bigger(url, data)
+                    if found:
+                        report['bigger'].append((hint, '%dx%d' % size, '%dx%d' % found[2], found[3]))
+                        data, fmt, size = found[0], found[1], found[2]
+                data, fmt = optimise(data, fmt)
+            except (urllib.error.URLError, ValueError, OSError) as exc:
+                report['failed'].append((hint, url, str(getattr(exc, 'reason', exc))))
+                continue
+            except Exception as exc:                 # a file Pillow cannot read
+                report['failed'].append((hint, url, '%s: %s' % (type(exc).__name__, exc)))
+                continue
         name = '%s-%s.%s' % (hint, hashlib.sha1(url.encode('utf-8')).hexdigest()[:10], EXT[fmt])
         rel = folder + '/' + name
         os.makedirs(os.path.join(root, folder), exist_ok=True)
@@ -307,7 +469,7 @@ def run(root, check=False, refresh=()):
     # Low resolution, for the ones already stored too.
     if Image is not None:
         for url, rel in entries.items():
-            _, hint, low = need[url]
+            _, hint, low, _ = need[url]
             if not low or any(h == hint for h, _ in report['low']) or rel.endswith('.svg'):
                 continue
             try:
@@ -333,10 +495,14 @@ def main():
     ap.add_argument('--check', action='store_true', help='report only; write nothing')
     ap.add_argument('--refresh', action='append', default=[],
                     help='download this one again: a product id, partner name or image address')
+    ap.add_argument('--retry-small', action='store_true',
+                    help='also look for bigger versions of small copies already stored '
+                         '(new copies always get that look when they are made)')
     args = ap.parse_args()
 
     try:
-        report, changed = run(os.path.abspath(args.root), args.check, args.refresh)
+        report, changed = run(os.path.abspath(args.root), args.check, args.refresh,
+                              args.retry_small)
     except BuildError as exc:
         print('error: %s' % exc)
         return 1
@@ -347,6 +513,8 @@ def main():
              len(report['dropped']), '' if Image else '   (no Pillow: kept as downloaded)'))
     for hint, url, what in report['stored']:
         print('  + %-34s %s' % (hint, what))
+    for hint, was, now, via in report['bigger']:
+        print('  ^ %-34s bigger version found: %s -> %s px\n      %s' % (hint, was, now, via))
     for rel in report['dropped']:
         print('  - %s' % rel)
     for hint, url, why in report['failed']:
