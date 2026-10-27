@@ -14,10 +14,8 @@
  * a page down.
  */
 
-import { CATEGORIES } from '../api/catalog.js';
+import { categoryList } from '../api/catalog.js';
 import { extractArray } from './js-data.js';
-
-export { CATEGORIES };
 
 // The one public address of the site. Canonical tags and the sitemap must use
 // a single fixed origin (not whatever host a request came in on -- preview
@@ -61,8 +59,12 @@ export async function loadSiteData(env, request) {
   const allPosts = extractArray(blogsJs, 'BLOG_POSTS');
   let team = [];
   try { team = teamJs ? extractArray(teamJs, 'TEAM') : []; } catch (e) { /* no team yet */ }
+  const products = extractArray(productsJs, 'PRODUCTS');
   cache = {
-    products: extractArray(productsJs, 'PRODUCTS'),
+    products,
+    // [[id, label], ...]: the built-in categories plus any added in the
+    // editor (window.PRODUCT_CATEGORIES in the same file).
+    categories: categoryList(productsJs, products),
     // Posts marked hidden in the editor are drafts: never shown, listed or indexed.
     posts: allPosts.filter((p) => !p.hidden),
     blogCategories: extractArray(blogsJs, 'BLOG_CATEGORIES'),

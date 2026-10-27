@@ -329,8 +329,10 @@
 (function () {
   'use strict';
 
-  // Category list must match SITE_CATEGORIES in build_listings.py and
-  // CATEGORIES in js/listing-page.js. The server sends it when it can.
+  // The built-in product categories (SITE_CATEGORIES in build_listings.py).
+  // The server sends the real list -- the one kept in js/products.js, which
+  // also holds categories added with "+ New category…" -- and it replaces
+  // this. See productCategories() for what the menu offers.
   var CATEGORIES = [
     ['dorm-living-essentials', 'Dorm & Living Essentials'],
     ['academic-essentials', 'Academic Essentials'],
@@ -404,10 +406,10 @@
             if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
               out.push(at + ': id must be lowercase letters, numbers and dashes');
           }
-          // The same check the server makes, so an unknown slug is reported
-          // here by row rather than refused server-side for the whole team.
-          if (p.cat && !CATEGORIES.some(function (c) { return c[0] === p.cat; }))
-            out.push(at + ': "' + p.cat + '" is not one of this site’s categories');
+          // The server's rule: any well-formed category id. One it has not
+          // seen before is a new category ("+ New category…").
+          if (p.cat && !/^[a-z0-9][a-z0-9-]*$/.test(p.cat))
+            out.push(at + ': category id "' + p.cat + '" must be lowercase letters, numbers and dashes');
           if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
             out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
           if (p.url && !/^https?:\/\/[^\s<>"']+$/i.test(String(p.url).trim()))
@@ -700,11 +702,71 @@
   var $ = function (id) { return document.getElementById(id); };
   var rowsEl = $('rows');
 
+  // The product category menu: the server's list, anything a row already
+  // uses (another editor's new category arrives that way, before it is
+  // saved) and any made on this screen.
+  var NEW_CAT = '__new';
+  var ADDED_CATS = [];
+  function productCategories() {
+    var out = [], seen = {};
+    function add(id, name) { if (id && !seen[id]) { seen[id] = 1; out.push([id, name || id]); } }
+    CATEGORIES.forEach(function (c) { add(c[0], c[1]); });
+    ADDED_CATS.forEach(function (c) { add(c[0], c[1]); });
+    if (DOC === DOCS.products) rows.forEach(function (r) { add(r.data.cat, r.data.catLabel); });
+    return out;
+  }
+
   function label(slug) {
-    for (var i = 0; i < CATEGORIES.length; i++) {
-      if (CATEGORIES[i][0] === slug) return CATEGORIES[i][1];
+    var cats = productCategories();
+    for (var i = 0; i < cats.length; i++) {
+      if (cats[i][0] === slug) return cats[i][1];
     }
     return '';
+  }
+
+  // "+ New category…": the name shoppers will see, and a slug made from it.
+  // It is real as soon as a product uses it -- in every editor's menu once
+  // the row syncs, and on the site after Save, which adds it to
+  // window.PRODUCT_CATEGORIES in js/products.js (categoryList() in
+  // functions/api/catalog.js). One no product uses is dropped again at Save.
+  function newCategory() {
+    var name = String(prompt('Name of the new product category, as shoppers will see it ' +
+                             '(e.g. "Health & Wellness"):', '') || '').trim();
+    var id = slugify(name);
+    if (!name || !id) return '';
+    if (!label(id)) ADDED_CATS.push([id, name]);
+    return id;
+  }
+
+  // The category <select>: every category, "— choose a category —" when the
+  // row has none, and "+ New category…" last. Rebuilt only when what it
+  // would show has changed, so focusing it does not disturb an open menu.
+  function fillCatSelect(sel, want) {
+    var cats = productCategories();
+    var key = JSON.stringify(cats) + '|' + (want || '');
+    if (sel.__key === key) return;
+    sel.__key = key;
+    sel.textContent = '';
+    cats.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c[0]; o.textContent = c[1];
+      sel.appendChild(o);
+    });
+    if (!want) {
+      // A row with no category must LOOK like one. Showing the first entry
+      // instead meant the row read as complete while the save was refused
+      // for "cat is required", and re-picking the option already on screen
+      // fires no change event, so the error could not be cleared from the
+      // control that caused it.
+      var none = document.createElement('option');
+      none.value = '';
+      none.textContent = '— choose a category —';
+      sel.insertBefore(none, sel.firstChild);
+    }
+    var add = document.createElement('option');
+    add.value = NEW_CAT; add.textContent = '+ New category…';
+    sel.appendChild(add);
+    sel.value = want || '';
   }
 
   function slugify(s) {
@@ -915,33 +977,9 @@
 
     if (field === 'cat') {
       input = document.createElement('select');
-      CATEGORIES.forEach(function (c) {
-        var o = document.createElement('option');
-        o.value = c[0]; o.textContent = c[1];
-        input.appendChild(o);
-      });
-      var want = row.data.cat;
-      if (!want) {
-        // A row with no category must LOOK like one. Showing the first entry
-        // instead meant the row read as complete while the save was refused
-        // for "cat is required", and re-picking the option already on screen
-        // fires no change event, so the error could not be cleared from the
-        // control that caused it.
-        var none = document.createElement('option');
-        none.value = '';
-        none.textContent = '— choose a category —';
-        input.insertBefore(none, input.firstChild);
-      } else if (!CATEGORIES.some(function (c) { return c[0] === want; })) {
-        // A slug this build does not list (renamed, or newer than this page)
-        // keeps an option of its own, so rendering the row cannot quietly
-        // blank a category that was perfectly good in the draft. problems()
-        // reports it, matching what the server would say.
-        var unknown = document.createElement('option');
-        unknown.value = want;
-        unknown.textContent = want + ' (not in this list)';
-        input.appendChild(unknown);
-      }
-      input.value = want || '';
+      fillCatSelect(input, row.data.cat);
+      // A category another editor has just added appears on focus.
+      input.addEventListener('focus', function () { fillCatSelect(input, row.data.cat); });
       // Deliberately NOT written back to row.data: cell() runs on every
       // render, and a local-only rewrite made this screen disagree with the
       // shared draft.
@@ -998,9 +1036,19 @@
         row.data.price = n; patch.price = n;
       }
     } else if (field === 'cat') {
+      if (v === NEW_CAT) {
+        v = newCategory();
+        fillCatSelect(input, v || row.data.cat);
+        if (!v) return;                       // cancelled: nothing changes
+      }
+      if (v === (row.data.cat || '')) return; // the select's second event
+      // The label is looked up BEFORE the row changes: the list includes
+      // every row's own cat/catLabel, so afterwards this row would answer
+      // with its old label -- a new category named after the one it left.
+      var catName = label(v);
       row.data.cat = v;
-      row.data.catLabel = label(v);
-      patch.cat = v; patch.catLabel = row.data.catLabel;
+      row.data.catLabel = catName;
+      patch.cat = v; patch.catLabel = catName;
     } else if (isText(field)) {
       if (v.trim() === '') { delete row.data[field]; patch[field] = null; }
       else { row.data[field] = v; patch[field] = v; }
@@ -1289,9 +1337,10 @@
   function setFieldValue(row, field, value) {
     var patch = {};
     if (field === 'cat') {
+      var catName = label(value);           // before the row changes: see onEdit()
       row.data.cat = value;
-      row.data.catLabel = label(value);
-      patch.cat = value; patch.catLabel = row.data.catLabel;
+      row.data.catLabel = catName;
+      patch.cat = value; patch.catLabel = catName;
     } else {
       if (value === undefined) delete row.data[field];
       else row.data[field] = value;
@@ -2067,15 +2116,38 @@
 
   // sync mode: the server publishes the draft as it stands in D1 -- including
   // edits from other screens -- so no product list travels with the request.
-  function doSave() {
+  // The file was changed on GitHub outside the editor (a push from GitHub
+  // Desktop) in a big way, or cannot be merged: the server asks rather than
+  // guess. Its own wording comes back as outside.merge / outside.overwrite.
+  // See planOutside() in functions/_shared/draft-save.js.
+  function askOutside(o) {
+    if (o.merge && confirm(o.merge)) return 'merge';
+    if (o.overwrite && confirm(o.overwrite)) return 'overwrite';
+    return null;
+  }
+
+  // choice: the answer to that question, sent back with the sha it was about.
+  function doSave(choice) {
+    var body = { fromDraft: true, epoch: epoch, author: NAME || undefined };
+    if (choice) { body.outside = choice.outside; body.outsideSha = choice.outsideSha; }
     fetch(DOC.saveApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromDraft: true, epoch: epoch, author: NAME || undefined })
+      body: JSON.stringify(body)
     })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         saving = false;
+        var o = !res.ok && res.d && res.d.outside;
+        if (o && !(choice && choice.outsideSha === o.sha)) {
+          var pick = askOutside(o);
+          if (pick) {
+            saving = true;
+            setStatus('warn', 'Saving…');
+            doSave({ outside: pick, outsideSha: o.sha });
+            return;
+          }
+        }
         if (!res.ok) {
           var msg = res.d.error || 'save failed';
           if (res.d.errors) msg += '\n\n  ' + res.d.errors.join('\n  ');
@@ -3495,8 +3567,10 @@
     if (CATALOG && Date.now() - CATALOG.at < 60000) return Promise.resolve(CATALOG);
     function build(list) {
       var c = { ok: list.length > 0, products: Object.create(null),
-                merchants: Object.create(null), at: Date.now() };
-      list.forEach(function (p) { c.products[p.id] = 1; c.merchants[p.merchantSlug] = 1; });
+                merchants: Object.create(null), cats: Object.create(null), at: Date.now() };
+      list.forEach(function (p) {
+        c.products[p.id] = 1; c.merchants[p.merchantSlug] = 1; c.cats[p.cat] = 1;
+      });
       if (c.ok) CATALOG = c;
       return c;
     }
@@ -3765,7 +3839,8 @@
         checked++;
         var ok = page === 'product' ? (!cat.ok || cat.products[id])
                : page === 'merchant' ? (!cat.ok || cat.merchants[id])
-               : page === 'category' ? CATEGORIES.some(function (c) { return c[0] === id; })
+               : page === 'category' ? (CATEGORIES.some(function (c) { return c[0] === id; }) ||
+                                        !!(cat.ok && cat.cats[id]))
                : page === 'blog-post' ? !!postIds[id]
                : page === 'blog-category' ? !!blogCats[id] : true;
         if (!ok) R.warnings.push('Link to a ' + page.replace('-', ' ') + ' that doesn’t exist (visitors would see “not found”): ' + href);

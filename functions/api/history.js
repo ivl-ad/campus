@@ -142,8 +142,9 @@ export async function onRequestPost({ request, env }) {
       // Leaving base_sha alone is the old, fragile behaviour, so say so
       // rather than letting a rate-limited read turn into a puzzle later.
       warning = 'GitHub would not say which version is current (HTTP ' + head.status + '), so the ' +
-                'draft kept its previous base. If the next Save reports the file as changed on ' +
-                'GitHub, press Reset draft and restore again.';
+                'draft kept its previous base: the next Save will merge GitHub\'s current version ' +
+                'into the restored one rather than replace it. To publish the restored version ' +
+                'exactly, restore it again once GitHub answers.';
     }
     await putMeta(env.DB, 'reset', JSON.stringify({
       who, at: Date.now(), note: 'restored version ' + sha.slice(0, 7)

@@ -21,9 +21,10 @@
   var TEMPLATE_TITLE = /^(Product|Category|Store|Article|Blog Category) \| MyCampusKorner$/;
   function headIsTemplate() { return TEMPLATE_TITLE.test(document.title); }
 
-  // Every category that has a page, in mega-menu order (same list as
-  // tools/build_listings.py SITE_CATEGORIES).
-  var CATEGORIES = [
+  // The built-in categories, in mega-menu order (same list as
+  // build_listings.py SITE_CATEGORIES). Categories added in the editor live
+  // in js/products.js as window.PRODUCT_CATEGORIES; see categories() below.
+  var BUILT_IN = [
     ['dorm-living-essentials', 'Dorm & Living Essentials'],
     ['academic-essentials', 'Academic Essentials'],
     ['personal-lifestyle', 'Personal Lifestyle'],
@@ -35,6 +36,22 @@
     ['kitchen-dining', 'Kitchen & Dining'],
     ['bedroom-study', 'Bedroom & Study']
   ];
+
+  // Every category that has a page: the file's list, the built-in ones, then
+  // any a product names that neither has (labelled from that product).
+  // Read when needed, not at load, so script order cannot matter.
+  function categories() {
+    var out = [], seen = {};
+    function add(id, label) {
+      if (typeof id === 'string' && id && typeof label === 'string' && label && !seen[id]) {
+        seen[id] = 1; out.push([id, label]);
+      }
+    }
+    (window.PRODUCT_CATEGORIES || []).forEach(function (c) { if (c) add(c.id, c.label); });
+    BUILT_IN.forEach(function (c) { add(c[0], c[1]); });
+    (window.PRODUCTS || []).forEach(function (p) { if (p) add(p.cat, p.catLabel); });
+    return out;
+  }
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -90,7 +107,7 @@
   // Only offer a filter for categories that actually have items here.
   function radios(items) {
     var out = '', n = 0;
-    CATEGORIES.forEach(function (c) {
+    categories().forEach(function (c) {
       var present = items.some(function (p) { return p.cat === c[0]; });
       if (!present) return;
       out += '<div class="w-dyn-item" role="listitem">' +
@@ -140,7 +157,7 @@
     } else {
       // category.html — one page per product category
       var cat = null;
-      CATEGORIES.forEach(function (c) { if (c[0] === id) cat = c; });
+      categories().forEach(function (c) { if (c[0] === id) cat = c; });
       label = cat ? cat[1] : 'Category not found';
       items = all.filter(function (p) { return p.cat === id; });
       if (headIsTemplate()) document.title = label + ' | MyCampusKorner';

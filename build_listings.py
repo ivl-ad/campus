@@ -35,8 +35,10 @@ import sys
 # how many products the home page rail shows
 FEATURED = 8
 
-# every category the site has a page for, in mega-menu order.
-# Must stay in step with the CATEGORIES list in js/listing-page.js.
+# The built-in categories, in mega-menu order. Categories added in the editor
+# are kept in js/products.js as window.PRODUCT_CATEGORIES -- see
+# load_categories(). Must stay in step with BUILT_IN in js/listing-page.js and
+# CATEGORIES in functions/api/catalog.js.
 SITE_CATEGORIES = [
     ('dorm-living-essentials', 'Dorm & Living Essentials'),
     ('academic-essentials',    'Academic Essentials'),
@@ -168,8 +170,37 @@ def load_products(path, quiet=False):
     return extract_array(open(path, encoding='utf-8').read(), 'PRODUCTS', path, quiet)
 
 
-def validate(products):
+def load_categories(source, products, path, quiet=False):
+    """Every category, in menu order, as [(id, label), ...]: the file's own
+    window.PRODUCT_CATEGORIES (written by the editor once a category has been
+    added there), any built-in one it lacks, then any category a product
+    names that neither has, labelled from that product -- the same rule as
+    categoryList() in functions/api/catalog.js, so a hand edit in git that
+    forgets the list still gets a filter and a page."""
+    out, seen = [], set()
+
+    def add(cid, label):
+        cid = cid.strip() if isinstance(cid, str) else ''
+        label = label.strip() if isinstance(label, str) else ''
+        if cid and label and re.match(r'^[a-z0-9][a-z0-9-]*$', cid) and cid not in seen:
+            seen.add(cid)
+            out.append((cid, label))
+
+    if re.search(r'^[ \t]*window\.PRODUCT_CATEGORIES\s*=', source, re.M):
+        for c in extract_array(source, 'PRODUCT_CATEGORIES', path, quiet):
+            if isinstance(c, dict):
+                add(c.get('id'), c.get('label'))
+    for cid, label in SITE_CATEGORIES:
+        add(cid, label)
+    for p in products:
+        if isinstance(p, dict):
+            add(p.get('cat'), p.get('catLabel'))
+    return out
+
+
+def validate(products, categories=None):
     """Return (errors, warnings). Errors stop the build; warnings do not."""
+    category_label = dict(categories) if categories else CATEGORY_LABEL
     errors, warnings = [], []
     if not products:
         warnings.append('the catalog is empty -- both pages will be built with no products')
@@ -201,12 +232,12 @@ def validate(products):
                 warnings.append('%s: id should be lowercase letters, numbers and dashes' % where)
 
         cat = p.get('cat')
-        if cat and cat not in CATEGORY_LABEL:
+        if cat and cat not in category_label:
             errors.append('%s: unknown category "%s".\n    Valid: %s'
-                          % (where, cat, ', '.join(CATEGORY_LABEL)))
-        elif cat and p.get('catLabel') and p['catLabel'] != CATEGORY_LABEL[cat]:
+                          % (where, cat, ', '.join(category_label)))
+        elif cat and p.get('catLabel') and p['catLabel'] != category_label[cat]:
             warnings.append('%s: catLabel "%s" does not match "%s" for cat "%s"'
-                            % (where, p['catLabel'], CATEGORY_LABEL[cat], cat))
+                            % (where, p['catLabel'], category_label[cat], cat))
 
         if 'price' in p:
             if isinstance(p['price'], bool) or not isinstance(p['price'], (int, float)):
@@ -310,9 +341,9 @@ def slide_card(p):
              merchant=e(p['merchant']), price=price_block(p), pid=e(p['id']))
 
 
-def category_radios(products):
+def category_radios(products, categories=None):
     """Only offer a filter for categories that actually have products."""
-    present = [(slug, label) for slug, label in SITE_CATEGORIES
+    present = [(slug, label) for slug, label in (categories or SITE_CATEGORIES)
                if any(p.get('cat') == slug for p in products)]
     out = []
     for i, (slug, label) in enumerate(present):
@@ -478,11 +509,12 @@ def write_if_changed(path, data, check):
 
 # Both pages are built in memory first and written only when both succeeded,
 # so a problem in one never leaves the other half-updated.
-def build_store(root, products, show_prices=False):
+def build_store(root, products, show_prices=False, categories=None):
     path = os.path.join(root, 'store.html')
     doc = open(path, encoding='utf-8', newline='').read()
     doc = replace_inner(doc, GRID, ''.join(grid_card(p) for p in products), 'store.html grid')
-    doc = replace_inner(doc, RADIOS, category_radios(products), 'store.html category filter')
+    doc = replace_inner(doc, RADIOS, category_radios(products, categories),
+                        'store.html category filter')
     doc = replace_itemlist_ld(doc, products, 'store.html', show_prices)
     doc = set_empty_state(doc, not products)
     return 'store.html', len(products), path, doc
@@ -652,11 +684,12 @@ def main():
 
     try:
         products = load_products(catalog)
+        categories = load_categories(open(catalog, encoding='utf-8').read(), products, catalog)
     except BuildError as exc:
         print('error: %s' % exc)
         return 1
 
-    errors, warnings = validate(products)
+    errors, warnings = validate(products, categories)
     for w in warnings:
         print('warning: %s' % w)
     if errors:
@@ -674,7 +707,8 @@ def main():
 
     try:
         show = prices_shown(root)
-        built = encode_pages([build_store(root, products, show), build_index(root, products, show)])
+        built = encode_pages([build_store(root, products, show, categories),
+                              build_index(root, products, show)])
     except BuildError as exc:
         print('error: %s' % exc)
         print('\nnothing was written.')

@@ -137,10 +137,19 @@ How it behaves once bound:
 - Spreadsheet keys: **Enter** moves down a cell (Shift+Enter up; in desc/note
   Shift+Enter makes a new line instead), **arrow keys** hop cells once the
   caret is at the edge of the text, and **/** jumps to the filter box.
+- **Category**: pick one, or **+ New category…** (last in the menu) to create
+  one — type the name shoppers should see. It is in everyone's menu straight
+  away and on the site after Save: the Store filter, its own category page,
+  and the sitemap. A category no product uses any more disappears at the next
+  Save (the ten original ones always stay). The "Featured Categories" menu at
+  the top of every page is hand-built and lists the original ten only.
 - The old "somebody else saved, reload and redo" conflict is gone — there is
-  one draft, so there is nothing to collide. The only 409 left fires if
-  someone commits `js/products.js` directly in git while a draft is live;
-  Reset draft recovers from that.
+  one draft, so there is nothing to collide.
+- **A push from GitHub Desktop that changes a data file does not break the
+  editor.** The next Save takes that change in and adds the team's edits on top
+  (its message says so). Only a *large* change — more than three rows removed
+  or changed, which is what pushing an old copy of the file looks like — makes
+  Save ask first: keep that change, or publish the table as you see it.
 - Console diagnostics: `catalogSync.state()` on the editor page.
 
 Cost: comfortably inside the free tiers (D1 allows 100k writes/day — a full
@@ -465,7 +474,10 @@ sections: `all` (default), `products`, `partners`, `blog`, `team`,
 | Product pages update but Shop/Home do not | The rebuild commit reached GitHub but Cloudflare skipped deploying it. Never put `[skip ci]`, `[CI Skip]` or `[CF Pages Skip]` in a commit message — Cloudflare Pages treats those as "do not build". |
 | "Somebody else saved the catalog…" | Two editors open **without** the D1 binding (step 5). Reload and reapply your change. Nothing was lost. |
 | Edits do not appear on a colleague's screen | The D1 binding is missing or was added without a redeploy (step 5). The footer says "shared draft · source: …" when live sync is on. |
-| "js/products.js changed on GitHub since this draft was loaded" | Someone committed that file directly in git (or from another branch) while a draft was live. Nothing was published and nothing is lost. Take a copy first — **Export ▾ → Everything (JSON)** — then press **Reset draft** to start again from the version on GitHub. Until October 2026 this message also appeared for ordinary saves, because a Save believed a stale read from GitHub; that is fixed (see `settleBase` in `functions/_shared/draft-save.js`), so it now means what it says. |
+| Save's message ends "This Save also took in the change made on GitHub outside the editor (…)" | Normal. Somebody changed that data file in git (a push from GitHub Desktop) since the draft was loaded; the Save merged it with the team's edits and published both. The table updates by itself. If it adds "the draft's version was published" for some rows, both sides had edited those rows — the GitHub version is in History if it was the one you wanted. |
+| Save asks "… was changed on GitHub outside the editor … It is a large change: removed …" | Someone pushed a data file that differs a lot from what the editor saved — most often an old copy pushed by mistake. **OK** keeps that change and adds the draft's edits on top; **Cancel** then offers to publish the table exactly as you see it, undoing the change (the GitHub version stays in History). Cancel both and nothing happens. Not sure? **Export ▾ → Everything** first. |
+| Save asks to replace a file that "cannot be read" | A data file on GitHub was hand-edited into something that is not valid (a half-finished edit). **OK** publishes the table as you see it, which repairs the file. |
+| "js/products.js changed on GitHub since this draft was loaded … press Reset draft" | The wording of older versions, which refused such a Save; this version merges instead. If you still see it, the site is running old code — check the latest deployment in Cloudflare Pages. |
 | Save says "Another editor saved a moment ago" | Exactly that — their commit landed while yours was on its way. Press Save again; the shared draft already holds both sets of edits. |
 | You want a backup before doing something risky | **Export ▾ → Everything (JSON)** (step 13). It takes a second and does not depend on the draft. |
 | Editor shows stale rows after a Reset | It catches up on its next poll (a few seconds). Every editor reloads its table automatically when the draft is reset. |

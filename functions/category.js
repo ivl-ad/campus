@@ -1,10 +1,10 @@
 /* /category?id=… -- canonical tag, title, share image and structured data per
  * product category, and a real 404 for an unknown one.
  * See functions/_shared/site-data.js. */
-import { renderTemplate, CATEGORIES, siteUrl, collectionLd } from './_shared/site-data.js';
+import { renderTemplate, siteUrl, collectionLd } from './_shared/site-data.js';
 
 export const onRequest = (context) => renderTemplate(context, (data, id) => {
-  const cat = CATEGORIES.find((c) => c[0] === id);
+  const cat = data.categories.find((c) => c[0] === id);
   if (!cat) return null;
   const items = data.products.filter((p) => p.cat === id);
   const path = '/category?id=' + encodeURIComponent(id);

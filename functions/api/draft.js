@@ -42,7 +42,7 @@
  * Binding (Pages project settings): DB -> the campus-draft D1 database.
  */
 
-import { config, github, decodeBase64, parseProducts, CATEGORIES } from './catalog.js';
+import { config, github, decodeBase64, parseProducts, CATEGORIES, categoryList } from './catalog.js';
 import { readRemote as readPartners, parsePartners, TABLES as PARTNER_TABLES,
          NO_FILE } from './partners.js';
 import { FILE as BLOG_FILE, TABLES as BLOG_TABLES, parseBlog } from './blog.js';
@@ -69,8 +69,12 @@ export const DOCS = {
                         res.status + '). ' +
                         (res.data && res.data.message ? res.data.message : ''));
       }
-      return { list: parseProducts(decodeBase64(res.data.content)), sha: res.data.sha,
-               source: 'github:' + cfg.repo + '@' + cfg.branch };
+      const source = decodeBase64(res.data.content);
+      const list = parseProducts(source);
+      // The category menu starts from the file's own list (it can hold
+      // categories added in the editor); a Save keeps it up to date.
+      return { list, sha: res.data.sha, source: 'github:' + cfg.repo + '@' + cfg.branch,
+               extra: { categories: categoryList(source, list) } };
     }
   },
   partners: {

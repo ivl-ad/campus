@@ -29,11 +29,11 @@
  * /api/draft?doc=blog, in the blog_* tables of the same DB binding.
  */
 
-import { config, github, encodeBase64 } from './catalog.js';
+import { config, github, githubBlob, encodeBase64 } from './catalog.js';
 import { readRemote, NO_FILE } from './partners.js';
 import { extractArray, headerBefore, renderArray } from '../_shared/js-data.js';
 import { draftMarks, settleBase, recordSave, epochMoved, epochChanged, RACE_MESSAGE, RESET_MESSAGE,
-         outsideMessage } from '../_shared/draft-save.js';
+         planOutside, adoptMerged, outsideNote, draftRows, rowRules } from '../_shared/draft-save.js';
 
 export const FILE = 'js/blogs.js';
 export const TABLES = { rows: 'blog_rows', meta: 'blog_meta', presence: 'blog_presence' };
@@ -323,6 +323,10 @@ export async function normalise(posts, fileCategories, site) {
   return { posts: out, categories };
 }
 
+// How a Save tells one row from another when it merges a commit made outside
+// the editor (see planOutside() in _shared/draft-save.js).
+const RULES = rowRules((post) => post, 'id', 'post');
+
 // ------------------------------------------------------------- validation
 // The editor page runs the same rules before it lets Save through. Drafts
 // (hidden) only need a unique permalink and a title, so a half-written post
@@ -386,16 +390,15 @@ export async function onRequestPost({ request, env }) {
     return json(400, { error: 'expected a JSON body' });
   }
   let posts = body && body.posts;
-  let draftSeq = 0, draftEpoch = null;
+  let draftSeq = 0, draftEpoch = null, draftRead = null;
   if (body && body.fromDraft) {
     // Publish the shared draft exactly as it stands (see functions/api/draft.js).
     // Counter first, then rows, for the same reason as /api/catalog.
     if (!env.DB) return json(400, { error: 'The shared draft has no DB binding on this Pages project.' });
     ({ seq: draftSeq, epoch: draftEpoch } = await draftMarks(env.DB, TABLES.meta));
     if (epochMoved(body, draftEpoch)) return json(409, { error: RESET_MESSAGE });
-    const got = await env.DB.prepare(
-      'SELECT data FROM ' + TABLES.rows + ' WHERE deleted=0 ORDER BY pos, rid').all();
-    posts = got.results.map((r) => JSON.parse(r.data));
+    draftRead = await draftRows(env.DB, TABLES.rows);
+    posts = draftRead.map((r) => r.data);
     // Re-checked AFTER the rows: see epochChanged() in _shared/draft-save.js.
     if (await epochChanged(env.DB, TABLES.meta, draftEpoch)) return json(409, { error: RESET_MESSAGE });
   }
@@ -417,11 +420,22 @@ export async function onRequestPost({ request, env }) {
 
   // Settled first, so the categories below are read from the copy that is
   // actually going to be written back.
+  let plan = null;
   if (body.fromDraft) {
     const settled = await settleBase(env.DB, TABLES.meta, current, readFresh);
     current = settled.current;
     if (settled.verdict === 'race') return json(409, { error: RACE_MESSAGE });
-    if (settled.verdict) return json(409, { error: outsideMessage(FILE) });
+    if (settled.verdict) {
+      // Changed outside the editor (a push from GitHub Desktop): merge it in
+      // rather than refuse -- see planOutside() in _shared/draft-save.js.
+      plan = await planOutside(env.DB, TABLES.meta, {
+        file: FILE, base: settled.base, current, rows: draftRead, parse: (src) => parseBlog(src).posts,
+        rules: RULES, fetchBase: (sha) => (sha === NO_FILE ? null : githubBlob(cfg, sha)),
+        choice: body.outside, choiceSha: body.outsideSha
+      });
+      if (plan.ask) return json(409, plan.ask);
+      if (plan.merged) posts = plan.merged.rows.map((r) => r.data);
+    }
   } else if (!body.sha && current.exists) {
     // Without this the guard was opt-in: a page that loaded while the file
     // did not exist sends no sha, and the write then used the sha just read,
@@ -505,11 +519,21 @@ export async function onRequestPost({ request, env }) {
 
   const newSha = put.data && put.data.content ? put.data.content.sha : null;
   const commit = put.data && put.data.commit ? put.data.commit.sha.slice(0, 7) : null;
+  let adopted = null;
   if (body.fromDraft && newSha) {
-    const note = JSON.stringify({ who: who, at: Date.now(), count: clean.length,
-                                  seq: draftSeq, commit: commit || '' });
-    await recordSave(env.DB, TABLES.meta, draftEpoch, [['base_sha', newSha], ['save', note],
-      ['extra', JSON.stringify({ blogCategories: categories })]]);
+    const saved = { who: who, at: Date.now(), count: clean.length, commit: commit || '' };
+    if (plan && plan.merged) {
+      adopted = await adoptMerged(env.DB, TABLES, {
+        read: draftRead, merged: plan.merged.rows, seq: draftSeq, epoch: draftEpoch,
+        newSha, save: saved });
+      if (adopted === 'ok') {
+        await recordSave(env.DB, TABLES.meta, draftEpoch,
+                         [['extra', JSON.stringify({ blogCategories: categories })]]);
+      }
+    } else {
+      await recordSave(env.DB, TABLES.meta, draftEpoch, [['base_sha', newSha],
+        ['save', JSON.stringify({ ...saved, seq: draftSeq })], ['extra', JSON.stringify({ blogCategories: categories })]]);
+    }
   }
 
   return json(200, {
@@ -521,6 +545,7 @@ export async function onRequestPost({ request, env }) {
     message: 'Committed to ' + cfg.repo + '@' + cfg.branch + '. ' +
              (live ? 'Articles are live once Cloudflare Pages redeploys (~1 min); the Blog and ' +
                      'Home page cards follow when the rebuild finishes (~2 min).'
-                   : 'No post is published (all are drafts), so nothing shows on the site.')
+                   : 'No post is published (all are drafts), so nothing shows on the site.') +
+             outsideNote(plan, adopted)
   });
 }

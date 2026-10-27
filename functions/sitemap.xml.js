@@ -6,7 +6,7 @@
  * URLs are the clean form Cloudflare Pages serves (/product?id=…, not
  * product.html?id=…), matching the canonical tags the page functions emit.
  */
-import { loadSiteData, siteUrl, CATEGORIES } from './_shared/site-data.js';
+import { loadSiteData, siteUrl } from './_shared/site-data.js';
 
 // Public, indexable static pages. Add a line here when you add a page.
 const STATIC_PAGES = [
@@ -35,7 +35,7 @@ export async function onRequestGet({ request, env }) {
   const q = (page, id) => '/' + page + '?id=' + encodeURIComponent(id);
 
   STATIC_PAGES.forEach(([path, pr]) => add(path, pr));
-  CATEGORIES.forEach(([id]) => {
+  data.categories.forEach(([id]) => {
     if (data.products.some((p) => p.cat === id)) add(q('category', id), '0.7');
   });
   [...new Set(data.products.map((p) => p.merchantSlug))].forEach((slug) => add(q('merchant', slug), '0.5'));
