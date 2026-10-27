@@ -32,7 +32,8 @@
 import { config, github, encodeBase64 } from './catalog.js';
 import { readRemote, NO_FILE } from './partners.js';
 import { extractArray, headerBefore, renderArray } from '../_shared/js-data.js';
-import { draftMarks, baseMismatch, recordSave, epochMoved, RACE_MESSAGE, RESET_MESSAGE } from '../_shared/draft-save.js';
+import { draftMarks, settleBase, recordSave, epochMoved, epochChanged, RACE_MESSAGE, RESET_MESSAGE,
+         outsideMessage } from '../_shared/draft-save.js';
 
 export const FILE = 'js/blogs.js';
 export const TABLES = { rows: 'blog_rows', meta: 'blog_meta', presence: 'blog_presence' };
@@ -257,7 +258,16 @@ export async function sanitizeHtml(html, site) {
 // Posts arrive tidied (trimmed), so " tips" and a blank label cannot slip a
 // category through without a name -- build_content.py would refuse the file.
 export function mergeCategories(fileCategories, posts) {
-  const out = (fileCategories || []).map((c) => ({ id: c.id, label: c.label }));
+  // Anything in the file that is not a usable {id, label} is dropped rather
+  // than carried forward: a hand-committed entry missing its label used to
+  // reach the renderer as {label: undefined} and throw, which made every
+  // blog Save fail with a bare 500 that named nothing. Other fields on a
+  // well-formed entry are kept.
+  const out = (fileCategories || [])
+    .filter((c) => c && typeof c === 'object' && !Array.isArray(c) &&
+                   typeof c.id === 'string' && c.id.trim() &&
+                   typeof c.label === 'string' && c.label.trim())
+    .map((c) => Object.assign({}, c, { id: c.id.trim(), label: c.label.trim() }));
   const known = new Map(out.map((c) => [c.id, c.label]));
   posts.forEach((p) => {
     if (typeof p.cat === 'string' && !known.has(p.cat) && SLUG_RE.test(p.cat)) {
@@ -282,7 +292,20 @@ export async function normalise(posts, fileCategories, site) {
     // (formatting it would throw instead).
     if (Math.abs(p.dateMs) < 8.64e15) p.dateLabel = dateLabel(p.dateMs);
     if (typeof p.cat === 'string' && labelOf.has(p.cat)) p.catLabel = labelOf.get(p.cat) || p.catLabel || p.cat;
-    p.contentHTML = await sanitizeHtml(p.contentHTML || '', site);
+    try {
+      p.contentHTML = await sanitizeHtml(p.contentHTML || '', site);
+    } catch (e) {
+      // Without the post's name this read "An article contains markup that
+      // could not be cleaned safely" and nothing else -- and because every
+      // Save sends every post, ONE bad paste (in a hidden draft, by someone
+      // else, weeks ago) blocked the whole team from publishing anything
+      // with no way to find it.
+      if (e.unsafe) {
+        e.message = '"' + (p.name || p.id || 'an untitled post') + '"' +
+                    (p.hidden ? ' (a draft)' : '') + ': ' + e.message;
+      }
+      throw e;
+    }
     if (!p.contentHTML) delete p.contentHTML;
     if (!p.excerpt && p.contentHTML) p.excerpt = autoExcerpt(p.contentHTML);
     if (p.related && p.id) p.related = p.related.filter((r) => r !== p.id);
@@ -373,13 +396,49 @@ export async function onRequestPost({ request, env }) {
     const got = await env.DB.prepare(
       'SELECT data FROM ' + TABLES.rows + ' WHERE deleted=0 ORDER BY pos, rid').all();
     posts = got.results.map((r) => JSON.parse(r.data));
+    // Re-checked AFTER the rows: see epochChanged() in _shared/draft-save.js.
+    if (await epochChanged(env.DB, TABLES.meta, draftEpoch)) return json(409, { error: RESET_MESSAGE });
   }
   if (!Array.isArray(posts)) return json(400, { error: 'posts must be a list' });
 
+  // One cache-busted read, reusable: settleBase() re-reads through it before
+  // it is willing to call a sha disagreement an outside commit. sha is the
+  // NO_FILE sentinel when the file does not exist yet (which is what the
+  // draft recorded as its base); putSha is what GitHub wants on the write.
+  const readFresh = async () => {
+    const got = await readRemote(cfg, FILE);
+    return { exists: got.exists, source: got.source,
+             sha: got.sha || NO_FILE, putSha: got.sha || undefined };
+  };
   let current;
-  try { current = await readRemote(cfg, FILE); } catch (e) {
+  try { current = await readFresh(); } catch (e) {
     return json(502, { error: 'could not read the current ' + FILE + ' from GitHub. ' + e.message });
   }
+
+  // Settled first, so the categories below are read from the copy that is
+  // actually going to be written back.
+  if (body.fromDraft) {
+    const settled = await settleBase(env.DB, TABLES.meta, current, readFresh);
+    current = settled.current;
+    if (settled.verdict === 'race') return json(409, { error: RACE_MESSAGE });
+    if (settled.verdict) return json(409, { error: outsideMessage(FILE) });
+  } else if (!body.sha && current.exists) {
+    // Without this the guard was opt-in: a page that loaded while the file
+    // did not exist sends no sha, and the write then used the sha just read,
+    // so GitHub accepted it and the first saver's work vanished silently.
+    return json(409, {
+      error: 'This page loaded before ' + FILE + ' existed, but it is there now -- ' +
+             'somebody else saved first. Press Reload to pick up their version, then ' +
+             'make your changes again. Nothing has been overwritten.'
+    });
+  } else if (body.sha && body.sha !== current.sha) {
+    return json(409, {
+      error: 'Somebody else saved the blog while this page was open.' + '\n' +
+             'Press Reload to pick up their version, then make your changes again. ' +
+             'Nothing has been overwritten.'
+    });
+  }
+
   let fileCategories = [];
   try { if (current.exists) fileCategories = parseBlog(current.source).categories; } catch (e) {
     return json(500, { error: 'could not read the categories in ' + FILE + ': ' + e.message });
@@ -395,29 +454,21 @@ export async function onRequestPost({ request, env }) {
   }
   const errors = validate(clean);
   if (errors.length) return json(400, { error: 'validation failed', errors });
+  // Compared against what the FILE held, not against the posts: by this
+  // point every surviving p.cat is a valid slug that mergeCategories has
+  // already added, so a posts-based test could never fire. The case worth
+  // catching is a category list that was readable before and is not now --
+  // saving then would quietly commit an empty one.
+  if ((fileCategories || []).length && !categories.length) {
+    return json(400, { error: 'the category list in ' + FILE + ' could not be read, so this ' +
+                              'Save would have wiped it. Check window.BLOG_CATEGORIES there ' +
+                              '-- every entry needs an id and a label.' });
+  }
   if (!clean.length && current.exists && parseBlog(current.source).posts.length) {
     return json(400, { error: 'refusing to save an empty blog (every post was deleted) -- ' +
                               'Reset draft if that was not intended' });
   }
 
-  if (body.fromDraft) {
-    const mismatch = await baseMismatch(env.DB, TABLES.meta, current.sha || NO_FILE);
-    if (mismatch === 'race') return json(409, { error: RACE_MESSAGE });
-    if (mismatch) {
-      return json(409, {
-        error: FILE + ' changed on GitHub since this draft was loaded (a direct commit in git, or a\n' +
-               'Save that finished while the draft was being reset).\n' +
-               'Press "Reset draft" to start over from that version (unpublished ' +
-               'edits are discarded), or reconcile the two in git first.'
-      });
-    }
-  } else if (body.sha && body.sha !== current.sha) {
-    return json(409, {
-      error: 'Somebody else saved the blog while this page was open.\n' +
-             'Press Reload to pick up their version, then make your changes again. ' +
-             'Nothing has been overwritten.'
-    });
-  }
 
   const content = render(current.exists ? headerBefore(current.source, 'BLOG_CATEGORIES') : '',
                          categories, clean);
@@ -427,10 +478,18 @@ export async function onRequestPost({ request, env }) {
                   (live !== clean.length ? ' (' + live + ' live)' : '') +
                   ', edited in the web editor' + (who ? ' by ' + who : '');
 
+  // Last check before the commit. settleBase() above can wait a couple of
+  // seconds for GitHub, which is ample time for a Reset or a History restore
+  // to land; publishing the rows read before it would send out a version
+  // nobody has seen.
+  if (body.fromDraft && await epochChanged(env.DB, TABLES.meta, draftEpoch)) {
+    return json(409, { error: RESET_MESSAGE });
+  }
+
   const put = await github(cfg, 'PUT', {
     message,
     content: encodeBase64(content),
-    sha: current.sha || undefined,
+    sha: current.putSha,
     branch: cfg.branch
   }, FILE);
 

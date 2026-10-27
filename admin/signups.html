@@ -70,6 +70,10 @@
   <span class="spacer"></span>
   <button type="button" id="refresh">Refresh</button>
   <a class="btn primary" id="csv" href="../api/signups?list=newsletter&amp;format=csv">Download CSV</a>
+  <!-- These rows live only in the database, so the way to keep a copy belongs
+       on this page as well as behind Export in the editor. -->
+  <a class="btn" id="backup" href="../api/export" download
+     title="Everything the site holds — both sign-up lists, plus the products, partners, blog and team — as one JSON file">Back up everything</a>
 </header>
 <main>
   <div class="stats" id="stats"></div>

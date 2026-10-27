@@ -21,6 +21,18 @@ js/products.sample.js
 # Local test runs of `wrangler pages dev` (cache and local database state)
 .wrangler/
 
+# The local dev server and its regression suite (tools/dev-server.mjs,
+# tools/test.mjs). They run the site and the editor on this machine and are
+# not part of serving it, so they stay out of the repo -- Cloudflare Pages
+# publishes everything that IS committed, and nothing here needs to be
+# reachable at mycampuskorner.com/tools/.
+#
+# They live in the working folder instead. Keep that folder: a fresh clone
+# will not have them. admin/HANDOVER.md explains how to use them, and if you
+# would rather have them version-controlled, move them to admin/tools/ --
+# everything under admin/ is behind the editor password.
+tools/
+
 # Python / OS noise
 __pycache__/
 *.pyc

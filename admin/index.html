@@ -49,6 +49,12 @@
         padding:8px;z-index:30;display:none;max-height:65vh;overflow:auto;font-size:13px}
   .menu.open{display:block}
   #colsMenu{min-width:190px}
+  #exportMenu{min-width:330px;max-width:min(420px,92vw)}
+  #exportMenu a{display:block;padding:6px 8px;border-radius:5px;color:var(--ink);
+                text-decoration:none}
+  #exportMenu a:hover{background:#f0f0ea}
+  #exportMenu a small{display:block;color:var(--muted);font-size:11.5px;line-height:1.35}
+  #exportMenu hr{border:0;border-top:1px solid var(--line);margin:6px 2px}
   #histPanel{min-width:420px;max-width:min(560px,90vw)}
   .menu-head{padding:2px 6px 6px;color:var(--muted)}
   .menu label{display:flex;gap:8px;align-items:center;padding:4px 6px;cursor:pointer;
@@ -265,11 +271,13 @@
   <button id="redo" disabled title="Redo (Ctrl+Shift+Z or Ctrl+Y)">↷ Redo</button>
   <button id="cols" title="Show, hide and resize columns">Columns ▾</button>
   <button id="hist" style="display:none" title="Every saved version — load one back into the draft">History ▾</button>
+  <button id="exportBtn" title="Download a copy of the site's content and sign-ups">Export ▾</button>
   <button id="add">+ Add product</button>
   <button id="reload">Reload</button>
   <button class="primary" id="save" disabled>Save</button>
   <div class="menu" id="colsMenu"></div>
   <div class="menu" id="histPanel"></div>
+  <div class="menu" id="exportMenu"></div>
 </header>
 
 <div id="status"></div>
@@ -381,9 +389,12 @@
       saveTitle: 'Publish the shared draft: commits js/products.js and rebuilds the site',
       publishing: 'the site is rebuilding (~1 min)',
       problems: function (rows) {
-        var out = [], seen = {};
+        var out = [], seen = Object.create(null);
         rows.forEach(function (r, i) {
           var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
+          // catLabel is deliberately absent: the server fills it in from cat
+          // (tidy() in functions/api/catalog.js), so it is never the editor's
+          // job to get right and must not block a Save.
           ['id','name','cat','merchant','merchantSlug','url','img'].forEach(function (f) {
             if (!p[f] || !String(p[f]).trim()) out.push(at + ': ' + f + ' is required');
           });
@@ -393,14 +404,21 @@
             if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
               out.push(at + ': id must be lowercase letters, numbers and dashes');
           }
+          // The same check the server makes, so an unknown slug is reported
+          // here by row rather than refused server-side for the whole team.
+          if (p.cat && !CATEGORIES.some(function (c) { return c[0] === p.cat; }))
+            out.push(at + ': "' + p.cat + '" is not one of this site’s categories');
           if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
             out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
           if (p.url && !/^https?:\/\/[^\s<>"']+$/i.test(String(p.url).trim()))
             out.push(at + ': url must be a full web address starting with https://');
           if (p.img && !/^(https?:\/\/[^\s<>"']+|\/?images\/[^\s<>"']+)$/i.test(String(p.img).trim()))
             out.push(at + ': img url must be a full https:// image address');
-          if ('price' in p && (typeof p.price !== 'number' || isNaN(p.price)))
-            out.push(at + ': price must be a number, or left blank');
+          // Exactly the server's rule (functions/api/catalog.js validate()):
+          // anything looser lets a row through that every editor's Save then
+          // fails on, since the bad value sits in the SHARED draft.
+          if ('price' in p && (typeof p.price !== 'number' || !isFinite(p.price) || p.price < 0))
+            out.push(at + ': price must be a positive number, or left blank');
         });
         return out;
       }
@@ -534,7 +552,7 @@
       saveTitle: 'Publish the shared draft: commits js/blogs.js and rebuilds the blog pages',
       publishing: 'the blog updates in ~2 min',
       problems: function (rows) {
-        var out = [], seen = {};
+        var out = [], seen = Object.create(null);
         rows.forEach(function (r, i) {
           var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
           if (!p.name || !String(p.name).trim()) out.push(at + ': the title is required');
@@ -604,7 +622,7 @@
       saveTitle: 'Publish the shared draft: commits js/team.js and rebuilds the About page',
       publishing: 'the About page updates in ~2 min',
       problems: function (rows) {
-        var out = [], seen = {};
+        var out = [], seen = Object.create(null);
         rows.forEach(function (r, i) {
           var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || 'untitled') + ')';
           if (!p.name || !String(p.name).trim()) out.push(at + ': name is required');
@@ -651,6 +669,7 @@
   var mode = 'boot';       // 'sync' | 'solo'
   var cursor = 0;          // highest draft seq applied locally
   var epoch = 0;           // bumped server-side on reset -> full reload
+  var reloading = false;   // a full reload is in flight after a reset/restore
   var seqCounter = 0;      // server's write counter, for "unpublished changes"
   var publishedSeq = 0;    // counter at the last save
   var lastSaveAt = 0, lastResetAt = 0, booted = false;
@@ -724,7 +743,7 @@
     var un = seqCounter > publishedSeq || localPending();
     $('dirty').textContent = un ? '● unpublished changes' : '';
     $('dirty').className = un ? 'dirty' : '';
-    $('save').disabled = !un || saving;
+    $('save').disabled = !un || saving || reloading;
   }
 
   function plural(n) { return n + ' ' + (n === 1 ? DOC.one : DOC.many); }
@@ -901,10 +920,31 @@
         o.value = c[0]; o.textContent = c[1];
         input.appendChild(o);
       });
-      input.value = row.data.cat || CATEGORIES[0][0];
-      // catLabel is never typed by hand -- it always follows the category.
-      row.data.cat = input.value;
-      row.data.catLabel = label(input.value);
+      var want = row.data.cat;
+      if (!want) {
+        // A row with no category must LOOK like one. Showing the first entry
+        // instead meant the row read as complete while the save was refused
+        // for "cat is required", and re-picking the option already on screen
+        // fires no change event, so the error could not be cleared from the
+        // control that caused it.
+        var none = document.createElement('option');
+        none.value = '';
+        none.textContent = '— choose a category —';
+        input.insertBefore(none, input.firstChild);
+      } else if (!CATEGORIES.some(function (c) { return c[0] === want; })) {
+        // A slug this build does not list (renamed, or newer than this page)
+        // keeps an option of its own, so rendering the row cannot quietly
+        // blank a category that was perfectly good in the draft. problems()
+        // reports it, matching what the server would say.
+        var unknown = document.createElement('option');
+        unknown.value = want;
+        unknown.textContent = want + ' (not in this list)';
+        input.appendChild(unknown);
+      }
+      input.value = want || '';
+      // Deliberately NOT written back to row.data: cell() runs on every
+      // render, and a local-only rewrite made this screen disagree with the
+      // shared draft.
     } else if (isText(field)) {
       input = document.createElement('textarea');
       input.rows = 1;
@@ -937,8 +977,23 @@
       v = v.trim();
       if (v === '') { delete row.data.price; patch.price = null; }
       else {
-        var n = parseFloat(v.replace(/[$,]/g, ''));
-        if (isNaN(n)) { td.classList.add('invalid'); return; }
+        // Number(), not parseFloat(): parseFloat('19x') is 19, so a typo was
+        // accepted and the cell then showed "19x" while the draft held 19.
+        // But Number('') is 0, so a cell holding only "$" or a comma would
+        // have published the product as free -- an empty remainder is not a
+        // number at all.
+        var digits = v.replace(/[$,\s]/g, '');
+        var n = digits === '' ? NaN : Number(digits);
+        // Half-typed, negative or impossible: keep it OFF the draft, but put
+        // NaN on the row so problems() blocks Save and names this row. The
+        // old early return left the cell reading "19x" while the draft still
+        // held 19, and Save published the 19 with no warning.
+        if (!isFinite(n) || n < 0) {
+          td.classList.add('invalid');
+          row.data.price = NaN;
+          if (mode === 'sync') updateDirty(); else markDirty(true);
+          return;
+        }
         td.classList.remove('invalid');
         row.data.price = n; patch.price = n;
       }
@@ -981,7 +1036,7 @@
   }
 
   function uniqueId(base) {
-    var taken = {};
+    var taken = Object.create(null);
     rows.forEach(function (r) { taken[r.data.id] = true; });
     base = (base || 'product').replace(/-copy(-\d+)?$/, '');
     var candidate = base + '-copy', n = 2;
@@ -1361,10 +1416,21 @@
     }
   }
 
+  // The server applies at most 500 ops from one request (draft.js) and still
+  // answers 200, so sending more than that would silently drop the newest
+  // edits -- and takeOps has already emptied the queue by then. Never send
+  // more than fits: the remainder stays queued and goes in the next pump,
+  // which afterTick() schedules straight away.
+  var MAX_OPS = 400;
+
   function takeOps() {
     var ops = pendingOps; pendingOps = [];
     for (var rid in pendingPatch) ops.push({ rid: rid, patch: pendingPatch[rid] });
     pendingPatch = {};
+    if (ops.length > MAX_OPS) {
+      pendingOps = ops.slice(MAX_OPS);
+      ops = ops.slice(0, MAX_OPS);
+    }
     return ops;
   }
   function requeue(ops) {
@@ -1372,7 +1438,30 @@
     // included -- ahead of anything queued since. Order is the point: that
     // batch happened first (a Delete then its Undo, an edit then a newer one),
     // and whatever was typed meanwhile is sent after it, so it still wins.
-    pendingOps = ops.concat(pendingOps);
+    //
+    // Field edits for one row are folded together as they go back, the newer
+    // value winning. Without that, a long outage grew the queue by a fresh
+    // redundant patch per row per retry; the server applies only the first
+    // 500 ops it is handed, so the ones silently dropped would have been the
+    // NEWEST. A create/delete/move for a row ends its run, since later edits
+    // must not jump back over it.
+    var out = [], open = Object.create(null);
+    ops.concat(pendingOps).forEach(function (op) {
+      var id = op && typeof op.rid === 'string' ? op.rid : null;
+      if (id && op.patch) {
+        if (open[id]) {
+          var into = open[id].patch;
+          for (var k in op.patch) into[k] = op.patch[k];
+          return;
+        }
+        op = { rid: id, patch: Object.assign({}, op.patch) };
+        open[id] = op;
+      } else if (id) {
+        delete open[id];
+      }
+      out.push(op);
+    });
+    pendingOps = out;
   }
 
   // A reply only counts if it is a real success. An error from the server
@@ -1387,6 +1476,21 @@
       }
       return d;
     });
+  }
+
+  /*
+   * A request that never settles used to wedge the whole editor: inFlight
+   * stayed true, so tick() returned immediately for ever, afterTick() never
+   * ran, the poll was never re-armed, and a Save pressed meanwhile sat on
+   * "Saving…" with the button disabled until the tab was reloaded. A captive
+   * portal or a sleeping radio is enough to cause it. Every request now has
+   * a deadline and fails into the normal retry path instead.
+   */
+  function deadline(ms) {
+    if (typeof AbortController === 'undefined') return { signal: undefined, clear: function () {} };
+    var c = new AbortController();
+    var t = setTimeout(function () { c.abort(); }, ms);
+    return { signal: c.signal, clear: function () { clearTimeout(t); } };
   }
 
   // The one pump: pushes queued edits, pulls everything after `cursor`, and
@@ -1406,20 +1510,24 @@
       payload.presence = { rid: focusRid };
       sentFocus = focusRid; presenceSentAt = now;
     }
+    // keepalive requests outlive the page, so they get no abort signal.
+    var guard = keepalive ? { signal: undefined, clear: function () {} } : deadline(20000);
     fetch(DOC.draftApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-      keepalive: !!keepalive
+      keepalive: !!keepalive,
+      signal: guard.signal
     })
       .then(draftReply)
       .then(function (d) {
+        guard.clear();
         inFlight = false; sendingOps = 0;
-        saveFlushTries = 0;
         apply(d);
-        afterTick();
+        afterTick(true);
       })
       .catch(function (e) {
+        guard.clear();
         inFlight = false; sendingOps = 0;
         requeue(ops);
         if (e && e.server) {
@@ -1428,18 +1536,25 @@
         } else if (ops.length) {
           setStatus('warn', 'Connection hiccup — your last edits are queued and will retry.');
         }
-        afterTick();
+        afterTick(false);
       });
   }
 
-  function afterTick() {
+  // sent: did the request that just finished actually get through?
+  function afterTick(sent) {
     updateDirty();
     if (saveAfterFlush) {
       if (!localPending()) {
         saveAfterFlush = false; saveFlushTries = 0;
         doSave();
       } else if (++saveFlushTries <= 3) {
-        tick();                        // keep flushing until clean, then save
+        // Spaced out on purpose: called straight through, every reply fired
+        // the next request immediately, so holding Ctrl+S and carrying on
+        // typing sent requests back to back and the ordinary poll was never
+        // re-armed. (saveFlushTries is no longer cleared by an ordinary
+        // successful tick either, or this ceiling would only ever count
+        // failures in a row.)
+        setTimeout(function () { tick(); }, 200);
         return;
       } else {
         saveAfterFlush = false; saveFlushTries = 0; saving = false;
@@ -1447,6 +1562,14 @@
                          'Check the connection and press Save again.');
         updateDirty();
       }
+    }
+    // A backlog left by the MAX_OPS cap must not wait for the poll timer --
+    // but only after a send that got through. Draining on a FAILED send turns
+    // a dropped connection into a tight retry loop: an outage with five rows
+    // queued fired ~26 requests a second until it came back.
+    if (sent && pendingOps.length && !inFlight && document.visibilityState !== 'hidden') {
+      setTimeout(function () { tick(); }, 60);
+      return;
     }
     schedulePoll();
   }
@@ -1465,8 +1588,11 @@
   // ------------------------------------------- sync mode: applying changes
   function apply(d) {
     if (!d) return;
-    if (d.mode === 'solo') { enterSolo(); return; }
-    if (d.error) { setStatus('err', d.error); return; }
+    // Both of these leave before renderFull, which is the only place that
+    // clears the flag; without this a reload that ends in an error would
+    // leave Save switched off with nothing to switch it back on.
+    if (d.mode === 'solo') { reloading = false; enterSolo(); return; }
+    if (d.error) { reloading = false; setStatus('err', d.error); return; }
 
     if (booted && d.epoch !== epoch) {
       // Somebody reset or restored the draft. Local queues target dead rids --
@@ -1478,7 +1604,15 @@
         saveAfterFlush = false; saveFlushTries = 0; saving = false;
         saveDropped = true;
       }
-      if (!d.full) { epoch = d.epoch; cursor = 0; tick(); return; }
+      // The new epoch is adopted here so the refetch is made against it,
+      // but the table below still shows the OLD draft until renderFull runs.
+      // reloading says so, and keeps Save switched off in between: without it
+      // a Save pressed in that gap carried the new epoch, passed every guard,
+      // and published a version nobody on this screen had looked at.
+      if (!d.full) {
+        epoch = d.epoch; cursor = 0; reloading = true;
+        updateDirty(); tick(); return;
+      }
     }
     epoch = d.epoch;
     seqCounter = d.seq;
@@ -1525,6 +1659,7 @@
   }
 
   function renderFull(d) {
+    reloading = false;
     clearHistory();
     if (d.categories && d.categories.length) CATEGORIES = d.categories;
     if (DOC.onData) DOC.onData(d);
@@ -1577,15 +1712,42 @@
       insertSorted(makeRow(r.data, r.rid, r.pos));
       return;
     }
-    if (r.pos !== row.pos && !row.el.contains(document.activeElement)) {
+    if (r.pos !== row.pos) {
+      // The move is applied even while the caret is in this row. Order is
+      // shared state -- on Partners it IS the order the strip publishes in --
+      // so skipping it left rows[] disagreeing with the draft with nothing to
+      // put it right, and Save then published an order nobody had seen.
+      // Moving an element in the DOM blurs it, so focus and caret go back.
+      var act = document.activeElement;
+      var within = row.el.contains(act);
+      var sel = null;
+      if (within && act && act.setSelectionRange) {
+        try { sel = [act.selectionStart, act.selectionEnd]; } catch (e) { sel = null; }
+      }
       row.pos = r.pos;
       var i = rows.indexOf(row);
       if (i > -1) rows.splice(i, 1);
       row.el.remove();
       insertSorted(row);
+      if (within && act) {
+        act.focus();
+        if (sel) { try { act.setSelectionRange(sel[0], sel[1]); } catch (e) { /* not a text field */ } }
+      }
     }
-    // Merge: the server is the truth, but my unsent keystrokes and the field
-    // under my cursor win locally -- they are on their way to the server.
+    /*
+     * Merge. The server is the truth; the only thing that beats it is a
+     * keystroke of mine that has not been sent yet (pendingPatch).
+     *
+     * The field under the cursor used to be kept as well, sent or not. That
+     * is wrong in both directions once the 400ms debounce has flushed: with
+     * nothing of mine queued, the local copy is simply out of date, so
+     * keeping it showed one value on screen while Save published the
+     * colleague's -- and writing it back instead (briefly tried) undid their
+     * edit from a cell I had merely parked the caret in, or ping-ponged
+     * forever when two people sat in the same cell. So: unsent keystrokes
+     * win, everything else takes the server's value, including the cell the
+     * caret happens to be in.
+     */
     var mine = pendingPatch[r.rid] || {};
     var active = document.activeElement;
     var focusField = null;
@@ -1598,15 +1760,6 @@
     }
     var keep = {};
     for (var k in mine) keep[k] = row.data[k];
-    // The field under the cursor keeps its local value -- except a long field
-    // (a blog article) with nothing unsent, and a button (the article cell):
-    // those take the colleague's version, so the next keystroke can never
-    // send an old copy of a whole article back over their change.
-    if (focusField && !(focusField in keep) && !LIVE_FIELDS[focusField] &&
-        !(active && active.tagName === 'BUTTON')) {
-      keep[focusField] = row.data[focusField];
-      if (focusField === 'cat') keep.catLabel = row.data.catLabel;
-    }
     row.data = JSON.parse(JSON.stringify(r.data));
     for (var kk in keep) {
       if (keep[kk] === undefined) delete row.data[kk];
@@ -1614,7 +1767,14 @@
     }
     FIELDS.forEach(function (f) {
       var input = fieldInput(row, f);
-      if (!input || input === active) return;
+      if (!input) return;
+      // The focused cell is refreshed like any other, so it cannot go on
+      // showing a value the draft no longer holds. Two exceptions keep their
+      // old behaviour: a field with unsent keystrokes in it (mine wins, and
+      // is already on its way), and a long rich field like a blog article,
+      // where rewriting it under the cursor would lose far more than it saved.
+      if (input === active &&
+          (Object.prototype.hasOwnProperty.call(mine, f) || LIVE_FIELDS[f])) return;
       var K = kindOf(f);
       if (K) { K.write(input, row.data[f], row); return; }
       var want = row.data[f] === undefined ? '' : String(row.data[f]);
@@ -2319,7 +2479,7 @@
   // A permalink no other row uses: base, base-2, base-3…
   function freeSlug(base, row) {
     base = base || DOC.one;
-    var taken = {};
+    var taken = Object.create(null);
     rows.forEach(function (r) { if (r !== row && r.data.id) taken[r.data.id] = true; });
     var id = base, n = 2;
     while (taken[id]) { id = base + '-' + n; n++; }
@@ -3334,7 +3494,8 @@
   function loadCatalogIds() {
     if (CATALOG && Date.now() - CATALOG.at < 60000) return Promise.resolve(CATALOG);
     function build(list) {
-      var c = { ok: list.length > 0, products: {}, merchants: {}, at: Date.now() };
+      var c = { ok: list.length > 0, products: Object.create(null),
+                merchants: Object.create(null), at: Date.now() };
       list.forEach(function (p) { c.products[p.id] = 1; c.merchants[p.merchantSlug] = 1; });
       if (c.ok) CATALOG = c;
       return c;
@@ -3347,7 +3508,9 @@
           .then(function (r) { return r.ok ? r.text() : ''; })
           .then(function (t) { return build(t ? listFrom(t, 'PRODUCTS') : []); });
       })
-      .catch(function () { return { ok: false, products: {}, merchants: {}, at: 0 }; });
+      .catch(function () {
+        return { ok: false, products: Object.create(null), merchants: Object.create(null), at: 0 };
+      });
   }
 
   /*
@@ -3422,7 +3585,7 @@
     }
 
     var others = rows.filter(function (r) { return r !== row; });
-    var byId = {};
+    var byId = Object.create(null);
     others.forEach(function (r) { if (r.data.id) byId[r.data.id] = r; });
     if (v.id) {
       var slug = tidySlug(v.id);
@@ -3579,10 +3742,10 @@
 
     R.changes = ch;
     return loadCatalogIds().then(function (cat) {
-      var postIds = {};
+      var postIds = Object.create(null);
       rows.forEach(function (r) { if (r.data.id) postIds[r.data.id] = r; });
       if (ch.id) postIds[ch.id] = row;
-      var blogCats = {};
+      var blogCats = Object.create(null);
       blogCategories().forEach(function (c) { blogCats[c.id] = 1; });
       var checked = 0;
       links.forEach(function (href) {
@@ -3595,7 +3758,9 @@
             return;
           }
         }
-        if (!SITE_PAGES[page]) { R.warnings.push('Link to a page this site doesn’t have: ' + href); return; }
+        if (!Object.prototype.hasOwnProperty.call(SITE_PAGES, page)) {
+          R.warnings.push('Link to a page this site doesn’t have: ' + href); return;
+        }
         if (id === null) return;
         checked++;
         var ok = page === 'product' ? (!cat.ok || cat.products[id])
@@ -3883,11 +4048,12 @@
   }
 
   // ------------------------------------------------------------- controls
+  var MENUS = ['colsMenu', 'histPanel', 'exportMenu'];
+
   function toggleMenu(id) {
     var el = $(id);
     var open = el.classList.contains('open');
-    $('colsMenu').classList.remove('open');
-    $('histPanel').classList.remove('open');
+    MENUS.forEach(function (m) { $(m).classList.remove('open'); });
     if (!open) el.classList.add('open');
     return !open;
   }
@@ -3901,9 +4067,61 @@
   });
   document.addEventListener('click', function (ev) {
     if (!ev.target.closest || !ev.target.closest('.menu')) {
-      $('colsMenu').classList.remove('open');
-      $('histPanel').classList.remove('open');
+      MENUS.forEach(function (m) { $(m).classList.remove('open'); });
     }
+  });
+
+  /*
+   * Export: plain links to /api/export, so the browser downloads them itself
+   * with the password it already has. Nothing here depends on the draft or on
+   * this page's state -- that is the point. See functions/api/export.js.
+   */
+  function buildExportMenu() {
+    var m = $('exportMenu');
+    if (m.firstChild) return;
+    var head = document.createElement('div');
+    head.className = 'menu-head';
+    head.textContent = 'Download a copy. Published content and the sign-up lists — ' +
+      'unpublished draft edits are not included.';
+    m.appendChild(head);
+
+    function item(href, label, note) {
+      var a = document.createElement('a');
+      a.href = '../api/export' + href;
+      a.setAttribute('download', '');
+      a.textContent = label;
+      if (note) {
+        var small = document.createElement('small');
+        small.textContent = note;
+        a.appendChild(small);
+      }
+      // The menu would otherwise swallow the click (it stops propagation).
+      a.addEventListener('click', function () {
+        setStatus('ok', 'Preparing ' + label + '… the download starts in a moment.');
+      });
+      m.appendChild(a);
+      return a;
+    }
+
+    item('', 'Everything (JSON)',
+         'Every section plus the sign-up tables, and each data file verbatim — a whole restore kit.');
+    var hr = document.createElement('hr');
+    m.appendChild(hr);
+    [['products', 'Products'], ['partners', 'Partners'], ['blog', 'Blog'], ['team', 'Team']]
+      .forEach(function (c) {
+        item('?section=' + c[0], c[1] + ' (JSON)', null);
+      });
+    m.appendChild(document.createElement('hr'));
+    item('?section=newsletter&format=csv', 'Newsletter sign-ups (CSV)',
+         'These live only in the database — nothing else holds a copy.');
+    item('?section=contact&format=csv', 'Contact messages (CSV)',
+         'These live only in the database — nothing else holds a copy.');
+  }
+
+  $('exportBtn').addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    buildExportMenu();
+    toggleMenu('exportMenu');
   });
 
   $('add').addEventListener('click', function () {

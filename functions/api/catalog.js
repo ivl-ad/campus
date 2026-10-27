@@ -21,7 +21,8 @@
  *   GITHUB_BRANCH    plain   optional, defaults to main
  */
 
-import { draftMarks, baseMismatch, recordSave, epochMoved, RACE_MESSAGE, RESET_MESSAGE } from '../_shared/draft-save.js';
+import { draftMarks, settleBase, recordSave, epochMoved, epochChanged, RACE_MESSAGE, RESET_MESSAGE,
+         outsideMessage } from '../_shared/draft-save.js';
 import { jsValue, extractArray, headerBefore } from '../_shared/js-data.js';
 
 const FILE = 'js/products.js';
@@ -74,6 +75,12 @@ export function tidy(product) {
   const out = {};
   const put = (k) => {
     let v = product[k];
+    // catLabel is never the editor's to get right: it follows cat, decided
+    // here so every copy of it agrees. (validate() has already refused an
+    // unknown cat by the time anything is rendered.) The editor used to
+    // refresh it while drawing each row, which meant renaming a category in
+    // CATEGORIES never reached products whose dropdown nobody touched.
+    if (k === 'catLabel' && LABEL.has(product.cat)) v = LABEL.get(product.cat);
     if (v === undefined || v === null || v === '') return;
     // Whole cents, so every page shows the same figure (the build scripts
     // and the browser would each round 19.999 their own way). JSON has one
@@ -187,10 +194,27 @@ export function config(env) {
   return { repo, token, branch, api };
 }
 
-// file defaults to the catalog; /api/partners passes js/partners.js.
+/*
+ * file defaults to the catalog; /api/partners passes js/partners.js.
+ *
+ * Every GET is deliberately un-cacheable. GitHub answers an authenticated
+ * read of this endpoint with "Cache-Control: private, max-age=60", and it
+ * serves the file from a replica, so a plain read can hand back the PREVIOUS
+ * version of a file for a few seconds after a write. A Save that believed one
+ * of those stale answers reported the file as "changed on GitHub" and told
+ * the team to press Reset draft -- which reseeded the draft from that same
+ * stale copy and silently threw away what they had just added. So: a unique
+ * query string (GitHub ignores unknown params), no-cache headers, and
+ * cacheTtl 0 for Cloudflare's own fetch cache. See settleBase() in
+ * _shared/draft-save.js, which re-reads through here before trusting a
+ * mismatch.
+ */
 export async function github(cfg, method, body, file) {
   const url = (cfg.api || 'https://api.github.com') + '/repos/' + cfg.repo + '/contents/' + (file || FILE) +
-              (method === 'GET' ? '?ref=' + encodeURIComponent(cfg.branch) : '');
+              (method === 'GET'
+                ? '?ref=' + encodeURIComponent(cfg.branch) + '&fresh=' + Date.now() + '-' +
+                  Math.random().toString(36).slice(2, 8)
+                : '');
   const res = await fetch(url, {
     method,
     headers: {
@@ -198,8 +222,10 @@ export async function github(cfg, method, body, file) {
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       'User-Agent': 'mycampuskorner-catalog-editor',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
     },
+    cf: { cacheTtl: 0, cacheEverything: false },
     body: body ? JSON.stringify(body) : undefined
   });
   const text = await res.text();
@@ -260,6 +286,8 @@ export async function onRequestPost({ request, env }) {
     if (epochMoved(body, draftEpoch)) return json(409, { error: RESET_MESSAGE });
     const got = await env.DB.prepare('SELECT data FROM draft_rows WHERE deleted=0 ORDER BY pos, rid').all();
     products = got.results.map((r) => JSON.parse(r.data));
+    // Re-checked AFTER the rows: see epochChanged() in _shared/draft-save.js.
+    if (await epochChanged(env.DB, 'draft_meta', draftEpoch)) return json(409, { error: RESET_MESSAGE });
   }
   if (!Array.isArray(products)) return json(400, { error: 'products must be a list' });
   if (!products.length) return json(400, { error: 'refusing to save an empty catalog' });
@@ -267,31 +295,27 @@ export async function onRequestPost({ request, env }) {
   const errors = validate(products);
   if (errors.length) return json(400, { error: 'validation failed', errors });
 
-  // Re-read so we keep the comment header and can see the current sha.
-  const current = await github(cfg, 'GET');
-  if (!current.ok) {
-    return json(502, { error: 'could not read the current ' + FILE +
-                              ' from GitHub (HTTP ' + current.status + ')' });
-  }
-
-  let header = '';
-  try { header = readHeader(decodeBase64(current.data.content)); } catch (e) { /* header optional */ }
+  // Re-read so we keep the comment header and can see the current sha. One
+  // cache-busted read, reusable: settleBase() re-reads through it before it is
+  // willing to call a sha disagreement an outside commit.
+  const readFresh = async () => {
+    const res = await github(cfg, 'GET');
+    if (!res.ok) throw new Error('could not read the current ' + FILE +
+                                 ' from GitHub (HTTP ' + res.status + ')');
+    return { sha: res.data.sha, source: decodeBase64(res.data.content) };
+  };
+  let current;
+  try { current = await readFresh(); } catch (e) { return json(502, { error: e.message }); }
 
   if (body.fromDraft) {
-    // The draft remembers the sha it was seeded from; a mismatch means somebody
-    // committed js/products.js directly in git while the draft was live (or,
-    // briefly, that another editor's Save is landing -- see draft-save.js).
-    const mismatch = await baseMismatch(env.DB, 'draft_meta', current.data.sha);
-    if (mismatch === 'race') return json(409, { error: RACE_MESSAGE });
-    if (mismatch) {
-      return json(409, {
-        error: 'js/products.js changed on GitHub since this draft was loaded (a direct commit in git, or a\n' +
-               'Save that finished while the draft was being reset).\n' +
-               'Press "Reset draft" to start over from that newer version (unpublished ' +
-               'edits are discarded), or reconcile the two in git first.'
-      });
-    }
-  } else if (body.sha && body.sha !== current.data.sha) {
+    // The draft remembers the sha it was seeded from. A disagreement is only
+    // an outside commit once both sides have been re-read and still differ --
+    // see settleBase() in _shared/draft-save.js.
+    const settled = await settleBase(env.DB, 'draft_meta', current, readFresh);
+    current = settled.current;
+    if (settled.verdict === 'race') return json(409, { error: RACE_MESSAGE });
+    if (settled.verdict) return json(409, { error: outsideMessage(FILE) });
+  } else if (body.sha && body.sha !== current.sha) {
     return json(409, {
       error: 'Somebody else saved the catalog while this page was open.\n' +
              'Press Reload to pick up their version, then make your changes again. ' +
@@ -299,15 +323,25 @@ export async function onRequestPost({ request, env }) {
     });
   }
 
+  let header = '';
+  try { header = readHeader(current.source); } catch (e) { /* header optional */ }
   const content = render(header, products);
   const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
   const message = 'Catalog: ' + products.length + ' products, edited in the web editor' +
                   (who ? ' by ' + who : '');
 
+  // Last check before the commit. settleBase() above can wait a couple of
+  // seconds for GitHub, which is ample time for a Reset or a History restore
+  // to land; publishing the rows read before it would send out a version
+  // nobody has seen.
+  if (body.fromDraft && await epochChanged(env.DB, 'draft_meta', draftEpoch)) {
+    return json(409, { error: RESET_MESSAGE });
+  }
+
   const put = await github(cfg, 'PUT', {
     message,
     content: encodeBase64(content),
-    sha: current.data.sha,
+    sha: current.sha,
     branch: cfg.branch
   });
 

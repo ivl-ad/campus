@@ -47,14 +47,21 @@ const json = (status, body) => new Response(JSON.stringify(body), {
 // github() in catalog.js only talks to contents/<FILE> on the branch head;
 // history also needs the commits list and contents-at-a-ref, so this is the
 // generic read-only variant.
+// Un-cacheable for the same reason as github() in catalog.js: GitHub serves
+// an authenticated read from a replica with a 60s Cache-Control, so a plain
+// read here could leave the Save that just happened out of the version list.
 async function gh(cfg, path) {
-  const res = await fetch((cfg.api || 'https://api.github.com') + '/repos/' + cfg.repo + '/' + path, {
+  const base = (cfg.api || 'https://api.github.com') + '/repos/' + cfg.repo + '/' + path;
+  const url = base + (base.indexOf('?') < 0 ? '?' : '&') + 'fresh=' + Date.now();
+  const res = await fetch(url, {
     headers: {
       'Authorization': 'Bearer ' + cfg.token,
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'mycampuskorner-catalog-editor'
-    }
+      'User-Agent': 'mycampuskorner-catalog-editor',
+      'Cache-Control': 'no-cache'
+    },
+    cf: { cacheTtl: 0, cacheEverything: false }
   });
   const text = await res.text();
   let data = null;
@@ -113,9 +120,31 @@ export async function onRequestPost({ request, env }) {
   }
 
   const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
+  // The restored draft is based on whatever GitHub holds NOW -- saving it
+  // publishes the old content over the current file, which is the whole point
+  // of a restore. Recording that is what keeps the next Save honest: leaving
+  // base_sha untouched meant a Save landing during the restore (whose own
+  // base_sha write is skipped, see recordSave) left it pointing at a commit
+  // that no longer existed, and every later Save then reported the file as
+  // changed outside the editor with Reset draft as the only way out.
+  let warning = null;
   try {
     await ensure(env.DB, doc);
     await reseed(env.DB, products, null, doc);
+    // Read AFTER the reseed, so a Save that landed while this ran is the one
+    // recorded. Reading it first meant base_sha could point at a blob that
+    // had already been superseded, and every later Save then reported the
+    // file as changed outside the editor.
+    const head = await gh(cfg, 'contents/' + file + '?ref=' + encodeURIComponent(cfg.branch));
+    if (head.ok && head.data && head.data.sha) {
+      await putMeta(env.DB, 'base_sha', head.data.sha, doc).run();
+    } else {
+      // Leaving base_sha alone is the old, fragile behaviour, so say so
+      // rather than letting a rate-limited read turn into a puzzle later.
+      warning = 'GitHub would not say which version is current (HTTP ' + head.status + '), so the ' +
+                'draft kept its previous base. If the next Save reports the file as changed on ' +
+                'GitHub, press Reset draft and restore again.';
+    }
     await putMeta(env.DB, 'reset', JSON.stringify({
       who, at: Date.now(), note: 'restored version ' + sha.slice(0, 7)
     }), doc).run();
@@ -125,6 +154,7 @@ export async function onRequestPost({ request, env }) {
 
   return json(200, {
     ok: true,
+    warning,
     count: products.length,
     message: 'Loaded ' + products.length + ' ' + noun + ' from ' + sha.slice(0, 7) +
              ' into the shared draft — every open editor reloads to it. The live site is ' +

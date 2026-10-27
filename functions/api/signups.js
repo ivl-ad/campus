@@ -42,7 +42,12 @@ export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const list = listFor(url.searchParams.get('list')) || LISTS.newsletter;
   await ensureTables(env.DB);
-  const select = 'SELECT ' + list.cols.join(', ') + ' FROM ' + list.table + ' ORDER BY created_at DESC';
+  // The key breaks ties: created_at is only milliseconds, and two sign-ups
+  // in the same millisecond (a whole class following one link -- exactly what
+  // the generous rate limit is for) could otherwise be ordered differently
+  // between two pages, showing one twice and dropping the other.
+  const select = 'SELECT ' + list.cols.join(', ') + ' FROM ' + list.table +
+                 ' ORDER BY created_at DESC, ' + list.key + ' DESC';
 
   if (url.searchParams.get('format') === 'csv') {
     const { results } = await env.DB.prepare(select).all();
@@ -77,8 +82,9 @@ export async function onRequestPost({ request, env }) {
   let body;
   try { body = await request.json(); } catch (e) { return json(400, { error: 'Bad request' }); }
   const list = body && typeof body === 'object' ? listFor(body.list) : null;
-  if (!list || body.remove == null || typeof body.remove === 'object') {
-    return json(400, { error: 'Need list and remove' });
+  // A bare true would bind as 1 and delete message #1.
+  if (!list || (typeof body.remove !== 'string' && typeof body.remove !== 'number')) {
+    return json(400, { error: 'Need list, and remove must be an email or an id' });
   }
   await ensureTables(env.DB);
   const res = await env.DB.prepare('DELETE FROM ' + list.table + ' WHERE ' + list.key + ' = ?')

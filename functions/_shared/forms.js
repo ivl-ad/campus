@@ -112,11 +112,13 @@ export function formEndpoint(handler) {
     if (!fields || typeof fields !== 'object' || Array.isArray(fields)) return reply(false, 'Could not read the form.');
 
     // Honeypot: a field people never see. Bots fill it in; pretend it worked.
-    // Its name means nothing to browser/password-manager autofill (a field
-    // called "website" could be filled by Safari's contact AutoFill, which
-    // would silently drop a real sign-up). "website" is still honoured for
-    // pages cached from before the rename.
-    if (fields.mck_trap || fields.website) return reply(true);
+    // Its name means nothing to browser/password-manager autofill. "website"
+    // used to be honoured too, for pages cached from before the rename -- but
+    // that is the very name Safari's contact AutoFill fills, and a real
+    // sign-up caught by it is dropped with a cheerful "thank you" and no
+    // trace anywhere. No live form has carried that field for months, so the
+    // silent-loss risk now outweighs the stale-cache one.
+    if (fields.mck_trap) return reply(true);
 
     if (!env.DB) {
       console.error('forms: no DB binding on this Pages project -- submission dropped');

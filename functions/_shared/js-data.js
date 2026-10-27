@@ -76,8 +76,13 @@ export function extractArray(source, name) {
 }
 
 // Everything above the first `window.NAME =` line: the file's comment header.
+// The indentation allowance has to match extractArray above (and
+// extract_array in the build scripts): when it did not, a data file whose
+// declaration had picked up a single leading space still parsed everywhere,
+// but this returned '' and the next Save committed the file with its whole
+// documentation header silently deleted.
 export function headerBefore(source, name) {
-  const m = new RegExp('^window\\.' + name + '\\s*=', 'm').exec(source);
+  const m = new RegExp('^[ \\t]*window\\.' + name + '\\s*=', 'm').exec(source);
   return m && m.index > 0 ? source.slice(0, m.index).replace(/\n+$/, '') : '';
 }
 
@@ -94,8 +99,13 @@ export const wellFormed = (s) => String(s).replace(LONE_SURROGATE, '\uFFFD');
 // of an emoji becomes U+FFFD (\ufffd, the replacement character browsers
 // show for it anyway).
 export function jsValue(v) {
-  return JSON.stringify(v, (k, x) => (typeof x === 'string' ? wellFormed(x) : x))
-    .replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+  const out = JSON.stringify(v, (k, x) => (typeof x === 'string' ? wellFormed(x) : x));
+  // JSON.stringify(undefined) is undefined, not a string, and .replace on it
+  // throws -- which turned one malformed entry in a data file into a bare 500
+  // that blocked every Save of that section with nothing to point at. A
+  // missing value is written as null instead.
+  if (out === undefined) return 'null';
+  return out.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 }
 
 // One entry per line, trailing comma on every entry -- the house style of

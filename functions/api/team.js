@@ -20,7 +20,8 @@
 import { config, github, encodeBase64 } from './catalog.js';
 import { readRemote, NO_FILE } from './partners.js';
 import { extractArray, headerBefore, renderArray } from '../_shared/js-data.js';
-import { draftMarks, baseMismatch, recordSave, epochMoved, RACE_MESSAGE, RESET_MESSAGE } from '../_shared/draft-save.js';
+import { draftMarks, settleBase, recordSave, epochMoved, epochChanged, RACE_MESSAGE, RESET_MESSAGE,
+         outsideMessage } from '../_shared/draft-save.js';
 
 export const FILE = 'js/team.js';
 export const TABLES = { rows: 'team_rows', meta: 'team_meta', presence: 'team_presence' };
@@ -133,6 +134,8 @@ export async function onRequestPost({ request, env }) {
     const got = await env.DB.prepare(
       'SELECT data FROM ' + TABLES.rows + ' WHERE deleted=0 ORDER BY pos, rid').all();
     team = got.results.map((r) => JSON.parse(r.data));
+    // Re-checked AFTER the rows: see epochChanged() in _shared/draft-save.js.
+    if (await epochChanged(env.DB, TABLES.meta, draftEpoch)) return json(409, { error: RESET_MESSAGE });
   }
   if (!Array.isArray(team)) return json(400, { error: 'team must be a list' });
   team = team.map(tidy);
@@ -140,22 +143,34 @@ export async function onRequestPost({ request, env }) {
   const errors = validate(team);
   if (errors.length) return json(400, { error: 'validation failed', errors });
 
+  // One cache-busted read, reusable: settleBase() re-reads through it before
+  // it is willing to call a sha disagreement an outside commit. sha is the
+  // NO_FILE sentinel when the file does not exist yet (which is what the
+  // draft recorded as its base); putSha is what GitHub wants on the write.
+  const readFresh = async () => {
+    const got = await readRemote(cfg, FILE);
+    return { exists: got.exists, source: got.source,
+             sha: got.sha || NO_FILE, putSha: got.sha || undefined };
+  };
   let current;
-  try { current = await readRemote(cfg, FILE); } catch (e) {
+  try { current = await readFresh(); } catch (e) {
     return json(502, { error: 'could not read the current ' + FILE + ' from GitHub. ' + e.message });
   }
 
   if (body.fromDraft) {
-    const mismatch = await baseMismatch(env.DB, TABLES.meta, current.sha || NO_FILE);
-    if (mismatch === 'race') return json(409, { error: RACE_MESSAGE });
-    if (mismatch) {
-      return json(409, {
-        error: FILE + ' changed on GitHub since this draft was loaded (a direct commit in git, or a\n' +
-               'Save that finished while the draft was being reset).\n' +
-               'Press "Reset draft" to start over from that version (unpublished ' +
-               'edits are discarded), or reconcile the two in git first.'
-      });
-    }
+    const settled = await settleBase(env.DB, TABLES.meta, current, readFresh);
+    current = settled.current;
+    if (settled.verdict === 'race') return json(409, { error: RACE_MESSAGE });
+    if (settled.verdict) return json(409, { error: outsideMessage(FILE) });
+  } else if (!body.sha && current.exists) {
+    // Without this the guard was opt-in: a page that loaded while the file
+    // did not exist sends no sha, and the write then used the sha just read,
+    // so GitHub accepted it and the first saver's work vanished silently.
+    return json(409, {
+      error: 'This page loaded before ' + FILE + ' existed, but it is there now -- ' +
+             'somebody else saved first. Press Reload to pick up their version, then ' +
+             'make your changes again. Nothing has been overwritten.'
+    });
   } else if (body.sha && body.sha !== current.sha) {
     return json(409, {
       error: 'Somebody else saved the team while this page was open.\n' +
@@ -169,10 +184,18 @@ export async function onRequestPost({ request, env }) {
   const message = 'Team: ' + team.length + (team.length === 1 ? ' person' : ' people') +
                   ', edited in the web editor' + (who ? ' by ' + who : '');
 
+  // Last check before the commit. settleBase() above can wait a couple of
+  // seconds for GitHub, which is ample time for a Reset or a History restore
+  // to land; publishing the rows read before it would send out a version
+  // nobody has seen.
+  if (body.fromDraft && await epochChanged(env.DB, TABLES.meta, draftEpoch)) {
+    return json(409, { error: RESET_MESSAGE });
+  }
+
   const put = await github(cfg, 'PUT', {
     message,
     content: encodeBase64(content),
-    sha: current.sha || undefined,   // no sha = create the file
+    sha: current.putSha,             // undefined = create the file
     branch: cfg.branch
   }, FILE);
 

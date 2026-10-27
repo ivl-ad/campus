@@ -394,6 +394,64 @@ addresses you enter in the editor, so they load from wherever those point;
 and **Google Analytics** (`googletagmanager.com`) has to load from Google to
 report anything.
 
+## 13. Backups — the **Export ▾** button
+
+Every tab of the editor has **Export ▾**. It downloads a copy of what the site
+holds, and it is deliberately independent of everything else: it reads the
+published files straight from GitHub and the sign-up tables straight from the
+database, so it keeps working even when the editor, the draft or a deploy does
+not.
+
+| Download | What it is |
+| --- | --- |
+| **Everything (JSON)** | Every section, the sign-up tables, and each data file's exact bytes. A whole restore kit in one file. |
+| Products / Partners / Blog / Team (JSON) | One section, as data. |
+| Newsletter sign-ups (CSV) | Opens in Excel or Google Sheets. |
+| Contact messages (CSV) | The same, for the contact form. |
+
+It is a copy of what is **published**. Unpublished draft edits are not in it —
+Save is what makes an edit real.
+
+### What is actually at risk, and how to put it back
+
+**Products, partners, blog, team live in git.** Every Save is a commit, so they
+already have a full history and three ways back, cheapest first:
+
+1. **History ▾** in the editor — loads an old version into the draft; press
+   Save to publish it.
+2. `git revert` or `git checkout <commit> -- js/products.js` in the repo.
+3. From a bundle: the `files` section holds each data file verbatim. Paste
+   those bytes over the file, commit, done.
+
+A bad code deploy cannot touch them: a deploy changes the pages, not the data
+files, and anything that did go wrong is one `git revert` away.
+
+**Newsletter sign-ups and contact messages live only in the database.** Nothing
+else holds a copy. If the D1 binding were deleted, or the database dropped,
+they would be gone for good — these are the rows worth downloading on a
+schedule. Monthly is plenty; before any Cloudflare change, do it anyway.
+
+To put them back, the bundle carries `files["signups-restore.sql"]`, ready to
+paste into **Cloudflare dashboard → D1 → your database → Console**. It uses
+`INSERT OR IGNORE`, so running it twice is harmless and it never overwrites
+rows that are already there. (You can also fetch just that file at
+`/api/export?section=newsletter&format=sql`.)
+
+### By hand, or on a schedule
+
+Export is a plain URL behind the same password, so anything that can fetch a
+URL can take the backup:
+
+```
+https://mycampuskorner.com/api/export                              everything
+https://mycampuskorner.com/api/export?section=newsletter&format=csv
+https://mycampuskorner.com/api/export?section=partners&format=js   the data file itself
+```
+
+sections: `all` (default), `products`, `partners`, `blog`, `team`,
+`newsletter`, `contact` · formats: `json` (default), `js` (content sections),
+`csv` and `sql` (the two sign-up lists).
+
 ## If something goes wrong
 
 | What you see | Cause |
@@ -407,7 +465,9 @@ report anything.
 | Product pages update but Shop/Home do not | The rebuild commit reached GitHub but Cloudflare skipped deploying it. Never put `[skip ci]`, `[CI Skip]` or `[CF Pages Skip]` in a commit message — Cloudflare Pages treats those as "do not build". |
 | "Somebody else saved the catalog…" | Two editors open **without** the D1 binding (step 5). Reload and reapply your change. Nothing was lost. |
 | Edits do not appear on a colleague's screen | The D1 binding is missing or was added without a redeploy (step 5). The footer says "shared draft · source: …" when live sync is on. |
-| "js/products.js changed on GitHub outside this editor" | Someone committed the file directly in git while a draft was live. Press **Reset draft** to start from that newer version. |
+| "js/products.js changed on GitHub since this draft was loaded" | Someone committed that file directly in git (or from another branch) while a draft was live. Nothing was published and nothing is lost. Take a copy first — **Export ▾ → Everything (JSON)** — then press **Reset draft** to start again from the version on GitHub. Until October 2026 this message also appeared for ordinary saves, because a Save believed a stale read from GitHub; that is fixed (see `settleBase` in `functions/_shared/draft-save.js`), so it now means what it says. |
+| Save says "Another editor saved a moment ago" | Exactly that — their commit landed while yours was on its way. Press Save again; the shared draft already holds both sets of edits. |
+| You want a backup before doing something risky | **Export ▾ → Everything (JSON)** (step 13). It takes a second and does not depend on the draft. |
 | Editor shows stale rows after a Reset | It catches up on its next poll (a few seconds). Every editor reloads its table automatically when the draft is reset. |
 | "The shared draft was just reset or restored by another editor, so this Save was not sent" | Someone pressed **Reset draft** or restored a version while your Save was on its way. Your table has reloaded to their version: check it, redo anything missing, then press Save again. Edits typed during a Reset are dropped the same way (never half-applied). |
 | "Your unapplied Raw block … was closed" (with a **Copy the block** button) | The post you were pasting into was deleted, or is not in a draft someone just reset / restored. Press **Copy the block**, open (or add) the post, and paste it into its Raw block. |
