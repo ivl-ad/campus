@@ -32,6 +32,27 @@
   margin-top: auto;
 }
 
+/* ---------------------------------------------------- product card images ---
+ * Catalog images come from many retailers in every shape: square photos,
+ * tall skyscraper banners, wide logos. The Webflow rule for .full-img crops
+ * them to fill the card's box (object-fit: cover), which cut the ends off
+ * anything that is not the box's own shape -- a wide logo lost both sides.
+ * Fit the whole image inside the box instead, centred: never cropped, never
+ * stretched. The box is white, as most product shots are, so the space beside
+ * a wide or tall image reads as part of it; the inset keeps it off the
+ * border. Same treatment as the main photo on product.html (#p-image).
+ * A very small image is still scaled up to fill the box and can look soft --
+ * the editor marks those "low-res" so a better address can be given.
+ */
+.product-img-wrap {
+  background-color: #fff;
+}
+.product-img-wrap > .full-img {
+  object-fit: contain;
+  object-position: center;
+  padding: 12px;
+}
+
 /* --------------------------------------------------------- price visibility -
  * Driven by SHOW_PRICES in js/site-config.js, which puts .prices-hidden on
  * <html> before the body paints. Set that variable to true to show prices.

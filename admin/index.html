@@ -133,6 +133,9 @@
   .view-partners .thumb{width:84px;height:40px;padding:3px}
   .view-partners td.broken::after{content:"can't load";display:block;text-align:center;
         color:var(--red);font-size:11px;margin:-2px 0 4px}
+  select.imgfrom-retailer{color:var(--amber);font-weight:600}
+  td.lowres::after{content:"low-res";display:block;text-align:center;
+        color:var(--amber);font-size:10px;font-weight:600;margin:-3px 0 3px}
   .view-partners td.act button.mv{padding:3px 6px}
 
   /* Live preview of the home page strip, drawn by js/partner-marquee.js from
@@ -376,11 +379,20 @@
         ['price', 'price', 90],
         ['url', 'url', 240],
         ['img', 'img url', 240, '', 'img'],
+        ['imgFrom', 'image served from', 150],
         ['desc', 'desc', 260, '(optional)'],
         ['note', 'note', 180, '(internal — in the public data file, not secret)']
       ],
       text: ['desc', 'note'],
       thumb: 'img',
+      // An image stored on the site (images/...) is relative to the site,
+      // not to /admin/.
+      thumbSrc: siteSrc,
+      // Smaller than this on its long side and it looks soft on the site's
+      // cards (~350 x 300): the thumbnail says so. Same limit as LOW_RES in
+      // fetch_images.py, which reports them in the rebuild log.
+      lowRes: 300,
+      kinds: { imgFrom: imgFromKind() },
       search: ['id', 'name', 'merchant', 'catLabel'],
       filterHint: 'Filter by name, id, merchant…  ( / )',
       blank: function () { return { cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] }; },
@@ -1161,11 +1173,20 @@
     img.className = 'thumb'; img.alt = ''; img.loading = 'lazy';
     img.onerror = function () {
       img.style.visibility = 'hidden';
+      tdImg.classList.remove('lowres');
+      tdImg.title = '';
       if (row.data[DOC.thumb]) tdImg.classList.add('broken');
     };
     img.onload = function () {
       img.style.visibility = 'visible';
       tdImg.classList.remove('broken');
+      // The site fits every image whole into its card, scaling a small one
+      // up -- so a small one looks soft there. Say so where it can be fixed.
+      var w = img.naturalWidth, h = img.naturalHeight;
+      var low = !!(DOC.lowRes && w && Math.max(w, h) < DOC.lowRes);
+      tdImg.classList.toggle('lowres', low);
+      tdImg.title = low ? 'Low resolution: ' + w + ' × ' + h + ' px. It will look soft on the ' +
+        'site — a larger image address (' + DOC.lowRes + ' px or more) fixes it.' : '';
     };
     tdImg.appendChild(img);
     row.el.appendChild(tdImg);
@@ -2577,6 +2598,30 @@
         s.className = 'st ' + (v ? 'st-draft' : 'st-live');
       },
       read: function (s) { return s.value === 'draft' ? true : undefined; }
+    };
+  }
+  // Products: where the image is served from. "This site" (the default, not
+  // written to the file) shows the copy fetch_images.py keeps -- faster, and
+  // immune to the retailer moving the file. "Retailer's address" always loads
+  // the img url itself: for an affiliate creative whose network counts views,
+  // or whose terms require the hosted file. See HANDOVER section 3.8.
+  function imgFromKind() {
+    return {
+      self: true,
+      make: function () {
+        var s = el('select', 'imgfrom');
+        [['', 'this site (copy)'], ['retailer', 'retailer\u2019s address']].forEach(function (o) {
+          var opt = el('option', '', o[1]); opt.value = o[0]; s.appendChild(opt);
+        });
+        s.title = 'This site: the copy kept on mycampuskorner.com (faster). Retailer\u2019s ' +
+                  'address: always load the img url itself (keeps affiliate view counts).';
+        return s;
+      },
+      write: function (s, v) {
+        s.value = v === 'retailer' ? 'retailer' : '';
+        s.className = 'imgfrom' + (v === 'retailer' ? ' imgfrom-retailer' : '');
+      },
+      read: function (s) { return s.value === 'retailer' ? 'retailer' : undefined; }
     };
   }
   function dateKind() {

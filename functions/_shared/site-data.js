@@ -45,21 +45,39 @@ async function readAsset(env, request, path, optional) {
   return res.text();
 }
 
+// js/local-images.js (written by fetch_images.py): original image address ->
+// the copy kept on this site. {} when there is none or it cannot be read --
+// images then simply keep their own addresses, as before.
+export function localImages(source) {
+  const m = /window\.LOCAL_IMAGES\s*=\s*(\{[\s\S]*?\})\s*;/.exec(source || '');
+  if (!m) return {};
+  try { return JSON.parse(m[1]); } catch (e) { return {}; }
+}
+
 // A deployment's files never change, so one parse per isolate is enough.
 let cache = null;
 
 export async function loadSiteData(env, request) {
   if (cache) return cache;
-  const [productsJs, blogsJs, teamJs, configJs] = await Promise.all([
+  const [productsJs, blogsJs, teamJs, configJs, imagesJs] = await Promise.all([
     readAsset(env, request, '/js/products.js'),
     readAsset(env, request, '/js/blogs.js'),
     readAsset(env, request, '/js/team.js', true),
-    readAsset(env, request, '/js/site-config.js', true)
+    readAsset(env, request, '/js/site-config.js', true),
+    readAsset(env, request, '/js/local-images.js', true)
   ]);
   const allPosts = extractArray(blogsJs, 'BLOG_POSTS');
   let team = [];
   try { team = teamJs ? extractArray(teamJs, 'TEAM') : []; } catch (e) { /* no team yet */ }
-  const products = extractArray(productsJs, 'PRODUCTS');
+  const local = localImages(imagesJs);
+  // Share images and structured data use the copy on this site, as the
+  // pages do (absoluteUrl() makes the path a full address).
+  // ...except a product set to show its image from the retailer (imgFrom).
+  const products = extractArray(productsJs, 'PRODUCTS').map((p) => {
+    const img = p && typeof p.img === 'string' ? p.img.trim() : '';
+    return img && p.imgFrom !== 'retailer' && Object.prototype.hasOwnProperty.call(local, img)
+      ? Object.assign({}, p, { img: local[img] }) : p;
+  });
   cache = {
     products,
     // [[id, label], ...]: the built-in categories plus any added in the

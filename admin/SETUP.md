@@ -461,6 +461,38 @@ sections: `all` (default), `products`, `partners`, `blog`, `team`,
 `newsletter`, `contact` · formats: `json` (default), `js` (content sections),
 `csv` and `sql` (the two sign-up lists).
 
+## 14. Product images and partner logos
+
+**Any image address works, whatever its shape.** Every card shows the whole
+image, centred on white — never cropped, never stretched — so wide logos,
+tall banners and square photos all sit happily side by side.
+
+**The site keeps its own copy.** You still paste the retailer's image address
+in the editor. After you Save, the rebuild (about two minutes, the Actions
+tab) downloads a copy into `images/products/` (logos: `images/partners/`) and
+the site shows that copy, not the retailer's file. Until then, or if a
+retailer refuses the download, the image simply shows from its own address.
+
+**"low-res" under a thumbnail** (Products tab) means the image is under 300
+pixels on its long side; the card scales it up, so it looks soft. Hover for
+its size. To fix it, give that product a larger image address — or save a
+better image into `images/products/` in GitHub and type its path
+(`images/products/name.jpg`) as the img url.
+
+**The retailer changed the picture but kept the address?** The site keeps its
+first copy. Delete that file from `images/products/` in GitHub (the name
+starts with the product id) and the next rebuild downloads it again.
+
+**"image served from"** (the column after *img url*, Products tab):
+
+- **this site (copy)** — the default, and the right choice for almost every
+  product: faster, and the image keeps working even if the retailer moves it.
+- **retailer's address** — always load the img url itself. Use it for an
+  affiliate creative (a banner or image from Impact, CJ, Awin, ShareASale,
+  AvantLink, FlexOffers…) when that network's view counts matter to you, or
+  the program's terms say its image must be loaded from them. Clicks are
+  tracked either way. Shown in amber so these stand out.
+
 ## If something goes wrong
 
 | What you see | Cause |
@@ -490,6 +522,8 @@ sections: `all` (default), `products`, `partners`, `blog`, `team`,
 | Pasted article lost its images | Image files can't be pasted or dropped — put the image online and insert it with **Image** and its address. |
 | A partner row says "can't load" | The logo url is not an image the browser can fetch (typo, a page rather than an image, or the partner's site blocks hotlinking). Right-click the logo on their site → Copy image address, or put the file in `images/` and use that path. |
 | Saved partners but the home page strip has not changed | Wait for the Pages redeploy (~1 min), then hard-refresh (Ctrl+F5). With 0 partners the MyCampusKorner strip is expected. |
+| A product image still loads from the retailer's site | Its copy has not been made yet (the rebuild takes ~2 min after a Save), or the retailer refused the download — the Actions log for that run lists it under `!`. It keeps working from the retailer's address either way. To make the copy by hand: save the image into `images/products/` in GitHub and use that path as the img url. |
+| A product image looks blurry | It is small (the editor marks it **low-res**). Give it a larger image address (section 14). |
 
 ## Changing the password
 

@@ -1,14 +1,18 @@
 name: Rebuild listings
 
 # The admin editor commits data files and nothing else: js/products.js,
-# js/blogs.js, js/team.js (js/partners.js needs no build -- the home page
-# reads it in the browser). Several pages carry that content as baked HTML so
-# they stay crawlable and work with JavaScript off, and this job is what keeps
-# them in step:
+# js/partners.js, js/blogs.js, js/team.js. Several pages carry that content
+# as baked HTML so they stay crawlable and work with JavaScript off, and the
+# product images and partner logos are kept as copies on the site rather
+# than loaded from the retailers. This job is what keeps all of it in step:
 #
-#   build_listings.py   store.html, index.html   <- js/products.js
-#   build_content.py    blog.html, index.html,   <- js/blogs.js, js/team.js
-#                       about.html
+#   fetch_images.py     images/products/, images/partners/,  <- js/products.js,
+#                       js/local-images.js                       js/partners.js
+#   build_listings.py   store.html, index.html                <- js/products.js
+#   build_content.py    blog.html, index.html, about.html     <- js/blogs.js, js/team.js
+#
+# It never edits a data file, so its commit never looks like "a commit made
+# outside the editor" to the shared draft.
 #
 # Cloudflare Pages then deploys the result.
 #
@@ -21,10 +25,12 @@ on:
     branches: [main]
     paths:
       - 'js/products.js'
+      - 'js/partners.js'
       - 'js/blogs.js'
       - 'js/team.js'
       - 'build_listings.py'
       - 'build_content.py'
+      - 'fetch_images.py'
   workflow_dispatch:        # lets you run it by hand from the Actions tab
 
 # Needed so the workflow can push the rebuilt pages back.
@@ -53,10 +59,17 @@ jobs:
         with:
           python-version: '3.x'
 
+      # Pillow scales oversized images down for fetch_images.py. Pinned so the
+      # copies come out the same as from a local run. Without it the images
+      # are kept exactly as downloaded, so a failed install is not fatal.
+      - name: Image tools
+        run: pip install "pillow==12.3.0" || echo "Pillow not installed - images are kept as downloaded"
+
       - name: Rebuild the baked pages and commit them
         run: |
           set -u
           PAGES="store.html index.html blog.html about.html"
+          IMAGES="js/local-images.js images/products images/partners"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -70,26 +83,35 @@ jobs:
           for attempt in 1 2 3; do
             git fetch origin "$GITHUB_REF_NAME"
             git reset --hard "origin/$GITHUB_REF_NAME"
+            # A previous attempt's downloads are untracked, so reset leaves
+            # them; clear them so only what this attempt needs is committed.
+            git clean -fdq -- images/products images/partners
 
-            # Both scripts write index.html, each owning its own containers,
-            # so they run one after the other rather than together.
+            # Copies first: build_listings.py bakes them into the cards. A
+            # retailer refusing a download is reported, not fatal -- that
+            # image just keeps showing from its own address.
+            python fetch_images.py || echo "fetch_images.py failed - images keep their own addresses"
+            # Both build scripts write index.html, each owning its own
+            # containers, so they run one after the other.
             python build_listings.py
             python build_content.py
 
-            if git diff --quiet -- $PAGES; then
-              echo "Pages already match the data files - nothing to commit."
+            if [ -z "$(git status --porcelain -- $PAGES $IMAGES)" ]; then
+              echo "Pages and images already match the data files - nothing to commit."
               exit 0
             fi
 
-            git add $PAGES
+            git add -- $PAGES
+            # -A so a copy nothing uses any more is deleted from the repo too.
+            for p in $IMAGES; do git add -A -- "$p" 2>/dev/null || true; done
             # No "[skip ci]" here. Cloudflare Pages treats that as its own
             # skip-build token, so it would ignore the very commit that carries
             # the rebuilt pages and the site would stay stale.
             # Nothing is needed to stop this workflow re-triggering itself: the
-            # paths filter above only watches the data files and the two build
+            # paths filter above only watches the data files and the three
             # scripts, and this commit touches none of them. (GitHub also
             # refuses to start workflows from GITHUB_TOKEN pushes.)
-            git commit -m "Rebuild baked pages from the data files"
+            git commit -m "Rebuild baked pages and image copies from the data files"
 
             if git push; then
               echo "Rebuilt pages pushed on attempt $attempt."

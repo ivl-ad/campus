@@ -19,11 +19,13 @@
 # Webflow re-export, so it busts its own cache regardless. The pages link
 # css/site-custom.css?v=<date>: bump that date in every page when a change
 # must reach everyone at once.
-# images: site chrome (heroes, favicons, logos) and the blog cover images
-# in images/blog - product photos are external merchant URLs, so nothing
-# here goes stale with the catalog. Replacing an image file under the same
-# name reaches repeat visitors within a week; give it a new name to show it
-# at once.
+# images: site chrome (heroes, favicons, logos), the blog cover images in
+# images/blog, and the copies of product images and partner logos that
+# fetch_images.py keeps in images/products and images/partners. Those copies
+# are named after a hash of their original address, so a changed image is a
+# new file and nothing goes stale with the catalog. Replacing an image file
+# under the same name reaches repeat visitors within a week; give it a new
+# name to show it at once.
 # fonts and js/vendor (jQuery, GSAP, Swiper): third-party files whose
 # version is in the file name, and the site's fonts -- they never change in
 # place, so browsers may keep them for a year.
@@ -41,6 +43,17 @@
 
 /images/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=604800
+
+# The copies of retailers' images are third-party files served from this
+# site's own origin, so they are sandboxed: one opened directly in a tab
+# (an SVG can carry script) runs nothing and can reach nothing. Pages show
+# them with <img>, which this does not affect. fetch_images.py also refuses
+# any SVG containing script.
+/images/products/*
+  Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox
+
+/images/partners/*
+  Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox
 
 /documents/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=604800

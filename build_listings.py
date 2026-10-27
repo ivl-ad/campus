@@ -163,6 +163,41 @@ def extract_array(source, name, path, quiet=False):
     return data
 
 
+# Copies of the product images kept on the site (fetch_images.py writes it).
+LOCAL_IMAGES = os.path.join('js', 'local-images.js')
+
+
+def read_local_images(root):
+    """original image address -> its copy on this site, from
+    js/local-images.js ({} when there is none yet). Shared with
+    fetch_images.py, which writes the file."""
+    path = os.path.join(root, LOCAL_IMAGES)
+    if not os.path.isfile(path):
+        return {}
+    m = re.search(r'window\.LOCAL_IMAGES\s*=\s*(\{.*?\})\s*;',
+                  open(path, encoding='utf-8').read(), re.S)
+    if not m:
+        raise BuildError('%s: window.LOCAL_IMAGES = { ... }; not found' % path)
+    return json.loads(m.group(1))
+
+
+def with_local_images(products, local):
+    """The products as the pages should show them: each image from its copy
+    on this site when there is one, else from its own address -- and always
+    from its own address when the product says imgFrom: "retailer"."""
+    out = []
+    for p in products:
+        img = str(p.get('img') or '').strip()
+        keep = p.get('imgFrom') == 'retailer'
+        out.append(dict(p, img=local[img]) if img in local and not keep else p)
+    return out
+
+
+def absolute(src):
+    """A full address, as structured data needs: copies are site paths."""
+    return src if re.match(r'^https?://', src, re.I) else SITE + '/' + src.lstrip('/')
+
+
 def load_products(path, quiet=False):
     """The list in a products.js file (`window.PRODUCTS = [...]`)."""
     if not os.path.isfile(path):
@@ -230,6 +265,10 @@ def validate(products, categories=None):
             seen[pid] = n
             if not re.match(r'^[a-z0-9][a-z0-9-]*$', str(pid)):
                 warnings.append('%s: id should be lowercase letters, numbers and dashes' % where)
+
+        if p.get('imgFrom') not in (None, '', 'site', 'retailer'):
+            warnings.append('%s: imgFrom "%s" is not "site" or "retailer" -- treated as "site"'
+                            % (where, p.get('imgFrom')))
 
         cat = p.get('cat')
         if cat and cat not in category_label:
@@ -423,7 +462,7 @@ def list_elements(products, show_prices=False):
     for i, p in enumerate(products):
         url = SITE + '/product?id=' + p['id']
         if show_prices and 'price' in p:
-            item = {'@type': 'Product', 'name': p['name'], 'image': p['img'],
+            item = {'@type': 'Product', 'name': p['name'], 'image': absolute(p['img']),
                     'category': p['catLabel'], 'url': url,
                     'offers': {'@type': 'Offer', 'price': str(p['price']),
                                'priceCurrency': 'USD',
@@ -707,8 +746,11 @@ def main():
 
     try:
         show = prices_shown(root)
-        built = encode_pages([build_store(root, products, show, categories),
-                              build_index(root, products, show)])
+        # Cards show the copies fetch_images.py keeps on the site; validation
+        # above, and the mismatch check below, see the catalog as saved.
+        shown = with_local_images(products, read_local_images(root))
+        built = encode_pages([build_store(root, shown, show, categories),
+                              build_index(root, shown, show)])
     except BuildError as exc:
         print('error: %s' % exc)
         print('\nnothing was written.')

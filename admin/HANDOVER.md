@@ -6,8 +6,12 @@ plus the fixes and features described below, in two rounds:
 * **Round 1** (backups, stale reads, the rebuild Action) — **deployed on
   27 Oct 2026** as commits `1160b7a` and `93c6228` ("update").
 * **Round 2** (commits made outside the editor are merged, not refused; new
-  product categories) — section 3.7 and section 5. **In this folder, tested,
-  not yet deployed.**
+  product categories) — section 3.7 and section 5. **Deployed on 27 Oct 2026**
+  as `ad80dfe`; four minutes later a partner Save went through on the live
+  site (`58ebe5e`, "Partners: 22 logos … by vlad") — the first since 22 Sep.
+* **Round 3** (product images never cropped; product images and partner
+  logos stored on the site) — section 3.8. **In this folder, tested, not yet
+  deployed.**
 
 **Start with 3.1 and 3.7.** The reported error had a different cause from
 the one round 1 fixed, and those two sections are the accurate account.
@@ -33,6 +37,28 @@ work.
 The two were reconciled by comparing them file by file: the September folder
 contributed nothing that `latest/` did not already have, so `latest/` is the
 only ancestor that matters.
+
+### Round 3 — what changed since the round-2 deploy
+
+```
+css/site-custom.css                     card images fit whole: object-fit contain
+*.html (13 pages)                       site-custom.css?v=20261027 (cache bump)
+fetch_images.py                         NEW — stores image copies, writes js/local-images.js
+js/local-images.js                      NEW, GENERATED — original address -> copy
+images/products/, images/partners/      NEW — the copies (69 files, ~4.5 MB)
+build_listings.py                       Store/Home cards use the copies
+product/category/merchant/index.html    load js/local-images.js after the data file
+functions/_shared/site-data.js          share images use the copies
+.github/workflows/rebuild-listings.yml  runs fetch_images.py; also on js/partners.js
+_headers                                the copy folders are sandboxed
+admin/index.html                        "low-res" marker; local image paths show;
+                                        "image served from" column (per-product opt-out)
+functions/api/catalog.js                imgFrom: validated; "site" (default) never written
+tools/test.mjs                          199 checks (not committed)
+```
+
+`js/partners.js` was brought up to date with GitHub (`58ebe5e`) before the
+copies were made, so no data file differs from GitHub.
 
 ### Round 2 — what changed since the 27 Oct deploy
 
@@ -124,7 +150,24 @@ database, never against the real ones — no token for them, and rightly so. So
 the first few minutes after the deploy are the real test. In order, each one
 checking something that was changed:
 
-For round 2, in order:
+For round 3, in order:
+
+1. **Open the home page.** The "See what actually works" cards show each
+   image whole — Corp Direct and Grad Guard show their full logos. Hard-refresh
+   once (Ctrl+F5) if a browser still has yesterday's stylesheet.
+2. **Right-click a product image → Open image in new tab.** The address is
+   `mycampuskorner.com/images/products/…`, not a retailer's.
+3. **Check the Actions tab.** The push changes `build_listings.py` and
+   `fetch_images.py`, so the workflow runs once and should report "Pages and
+   images already match".
+4. **Products → add a product with an image → Save.** About two minutes later
+   the Action commits "Rebuild baked pages and image copies…" with the new
+   copy in `images/products/`. Until then the image shows from its own
+   address. If the log says a download was refused, that image simply stays
+   on its own address (see 3.8).
+5. **Products tab:** seven thumbnails say **low-res** (see 3.8).
+
+For round 2 (already deployed and confirmed), in order:
 
 1. **Open `/admin/`.** The table loads.
 2. **Export ▾ → Everything (JSON).** Keep the file: it is the backup for the
@@ -456,6 +499,98 @@ partners was asked about, and "publish the draft" put all six back. The blog
 path was checked in a scratch run with a do-nothing `HTMLRewriter` (it never
 enters the suite, for the reason in section 6).
 
+### 3.8 Round 3: product images — never cropped, and stored on the site
+
+**The cropping.** Every product card image used Webflow's `.full-img` rule,
+`object-fit: cover`, in a fixed ~350 × 300 box. Cover fills the box by
+cropping, so anything not that shape lost its ends — Corp Direct (400 × 131)
+and Grad Guard (400 × 77) were cut down to the middle of their logos. The
+catalog really is every shape: 468 × 60 and 160 × 600 ad banners, wide logos,
+squares, 2400 × 1260. `css/site-custom.css` now fits each image whole inside a
+white box (`object-fit: contain`, 12 px inset) — never cropped, never
+stretched. It is the treatment `product.html` already gave its main photo
+(`#p-image`). Only `.product-img-wrap` uses it, and that class is only ever a
+product card (home rail, store, category, merchant, product-page rail).
+
+A small image is still scaled up to fill the box and can look soft; that is
+the "manual fix" case. The editor marks those thumbnails **low-res** (long
+side under 300 px — `lowRes` in the products `DOCS` entry, `LOW_RES` in
+`fetch_images.py`). Seven were, at the time: Moving, Huffy bikes, Marriot
+Bonvoy, Ticket Liquidator, Book Seats Tickets, Blick Art Supplys, Kingbull
+Hunter.
+
+**The copies.** `fetch_images.py` downloads every product image and partner
+logo into `images/products/` or `images/partners/` and writes
+`js/local-images.js`: original address → copy. It deliberately **does not
+edit the data files** — the editor keeps the original address, so the
+rebuild's commit is never "a commit made outside the editor" (3.7), and the
+admin, the draft and Export are untouched. Each reader uses the map:
+
+| Reader | How |
+| --- | --- |
+| `build_listings.py` | `with_local_images()` before baking the Store/Home cards; structured data gets full addresses (`absolute()`) |
+| `product.html`, `category.html`, `merchant.html`, `index.html` | load `js/local-images.js` right after the data file; its generated footer points `PRODUCTS[].img` / `PARTNERS[].logo` at the copies, so `product-page.js`, `listing-page.js` and `partner-marquee.js` are unchanged |
+| `functions/_shared/site-data.js` | `localImages()` — share images and structured data for the SEO functions |
+
+An address with no copy — a product saved a minute ago, or a download the
+retailer refused — just shows from its own address, as before. Nothing
+breaks if the map is missing.
+
+**When copies are made.** The GitHub Action runs `fetch_images.py` before the
+build scripts on every change to `js/products.js` or `js/partners.js`, and
+commits new copies, dropped copies, the map and the rebuilt pages in its one
+commit. Simulated against a throwaway repo: new image stored, removed
+product's copy deleted, a Save landing mid-run retried, data files never in
+the bot's commit, history linear. The 69 copies in this folder were made from
+this machine; GitHub's runners may be refused by some retailers' CDNs (they
+block data-centre addresses) — such a product keeps its own address and the
+log says so.
+
+**Details that matter:**
+
+* Copies are named `<id>-<hash of address>.<ext>`: a new address is a new
+  file, so browsers never show a stale one (images are cached for a week).
+* With Pillow (the Action installs `pillow==12.3.0`, the version used here),
+  anything over 1200 px is scaled down and saved as WebP, and AVIF is
+  converted to WebP (Safari before 16 cannot show AVIF). Never scaled up,
+  cropped or stretched; animated GIFs, SVGs and favicons are kept as is. That
+  took the 50 product images from 11.6 MB to 3.9 MB.
+* A copy is deleted only when nothing uses its address **and** no product or
+  partner names the file directly — pointing a product at its own copy
+  (`images/products/x.jpg`) is a valid manual fix, and an earlier draft of
+  the script deleted exactly that file. Hand-placed files are never touched.
+* The answer must actually be an image (checked by its first bytes — an HTML
+  error page served with 200 is refused), at most 15 MB, and an SVG
+  containing script is refused. `_headers` also sandboxes both folders with a
+  CSP, since these are third-party files served from the site's own origin.
+* To fetch an image again (the retailer replaced the picture at the same
+  address): `python fetch_images.py --refresh <product id>`, or delete the
+  file and run it.
+
+**Affiliate impressions — the per-product opt-out.** 19 of the 50 images were
+affiliate-network creatives at the time (Impact, Awin, CJ, ShareASale,
+AvantLink, FlexOffers). Some networks count a view each time their image
+loads (CJ's image links are built for exactly that); served from a copy, they
+no longer see views. Clicks are unaffected — the Buy links are untouched.
+
+So each product has **image served from** (the column after *img url*):
+
+* **this site (copy)** — the default, and the recommendation: same domain,
+  cached a week, scaled to size, and immune to the retailer moving or
+  deleting the file. Not written to the file at all.
+* **retailer's address** — `"imgFrom": "retailer"` in `js/products.js`.
+  The img url is always loaded as is: `fetch_images.py` skips the product
+  (and deletes a copy only it used), `build_listings.py`, the generated
+  footer of `js/local-images.js` and `site-data.js` all leave it alone. Use
+  it for a creative whose view counts matter or whose program's terms require
+  the hosted file.
+
+The choice is per product, not per image: if a partner logo or another
+product uses the same address, their copy stays (Blick's partner logo and the
+"art supplies" product share one Awin image, for example). Validation
+accepts only `site`, `retailer` or nothing; the editor's select can only
+produce those.
+
 ---
 
 ## 4. The new thing: backups
@@ -525,8 +660,9 @@ changes what you should worry about:
   `blog.html`, `about.html` carry their content as HTML so they are crawlable
   — those are what the two Python scripts rebuild. `product.html`,
   `category.html`, `merchant.html`, `blog-post.html` read the data files in
-  the browser and need no rebuild. `js/partners.js` is read live, which is why
-  partner saves trigger no Action at all.
+  the browser and need no rebuild. `js/partners.js` is read live too; partner
+  saves still run the Action, but only so `fetch_images.py` can store new
+  logos (3.8).
 * **Sign-ups** come in through `functions/forms/*` into D1 and are read back
   at `/admin/signups`.
 
@@ -589,7 +725,7 @@ the file. It serves GitHub's `git/blobs` endpoint (the merge's base version)
 and Pages' `env.ASSETS` binding, so `/sitemap.xml` works locally; the other
 SEO functions rewrite pages with `HTMLRewriter` and fall back to the plain page.
 
-**The suite is 181 checks and should be 0 failures.** Two tests report as
+**The suite is 199 checks and should be 0 failures.** Two tests report as
 *skipped*: both need `HTMLRewriter`, a Cloudflare runtime API with no Node
 equivalent, used to sanitise pasted article HTML. There is
 deliberately no polyfill — a hand-made one would let the suite claim a
@@ -648,6 +784,11 @@ Then run the suite, and add a case for whatever you just changed.
   blog Save in the suite.
 * **Added product categories are not in the menus** (section 5) — the mega-menu
   and footer are hand-built in every page.
+* **Image copies arrive a minute or two after a Save** (the Action), and only
+  if the retailer lets GitHub's servers download them; otherwise that image
+  keeps its own address (3.8). Affiliate networks no longer count views of a
+  copied creative; set that product's **image served from** to the
+  retailer's address where that matters (3.8).
 * **A merge conflict keeps the draft's row** (3.7). That is a policy, not a
   certainty about intent; the other version is always in History.
 * **The "large change" threshold is a count** (more than three rows removed

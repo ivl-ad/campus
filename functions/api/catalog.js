@@ -28,7 +28,12 @@ import { jsValue, extractArray, headerBefore } from '../_shared/js-data.js';
 const FILE = 'js/products.js';
 
 const FIELD_ORDER = ['id', 'name', 'cat', 'catLabel', 'merchant', 'merchantSlug',
-                     'url', 'img', 'price', 'desc', 'note'];
+                     'url', 'img', 'imgFrom', 'price', 'desc', 'note'];
+
+// Where a product's image is served from. Absent (the default) = the copy
+// fetch_images.py keeps on this site; "retailer" = always the img address
+// itself, for an affiliate creative whose network counts its views.
+export const IMG_FROM = ['site', 'retailer'];
 
 /*
  * The built-in categories, in menu order. The editor can add more ("+ New
@@ -124,6 +129,7 @@ export function tidy(product, labels = LABEL) {
     // refresh it while drawing each row, which meant renaming a category in
     // CATEGORIES never reached products whose dropdown nobody touched.
     if (k === 'catLabel' && labels.has(product.cat)) v = labels.get(product.cat);
+    if (k === 'imgFrom' && v === 'site') return;     // the default is never written
     if (v === undefined || v === null || v === '') return;
     // Whole cents, so every page shows the same figure (the build scripts
     // and the browser would each round 19.999 their own way). JSON has one
@@ -218,6 +224,10 @@ export function validate(products) {
     // is a new category, and Save adds it (see categoryList()).
     if (p.cat && typeof p.cat === 'string' && !SLUG_RE.test(p.cat)) {
       errors.push(where + ': category id "' + p.cat + '" must be lowercase letters, numbers and dashes');
+    }
+    if (p.imgFrom !== undefined && p.imgFrom !== null && p.imgFrom !== '' &&
+        IMG_FROM.indexOf(p.imgFrom) < 0) {
+      errors.push(where + ': imgFrom must be "site" or "retailer" (or left out)');
     }
     if ('price' in p && (typeof p.price !== 'number' || !isFinite(p.price) || p.price < 0)) {
       errors.push(where + ': price must be a positive number, or left out');
