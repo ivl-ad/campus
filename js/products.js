@@ -23,6 +23,7 @@ window.PRODUCTS = [
   {"id": "corp-direct", "name": "Corp Direct", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Corp Direct", "merchantSlug": "corpdirect", "url": "https://corporatedirectinc.pxf.io/VO3DOA", "img": "https://cdn2.impact.com/display-campaign-image/175043.gif"},
   {"id": "grad-guard", "name": "Grad Guard", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Grad Guard", "merchantSlug": "gradguard", "url": "https://gradguard.sjv.io/c/5891219/2331223/29624?trafsrc=affiliate", "img": "https://cdn2.impact.com/display-campaign-image/166289.gif"},
   {"id": "moving", "name": "Moving", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
+  {"id": "moving-copy", "name": "Moving (copy)", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "goodgreek", "merchantSlug": "goodgreek", "url": "https://goodgreekmovingandstorage.pxf.io/c/5891219/3201214/39845", "img": "https://app.impact.com/display-thumbnail/3201214"},
   {"id": "bradford", "name": "Bradford", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "bradford", "merchantSlug": "bradford", "url": "https://bradfordexchangechecks.fxo.co/g/1485277/159735/537509/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/159735.png"},
   {"id": "spot-loan", "name": "Spot Light Loans", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "spotlight", "merchantSlug": "spotlight", "url": "https://theofferstream.fxo.co/g/1485277/235731/6659397/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/235731.png"},
   {"id": "b-d-tool-set", "name": "B&D Tool Set", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "B&D", "merchantSlug": "black", "url": "https://track.flexlinkspro.com/p.ashx?foc=107&fos=6&fopid=1485277.234710.156052.273F.23504FB7938A6F76.BDCDD12PK", "img": "https://cdn.shopify.com/s/files/1/0640/1409/0461/files/BLACK_DECKER_Drill_and_Driver_plus_59_piece_project_kit..jpg?v=1726492851"},
@@ -69,4 +70,19 @@ window.PRODUCTS = [
   {"id": "belkin-tech-accessories-weekly-deals", "name": "Belkin Tech Accessories — Weekly Deals", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "Belkin", "merchantSlug": "belkin", "url": "https://www.belkin.com/sale/", "img": "https://www.belkin.com/on/demandware.static/-/Sites/default/dw58ddf68f/2026-Falcon-gaming-campaign-dotcom-homepage-banner-03-mobile-373x400-us.jpg", "note": "Sale landing page - no single product price"},
   {"id": "gemini-crypto-trading-earn-platform", "name": "Gemini — Crypto Trading & Earn Platform", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Gemini", "merchantSlug": "gemini", "url": "https://www.gemini.com/", "img": "https://www.gemini.com/static/images/og-meta-v2.png", "note": "Brand landing page - no product price"},
   {"id": "cloudfield-bamboo-sunglasses-blue-light-glasses", "name": "Cloudfield — Bamboo Sunglasses & Blue Light Glasses", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "Cloudfield", "merchantSlug": "cloudfield", "url": "https://www.cloudfield.co/", "img": "https://static.wixstatic.com/media/d2d7a5_25b1c6b1276c478b9697481d39c2fa50~mv2.jpg", "note": "Brand landing page - no single product price"},
+];
+
+// Product categories, in menu order. The editor adds one when a product is
+// given a new category; the store filters and category pages read this list.
+window.PRODUCT_CATEGORIES = [
+  {"id": "dorm-living-essentials", "label": "Dorm & Living Essentials"},
+  {"id": "academic-essentials", "label": "Academic Essentials"},
+  {"id": "personal-lifestyle", "label": "Personal Lifestyle"},
+  {"id": "event-tickets-travel", "label": "Event Tickets & Travel"},
+  {"id": "financial-services", "label": "Financial Services"},
+  {"id": "laundry-cleaning", "label": "Laundry & Cleaning"},
+  {"id": "living-social-spaces", "label": "Living & Social Spaces"},
+  {"id": "bathroom", "label": "Bathroom"},
+  {"id": "kitchen-dining", "label": "Kitchen & Dining"},
+  {"id": "bedroom-study", "label": "Bedroom & Study"},
 ];
