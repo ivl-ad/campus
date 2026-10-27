@@ -1,15 +1,30 @@
 name: Rebuild listings
 
-# The web catalog editor commits js/products.js and nothing else. store.html and
-# index.html hold their product cards as baked HTML, so they have to be re-made
-# from that catalog -- this is the job that does it, using the same
-# build_listings.py you run locally. Cloudflare Pages then deploys the result.
+# The admin editor commits data files and nothing else: js/products.js,
+# js/blogs.js, js/team.js (js/partners.js needs no build -- the home page
+# reads it in the browser). Several pages carry that content as baked HTML so
+# they stay crawlable and work with JavaScript off, and this job is what keeps
+# them in step:
+#
+#   build_listings.py   store.html, index.html   <- js/products.js
+#   build_content.py    blog.html, index.html,   <- js/blogs.js, js/team.js
+#                       about.html
+#
+# Cloudflare Pages then deploys the result.
+#
+# This runs on GitHub's own runner and only ever adds a commit of its own. It
+# never rebases, never merges and never force-pushes, so it cannot rewrite
+# anything already on the branch and it has no effect on a local clone beyond
+# the usual "Pull origin" in GitHub Desktop.
 on:
   push:
     branches: [main]
     paths:
       - 'js/products.js'
+      - 'js/blogs.js'
+      - 'js/team.js'
       - 'build_listings.py'
+      - 'build_content.py'
   workflow_dispatch:        # lets you run it by hand from the Actions tab
 
 # Needed so the workflow can push the rebuilt pages back.
@@ -18,7 +33,9 @@ permissions:
 
 concurrency:
   # If two saves land close together, let the newer one win rather than
-  # racing to commit rebuilt pages on top of each other.
+  # racing to commit rebuilt pages on top of each other. Safe because the job
+  # below always rebuilds from whatever the data files hold at that moment,
+  # so the surviving run covers the cancelled one's change too.
   group: rebuild-listings
   cancel-in-progress: true
 
@@ -27,29 +44,60 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # A full clone: the job below fetches and resets to the branch head,
+          # and pushing from a shallow clone can be refused.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Rebuild store.html and index.html
-        run: python build_listings.py
-
-      - name: Commit the rebuilt pages
+      - name: Rebuild the baked pages and commit them
         run: |
-          if git diff --quiet -- store.html index.html; then
-            echo "Pages already matched the catalog - nothing to commit."
-            exit 0
-          fi
+          set -u
+          PAGES="store.html index.html blog.html about.html"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add store.html index.html
-          # No "[skip ci]" here. Cloudflare Pages treats that as its own
-          # skip-build token, so it would ignore the very commit that carries
-          # the rebuilt pages and Shop/Home would stay stale on the live site.
-          # Nothing is needed to stop this workflow re-triggering itself: the
-          # paths filter above only watches js/products.js and
-          # build_listings.py, and this commit touches neither. (GitHub also
-          # refuses to start workflows from GITHUB_TOKEN pushes.)
-          git commit -m "Rebuild store.html and index.html from the catalog"
-          git push
+
+          # A Save from the editor commits a data file straight to this branch,
+          # so one can land while this job is running. Rather than reconciling
+          # two histories, each attempt simply starts again from the branch as
+          # it is now and rebuilds from the data files it finds there. That
+          # needs no rebase and no merge: the result is always one plain commit
+          # on top of the current head, and it is built from the newest data
+          # rather than replaying a build made from older data.
+          for attempt in 1 2 3; do
+            git fetch origin "$GITHUB_REF_NAME"
+            git reset --hard "origin/$GITHUB_REF_NAME"
+
+            # Both scripts write index.html, each owning its own containers,
+            # so they run one after the other rather than together.
+            python build_listings.py
+            python build_content.py
+
+            if git diff --quiet -- $PAGES; then
+              echo "Pages already match the data files - nothing to commit."
+              exit 0
+            fi
+
+            git add $PAGES
+            # No "[skip ci]" here. Cloudflare Pages treats that as its own
+            # skip-build token, so it would ignore the very commit that carries
+            # the rebuilt pages and the site would stay stale.
+            # Nothing is needed to stop this workflow re-triggering itself: the
+            # paths filter above only watches the data files and the two build
+            # scripts, and this commit touches none of them. (GitHub also
+            # refuses to start workflows from GITHUB_TOKEN pushes.)
+            git commit -m "Rebuild baked pages from the data files"
+
+            if git push; then
+              echo "Rebuilt pages pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push refused - a save landed while this ran. Starting again from the new head."
+            sleep 5
+          done
+
+          echo "Could not push the rebuilt pages after 3 attempts."
+          exit 1
