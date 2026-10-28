@@ -12,13 +12,13 @@
  *   GET /api/export?section=newsletter&format=csv    a spreadsheet
  *   GET /api/export?section=contact&format=sql       INSERTs, to restore into D1
  *
- * sections: all | products | partners | blog | team | newsletter | contact
+ * sections: all | products | categories | partners | blog | team | newsletter | contact
  *
  * HOW TO RESTORE, which is the only reason to have a backup:
  *
- *  - products / partners / blog / team live in git. The bundle carries each
- *    file's exact bytes under "files", so restoring one is: paste those bytes
- *    over the file, commit, done. (Day to day you would use History in the
+ *  - products / categories / partners / blog / team live in git. The bundle
+ *    carries each file's exact bytes under "files", so restoring one is:
+ *    paste those bytes over the file, commit, done. (Day to day you would use History in the
  *    editor instead -- every Save is a commit. This is for when the repo
  *    itself is gone or mangled.)
  *  - newsletter / contact live ONLY in D1. Nothing else has a copy, so these
@@ -42,7 +42,8 @@ const CONTENT = {
   products: { file: 'js/products.js', arrays: { items: 'PRODUCTS' } },
   partners: { file: 'js/partners.js', arrays: { items: 'PARTNERS' } },
   blog: { file: 'js/blogs.js', arrays: { items: 'BLOG_POSTS', categories: 'BLOG_CATEGORIES' } },
-  team: { file: 'js/team.js', arrays: { items: 'TEAM' } }
+  team: { file: 'js/team.js', arrays: { items: 'TEAM' } },
+  categories: { file: 'js/categories.js', arrays: { items: 'CATEGORIES' } }
 };
 
 // The two D1-only tables. Columns are listed, never interpolated from input.

@@ -54,37 +54,69 @@ export function localImages(source) {
   try { return JSON.parse(m[1]); } catch (e) { return {}; }
 }
 
+function siteCategories(categoriesJs, productsJs, products) {
+  if (categoriesJs) {
+    try {
+      const list = extractArray(categoriesJs, 'CATEGORIES')
+        .filter((c) => c && typeof c.id === 'string' && c.id)
+        .map((c) => [c.id, String(c.name || c.id)]);
+      if (list.length) return list;
+    } catch (e) { /* unreadable: fall back below */ }
+  }
+  return categoryList(productsJs, products);
+}
+
 // A deployment's files never change, so one parse per isolate is enough.
 let cache = null;
 
 export async function loadSiteData(env, request) {
   if (cache) return cache;
-  const [productsJs, blogsJs, teamJs, configJs, imagesJs] = await Promise.all([
+  const [productsJs, blogsJs, teamJs, configJs, imagesJs, categoriesJs] = await Promise.all([
     readAsset(env, request, '/js/products.js'),
     readAsset(env, request, '/js/blogs.js'),
     readAsset(env, request, '/js/team.js', true),
     readAsset(env, request, '/js/site-config.js', true),
-    readAsset(env, request, '/js/local-images.js', true)
+    readAsset(env, request, '/js/local-images.js', true),
+    readAsset(env, request, '/js/categories.js', true)
   ]);
   const allPosts = extractArray(blogsJs, 'BLOG_POSTS');
   let team = [];
   try { team = teamJs ? extractArray(teamJs, 'TEAM') : []; } catch (e) { /* no team yet */ }
   const local = localImages(imagesJs);
+  const raw = extractArray(productsJs, 'PRODUCTS');
+  const categories = siteCategories(categoriesJs, productsJs, raw);
+  const names = new Map(categories);
   // Share images and structured data use the copy on this site, as the
-  // pages do (absoluteUrl() makes the path a full address).
-  // ...except a product set to show its image from the retailer (imgFrom).
-  const products = extractArray(productsJs, 'PRODUCTS').map((p) => {
-    const img = p && typeof p.img === 'string' ? p.img.trim() : '';
-    return img && p.imgFrom !== 'retailer' && Object.prototype.hasOwnProperty.call(local, img)
-      ? Object.assign({}, p, { img: local[img] }) : p;
+  // pages do (absoluteUrl() makes the path a full address) -- except a
+  // product set to show its image from the retailer (imgFrom). And each
+  // product's category name is the category's current one, so a rename in
+  // the Categories tab shows before every product has been saved again.
+  const products = raw.map((p) => {
+    if (!p || typeof p !== 'object') return p;
+    const img = typeof p.img === 'string' ? p.img.trim() : '';
+    const out = Object.assign({}, p);
+    if (img && p.imgFrom !== 'retailer' && Object.prototype.hasOwnProperty.call(local, img)) out.img = local[img];
+    if (names.has(p.cat)) out.catLabel = names.get(p.cat);
+    return out;
+  });
+  // Covers: the copy on this site too (a lighter one for a big site file).
+  const published = allPosts.filter((p) => p && typeof p === 'object' && !p.hidden).map((p) => {
+    const img = typeof p.img === 'string' ? p.img.trim() : '';
+    return img && Object.prototype.hasOwnProperty.call(local, img) ? Object.assign({}, p, { img: local[img] }) : p;
   });
   cache = {
     products,
-    // [[id, label], ...]: the built-in categories plus any added in the
-    // editor (window.PRODUCT_CATEGORIES in the same file).
-    categories: categoryList(productsJs, products),
-    // Posts marked hidden in the editor are drafts: never shown, listed or indexed.
-    posts: allPosts.filter((p) => !p.hidden),
+    // [[id, name], ...]: js/categories.js (the Categories tab), every
+    // category -- including any kept off the home page cards. Before that
+    // file existed: the built-ins plus window.PRODUCT_CATEGORIES.
+    categories,
+    // Posts marked hidden in the editor are drafts: never shown, listed or
+    // indexed. A published post dated in the future is scheduled: the same,
+    // until its time. Worked out on each request (this object is cached).
+    get posts() {
+      const now = Date.now();
+      return published.filter((p) => !(Number(p.dateMs) > now));
+    },
     blogCategories: extractArray(blogsJs, 'BLOG_CATEGORIES'),
     team,
     // Prices go into structured data only when the site shows them: markup

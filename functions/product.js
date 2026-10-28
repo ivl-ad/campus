@@ -11,7 +11,7 @@ export const onRequest = (context) => renderTemplate(context, (data, id) => {
   const image = absoluteUrl(site, p.img);
   const title = p.name + ' | MyCampusKorner';
   // desc is optional in the catalog; note is private and never used here.
-  const description = clip(p.desc || (p.name + ' from ' + p.merchant + ' — a hand-picked ' +
+  const description = clip(p.desc || (p.name + ' from ' + p.merchant + ', a hand-picked ' +
                       p.catLabel + ' pick for college students, on MyCampusKorner.'), 158);
   // A price goes into the markup only when the site shows prices; otherwise
   // this is described as a page about the item, with no price claimed.

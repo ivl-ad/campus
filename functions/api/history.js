@@ -30,12 +30,14 @@ import { ensure, reseed, putMeta, docFor, DOCS } from './draft.js';
 import { FILE as PARTNERS_FILE, parsePartners } from './partners.js';
 import { FILE as BLOG_FILE, parsePosts } from './blog.js';
 import { FILE as TEAM_FILE, parseTeam } from './team.js';
+import { FILE as CATEGORIES_FILE, parseCategories } from './categories.js';
 
 function target(request) {
   const doc = docFor(request);
   if (doc === DOCS.partners) return { doc, file: PARTNERS_FILE, parse: parsePartners, noun: 'partners' };
   if (doc === DOCS.blog) return { doc, file: BLOG_FILE, parse: parsePosts, noun: 'posts' };
   if (doc === DOCS.team) return { doc, file: TEAM_FILE, parse: parseTeam, noun: 'people' };
+  if (doc === DOCS.categories) return { doc, file: CATEGORIES_FILE, parse: parseCategories, noun: 'categories' };
   return { doc, file: 'js/products.js', parse: parseProducts, noun: 'products' };
 }
 

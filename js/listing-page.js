@@ -37,9 +37,12 @@
     ['bedroom-study', 'Bedroom & Study']
   ];
 
-  // Every category that has a page: the file's list, the built-in ones, then
-  // any a product names that neither has (labelled from that product).
-  // Read when needed, not at load, so script order cannot matter.
+  // Every category that has a page: js/categories.js (the Categories tab)
+  // when the page loads it -- only that list, so a deleted category stays
+  // deleted -- else the older lists (window.PRODUCT_CATEGORIES in
+  // js/products.js, then the built-in ten). Last, any category a product
+  // names that the list has not got, labelled from that product. Read when
+  // needed, not at load, so script order cannot matter.
   function categories() {
     var out = [], seen = {};
     function add(id, label) {
@@ -47,10 +50,22 @@
         seen[id] = 1; out.push([id, label]);
       }
     }
-    (window.PRODUCT_CATEGORIES || []).forEach(function (c) { if (c) add(c.id, c.label); });
-    BUILT_IN.forEach(function (c) { add(c[0], c[1]); });
+    if (window.CATEGORIES && window.CATEGORIES.length) {
+      window.CATEGORIES.forEach(function (c) { if (c) add(c.id, c.name); });
+    } else {
+      (window.PRODUCT_CATEGORIES || []).forEach(function (c) { if (c) add(c.id, c.label); });
+      BUILT_IN.forEach(function (c) { add(c[0], c[1]); });
+    }
     (window.PRODUCTS || []).forEach(function (p) { if (p) add(p.cat, p.catLabel); });
     return out;
+  }
+
+  // A category renamed in the Categories tab shows its new name at once,
+  // before each of its products has been saved again.
+  function relabel() {
+    var names = {};
+    (window.CATEGORIES || []).forEach(function (c) { if (c && c.id && c.name) names[c.id] = c.name; });
+    (window.PRODUCTS || []).forEach(function (p) { if (p && names[p.cat]) p.catLabel = names[p.cat]; });
   }
 
   function esc(s) {
@@ -136,6 +151,7 @@
   }
 
   function init() {
+    relabel();
     var grid = byId('l-grid');
     if (!grid) return;
     var all = window.PRODUCTS || [];
@@ -167,6 +183,35 @@
     if (labelEl) labelEl.textContent = label;
     grid.innerHTML = items.map(gridCard).join('');
     toggleEmptyState(grid, items.length > 0);
+    if (!radiosWrap && cat && !items.length) comingSoon(grid, cat[1]);
+  }
+
+  // A category that has no products yet (just added in the Categories tab)
+  // says so in a friendly way and points to the Store, rather than showing
+  // the "No items found" alert.
+  function comingSoon(grid, name) {
+    var box = grid.parentNode.querySelector('.empty-state');
+    if (!box) return;
+    box.textContent = '';
+    var text = document.createElement('div');
+    text.className = 'text-size-regular font-second';
+    text.textContent = 'We are hand-picking the best ' + name + ' finds right now. ' +
+      'Check back soon, or browse everything in the Store.';
+    // The box stacks bottom-up (for the alert icon); this reads top-down.
+    box.style.flexFlow = 'column';
+    box.style.gap = '16px';
+    box.style.padding = '48px 24px';
+    text.style.textAlign = 'center';
+    text.style.maxWidth = '520px';
+    var link = document.createElement('a');
+    link.className = 'dark-btn-wrap w-inline-block';
+    link.href = 'store.html';
+    var label = document.createElement('div');
+    label.className = 'dark-btn-text';
+    label.textContent = 'Browse the Store';
+    link.appendChild(label);
+    box.appendChild(text);
+    box.appendChild(link);
   }
 
   if (document.readyState === 'loading') {

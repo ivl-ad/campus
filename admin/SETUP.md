@@ -20,17 +20,18 @@ Cloudflare Pages deploys. Everything new reuses what is set up below —
 
 - the same password (`EDITOR_PASSWORD`), GitHub token, `GITHUB_REPO` /
   `GITHUB_BRANCH`, and the same D1 binding `DB`;
-- new tables (blog/team drafts, sign-ups, contact messages, rate-limit
-  counters) create themselves on first use — nothing to run in D1;
+- new tables (blog/team/category drafts, sign-ups, contact messages,
+  rate-limit counters, visit counts) create themselves on first use —
+  nothing to run in D1;
 - the token needs nothing new: *Contents: read and write* covers every file
-  the editor commits (`js/products.js`, `js/partners.js`, `js/blogs.js`,
-  `js/team.js`).
+  the editor commits (`js/products.js`, `js/categories.js`, `js/partners.js`,
+  `js/blogs.js`, `js/team.js`).
 
-If a data file (`js/products.js`, `js/partners.js`, `js/blogs.js`,
-`js/team.js`) was changed in git rather than in the editor, press **Reset
-draft** once on that tab after the deploy — the editor notices the outside
-change and would otherwise refuse the next Save until you do (nothing is lost
-either way).
+If a data file (`js/products.js`, `js/categories.js`, `js/partners.js`,
+`js/blogs.js`, `js/team.js`) was changed in git rather than in the editor, the
+next Save in that tab takes the change in by itself. A large change (more than
+three rows) is asked about first, unless the file's header says it was meant
+(`data-release`, see HANDOVER section 5); the round-4 `js/products.js` says so.
 
 Never set `GITHUB_API` in Cloudflare — it exists only for local testing.
 `SITE_URL` is optional (only if the site's address is not
@@ -137,12 +138,15 @@ How it behaves once bound:
 - Spreadsheet keys: **Enter** moves down a cell (Shift+Enter up; in desc/note
   Shift+Enter makes a new line instead), **arrow keys** hop cells once the
   caret is at the edge of the text, and **/** jumps to the filter box.
-- **Category**: pick one, or **+ New category…** (last in the menu) to create
-  one — type the name shoppers should see. It is in everyone's menu straight
-  away and on the site after Save: the Store filter, its own category page,
-  and the sitemap. A category no product uses any more disappears at the next
-  Save (the ten original ones always stay). The "Featured Categories" menu at
-  the top of every page is hand-built and lists the original ten only.
+- **Category**: pick one. The list is the **Categories** tab (section 15);
+  **Manage categories…**, last in the menu, opens it. A category added there
+  is offered here at once, but Save the Categories tab first — a products
+  Save with a category that is not saved there yet is refused, by name.
+- **Affiliate links:** a product url without our affiliate tracking shows in
+  **red**, and a red line under the toolbar names every such product (the same
+  on the Partners tab). It never stops a Save, so a product can be tried out
+  first; whoever gets the affiliate link pastes it over the url and the red
+  goes away.
 - The old "somebody else saved, reload and redo" conflict is gone — there is
   one draft, so there is nothing to collide.
 - **A push from GitHub Desktop that changes a data file does not break the
@@ -204,9 +208,19 @@ to set up.
   what stops a colleague's Save from publishing your half-written post.
   Drafts sit in the public `js/blogs.js` file, so treat them as unlisted, not
   secret.
+- **Nothing is on the site until you press Save.** Edits sync to the team's
+  shared draft as you type, which is not the same as publishing: while there
+  is something unpublished the footer says **Not on the site yet: press Save
+  to publish** and the Save button is ringed.
 - **Publish date & time** is pre-set to *now* in **Michigan time**, whatever
   the editor's own computer is set to; change it to anything (back-dating is
   fine) or press **Now**. It sorts the posts; the page shows the date.
+- **Scheduling.** Set Status to **Published** and the date to a time still to
+  come: Status then reads **Scheduled**. Press **Save** as usual. The post goes
+  live at that time by itself (its own page at once; the blog and home page
+  listings within about half an hour). So one person can write several posts
+  in one sitting and spread them over the coming weeks: give each its date,
+  set each to Published, Save once.
 - **Article.** Paste straight from Google Docs, Word or a web page, or type.
   The paste is cleaned to plain structure — paragraphs, headings, lists, quotes,
   bold/italic, links, images — and fonts, colours and junk markup are dropped
@@ -219,6 +233,12 @@ to set up.
     dragged image files are not uploaded.
   - Links to other sites open in a new tab and are marked
     `rel="sponsored"` automatically — the right label for affiliate links.
+  - **Product** (toolbar) links to one of our products: search by name or
+    store and pick one. With words selected, those words link to the
+    product's page. With nothing selected, a **product card** goes in on its
+    own line: the product's picture, store and name with a View product
+    button, always showing the product as it is now. If the product is later
+    deleted, the words stay and the link goes.
 - **Excerpt** (the card text) is optional: leave it blank and the first
   sentences of the article are used.
 - **Category**: pick one, or **+ New category…** to create it (it appears on
@@ -318,12 +338,27 @@ one-way hash, and those counters are deleted after a day.)
 
 ## 11. Site-wide settings (no rebuild needed)
 
-- **Social icons:** `js/site-config.js` → `SOCIAL_LINKS`. Paste full
-  `https://` profile URLs; blank ones are hidden, all blank hides "Follow us".
-- **Google Analytics:** every public `.html` page has the gtag snippet at the
-  top of `<head>`. To change the Measurement ID, replace it in all of them:
-  `sed -i 's/G-OLDID/G-NEWID/g' *.html` (the admin pages are deliberately not
-  tracked).
+- **Social profiles:** `js/site-config.js` → `SOCIAL_LINKS` (TikTok,
+  Instagram and Facebook are set). Paste full `https://` profile URLs; blank
+  ones are hidden, all blank hides "Follow us". One list drives the footer
+  icons on every page, the labelled buttons on the Contact page and under
+  "Stay connected to the Korner", the site's structured data (which tells
+  Google and AI assistants these accounts are ours) and `/llms.txt`. Push the
+  change; the rebuild updates all of them.
+- **AI assistants (ChatGPT, Perplexity, Claude…):** `/llms.txt` describes the
+  site for them and is rebuilt automatically. Cloudflare decides which AI
+  crawlers may read the site: dashboard → your domain → **AI Crawl Control**
+  (or Security → Bots). Today search and assistant crawlers are allowed and
+  *training* crawlers (GPTBot, ClaudeBot…) are blocked. Assistants can
+  already find and recommend the site through search. Allowing the training
+  crawlers as well means future AI models learn about the site too, at the
+  cost of the site's text being used to train them; switch them to **Allow**
+  there if you want that.
+- **Visit counts:** built in, nothing to set up — see section 16.
+- **Google Analytics:** off. To switch it on, put the GA4 Measurement ID
+  (`G-…`) in `GA_MEASUREMENT_ID` in `js/site-config.js` — but first add a
+  cookie notice and a Google Analytics paragraph to the privacy policy, since
+  GA sets cookies.
 
 ---
 
@@ -399,9 +434,9 @@ nothing from Webflow, Google Fonts or other CDNs:
 | `documents/` | the menu-button animation |
 
 The exceptions are deliberate: **product images and partner logos** are the
-addresses you enter in the editor, so they load from wherever those point;
-and **Google Analytics** (`googletagmanager.com`) has to load from Google to
-report anything.
+addresses you enter in the editor (the rebuild keeps copies on the site, see
+section 14); and **Google Analytics**, if it is ever switched on
+(`googletagmanager.com`), has to load from Google to report anything.
 
 ## 13. Backups — the **Export ▾** button
 
@@ -488,12 +523,19 @@ larger image address (most networks offer each banner in several sizes) — or
 save a better image into `images/products/` in GitHub and type its path
 (`images/products/name.jpg`) as the img url.
 
-**Product page photo size limit (optional, off).** A small image fills the
-product page's big photo area and looks blurry. Set `IMAGE_ENLARGE_LIMIT = 2`
-in `js/site-config.js` to show such images at most twice their size instead
-(smaller, centred, sharper). **Try it first:** open the live site with
-`?imgcap=2` at the end of any address — only your browser sees it, and a
-label in the corner says so. `?imgcap=site` turns the preview off.
+**Product page photo size limit (on).** A small image is shown at most twice
+its real size on the product page — smaller, centred, sharper — instead of
+being blown up to fill the photo area. `IMAGE_ENLARGE_LIMIT` in
+`js/site-config.js` (2; set 0 to turn it off). To compare, add `?imgcap=0` to
+any address: only your browser sees it, with a label in the corner;
+`?imgcap=site` goes back.
+
+**Changes show up at once.** Every page names its scripts and styles by a
+fingerprint of their content, which the rebuild keeps up to date, so a Save
+or a deploy reaches visitors on their next page load (it used to take up to 4
+hours for anyone who had visited recently). If you edit something in `js/` or
+`css/` by hand, run `python stamp_assets.py` before pushing — or just push:
+the rebuild does it a minute later.
 
 **The retailer changed the picture but kept the address?** The site keeps its
 first copy. Delete that file from `images/products/` in GitHub (the name
@@ -508,6 +550,104 @@ starts with the product id) and the next rebuild downloads it again.
   AvantLink, FlexOffers…) when that network's view counts matter to you, or
   the program's terms say its image must be loaded from them. Clicks are
   tracked either way. Shown in amber so these stand out.
+
+## 15. Categories — the Categories tab
+
+`/admin/?view=categories`. One row per product category, **in site order**
+(↑ ↓ move a row). The list drives the category cards on the home page, the
+Featured Categories menu and footer on every page, the Store's filters and
+the Products tab's category menu. Save writes `js/categories.js`; the pages
+follow when the rebuild finishes (~2 min).
+
+- **Add**: **+ Add category**, type the name — the permalink (`id`, the
+  category page's address) is filled in from it. New categories start
+  **Hidden** (no home page card) so they can be saved with just a name.
+- **Home page card**: **Shown** features the category: a card on the home
+  page, numbered in this tab's order, and a link in the Featured Categories
+  menu at the top of every page and in the footer. It needs a **picture** (a
+  file under `images/`, or an https link — the rebuild keeps a copy), **card
+  text** and **button text**. The sentence above the cards counts them ("six
+  core campus tracks"). **Hidden** categories keep their own page and their
+  Store filter only. A category with no products yet shows a friendly "coming
+  soon" note with a link to the Store.
+- **Rename**: change the name. The permalink stays, so no link breaks.
+- **Delete**: only when **no product uses it** — move those products to
+  another category in the Products tab first. Delete says which products are
+  in the way, and Save checks again (the products' unsaved edits count too).
+  The permalink of a category in use cannot be changed either.
+
+## 16. Visit counts — the Analytics tab
+
+`/admin/analytics`: page views, visits, clicks out to retailers (which
+product's Buy button, which partner logo, which link in a post), top pages,
+where visits come from, countries and devices, for 7 / 30 / 90 days or 12
+months, each against the period before.
+
+The site counts these itself: no cookies, no Google, nothing stored about any
+person — only daily totals, which is why there is no cookie banner. Nothing to
+set up: it uses the same D1 database and starts counting at the deploy.
+
+- Press **Don't count this browser** on every browser the team uses, so
+  your own checking does not inflate the numbers (per browser; it does not
+  sync).
+- Tag links you share, e.g. in a newsletter or an Instagram bio:
+  `https://mycampuskorner.com/?utm_source=newsletter` — the visit is then
+  credited to "tag: newsletter" instead of "Direct / app".
+- For Google-side numbers (search queries, impressions) use Google Search
+  Console, which needs no code on the site.
+
+## 17. Cloudflare Web Analytics — the Cloudflare tab
+
+Cloudflare's own visitor statistics (free, no cookies), shown in the editor
+at **Cloudflare** next to Analytics. Three things to do, once, in the
+Cloudflare dashboard. Nothing here touches the site's files.
+
+**A. Turn Web Analytics on**
+
+1. Cloudflare dashboard → your account → **Analytics & Logs** →
+   **Web Analytics**.
+2. If **mycampuskorner.com** is already listed (Cloudflare switched it on by
+   default for many free sites in October 2025), open **Manage site** and make
+   sure it is enabled; the default may exclude visitors from the EU, and
+   choosing plain **Enable** includes everyone. If it is not listed: **Add a
+   site** → pick **mycampuskorner.com** → **Done** (automatic setup).
+3. Use only this route. Do **not** also click Enable under Workers & Pages →
+   the project → Metrics: two snippets on one page do not work together.
+
+**B. A read-only API token for the editor**
+
+1. Account home → **Manage account** → **Account API tokens** (the direct
+   address is `dash.cloudflare.com/?to=/:account/api-tokens`; **My Profile →
+   API Tokens** works too) → **Create Token** → **Custom token** →
+   **Get started**.
+2. Name: `MyCampusKorner editor - analytics (read only)`.
+3. Permissions, two rows: **Account** · **Account Analytics** · **Read**, and
+   **Account** · **Account Settings** · **Read** (the second lets the editor
+   find the site by its name).
+4. Account resources: Include · your account. **Continue to summary** →
+   **Create Token**. Copy the token now: it is shown only once.
+5. Copy your **Account ID** too: Workers & Pages → right-hand column, or
+   press Ctrl+K and search "Copy account ID".
+
+**C. Give them to the site**
+
+1. Workers & Pages → the site's project → **Settings** → **Variables and
+   Secrets** → **Add**, for **Production**:
+   - `CF_API_TOKEN`, type **Secret**, value: the token;
+   - `CF_ACCOUNT_ID`, type Text, value: the Account ID.
+2. **Save**, then redeploy (Deployments → the latest → **Retry deployment**,
+   or simply push): variables reach the site with the next deployment.
+3. Open the **Cloudflare** tab. Numbers appear a few minutes after visits.
+   If it shows an error from Cloudflare about the site, add a third variable
+   `CF_WEB_ANALYTICS_SITE` with the site tag (Web Analytics → the site: the
+   tag is in the address bar as `siteTag~in=…`) and redeploy.
+
+What it shows: page views, visits, top pages, where visits come from,
+countries, devices and browsers, for 7, 30 or 90 days. Cloudflare counts
+pages without their `?id=…`, so all products appear as `/product`; the
+Analytics tab (the site's own counter) has each product and the clicks to
+retailers. On busy days Cloudflare's numbers are estimates from a sample, and
+the page says so. Ad blockers hide some visitors from both tabs.
 
 ## If something goes wrong
 

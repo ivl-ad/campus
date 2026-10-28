@@ -47,6 +47,7 @@ import { readRemote as readPartners, parsePartners, TABLES as PARTNER_TABLES,
          NO_FILE } from './partners.js';
 import { FILE as BLOG_FILE, TABLES as BLOG_TABLES, parseBlog } from './blog.js';
 import { FILE as TEAM_FILE, TABLES as TEAM_TABLES, parseTeam } from './team.js';
+import { FILE as CATEGORIES_FILE, TABLES as CATEGORY_TABLES, parseCategories } from './categories.js';
 
 const PRESENCE_ALIVE = 45 * 1000;       // heartbeats this fresh count as "here"
 const PRESENCE_PURGE = 10 * 60 * 1000;  // rows older than this are dropped
@@ -71,10 +72,16 @@ export const DOCS = {
       }
       const source = decodeBase64(res.data.content);
       const list = parseProducts(source);
-      // The category menu starts from the file's own list (it can hold
-      // categories added in the editor); a Save keeps it up to date.
+      // The category menu starts from js/categories.js (the Categories tab),
+      // or before that file existed from the products file's own list; a
+      // Save keeps it up to date.
+      const listed = await readPartners(cfg, CATEGORIES_FILE).catch(() => ({ exists: false }));
+      const categories = listed.exists
+        ? parseCategories(listed.source).filter((c) => c && typeof c.id === 'string' && c.id)
+            .map((c) => [c.id, String(c.name || c.id)])
+        : categoryList(source, list);
       return { list, sha: res.data.sha, source: 'github:' + cfg.repo + '@' + cfg.branch,
-               extra: { categories: categoryList(source, list) } };
+               extra: { categories } };
     }
   },
   partners: {
@@ -110,6 +117,26 @@ export const DOCS = {
       const cur = await readPartners(cfg, TEAM_FILE);
       return { list: cur.exists ? parseTeam(cur.source) : [], sha: cur.sha || NO_FILE,
                source: 'github:' + cfg.repo + '@' + cfg.branch };
+    }
+  },
+  categories: {
+    rows: CATEGORY_TABLES.rows, meta: CATEGORY_TABLES.meta, presence: CATEGORY_TABLES.presence,
+    extra: {},
+    async load(env) {
+      const cfg = config(env);
+      // Before js/categories.js existed, the list lived in js/products.js
+      // (window.PRODUCT_CATEGORIES) or was the built-in ten: seed from that,
+      // so a first Save of this tab writes the file with nothing lost.
+      const cur = await readPartners(cfg, CATEGORIES_FILE);
+      if (cur.exists) {
+        return { list: parseCategories(cur.source), sha: cur.sha,
+                 source: 'github:' + cfg.repo + '@' + cfg.branch };
+      }
+      const prod = await github(cfg, 'GET');
+      const src = prod.ok ? decodeBase64(prod.data.content) : '';
+      const list = categoryList(src, src ? parseProducts(src) : [])
+        .map(([id, name]) => ({ id, name, home: 'hidden' }));
+      return { list, sha: NO_FILE, source: 'github:' + cfg.repo + '@' + cfg.branch };
     }
   }
 };

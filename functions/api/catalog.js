@@ -24,6 +24,8 @@
 import { draftMarks, settleBase, recordSave, epochMoved, epochChanged, RACE_MESSAGE, RESET_MESSAGE,
          planOutside, adoptMerged, outsideNote, draftRows, rowRules } from '../_shared/draft-save.js';
 import { jsValue, extractArray, headerBefore } from '../_shared/js-data.js';
+import { readRemote } from './partners.js';
+import { FILE as CATEGORIES_FILE, parseCategories } from './categories.js';
 
 const FILE = 'js/products.js';
 
@@ -166,7 +168,10 @@ export function serialise(product, labels) {
 // categories: [[id, label], ...] from categoryList(). Each product's catLabel
 // is set from it, and it is written after the products as
 // window.PRODUCT_CATEGORIES.
-export function render(header, products, categories) {
+// categories: [[id, label], ...]. withList (the old arrangement, before
+// js/categories.js) also writes them after the products as
+// window.PRODUCT_CATEGORIES.
+export function render(header, products, categories, withList = true) {
   const labels = categories ? new Map(categories) : LABEL;
   const lines = [];
   if (header.trim()) lines.push(header);
@@ -175,7 +180,7 @@ export function render(header, products, categories) {
   // is written locally, and both the browser and the build script accept it.
   products.forEach((p) => lines.push('  ' + serialise(p, labels) + ','));
   lines.push('];');
-  if (categories) {
+  if (categories && withList) {
     lines.push('');
     lines.push('// Product categories, in menu order. The editor adds one when a product is');
     lines.push('// given a new category; the store filters and category pages read this list.');
@@ -350,10 +355,15 @@ export async function onRequestGet({ env }) {
     return json(500, { error: 'could not read ' + FILE + ': ' + e.message });
   }
 
+  let categories = categoryList(source, products);
+  try {
+    const listed = await readRemote(cfg, CATEGORIES_FILE);
+    if (listed.exists) categories = parseCategories(listed.source).map((c) => [c.id, c.name || c.id]);
+  } catch (e) { /* the list above still serves */ }
   return json(200, {
     products,
     sha: res.data.sha,           // sent back on save as an overwrite guard
-    categories: categoryList(source, products),
+    categories,
     source: 'github:' + cfg.repo + '@' + cfg.branch
   });
 }
@@ -433,8 +443,37 @@ export async function onRequestPost({ request, env }) {
 
   let header = '';
   try { header = readHeader(current.source); } catch (e) { /* header optional */ }
-  const categories = categoryList(current.source, products, true);
-  const content = render(header, products, categories);
+  // The category list is js/categories.js (the Categories tab). Every
+  // product must be in one of its categories -- a new category is added
+  // there first -- and each product's catLabel is that category's name, so
+  // a rename reaches every product at its next Save. Before that file
+  // existed, the list travelled inside js/products.js instead.
+  let categories, withList = true;
+  try {
+    const listed = await readRemote(cfg, CATEGORIES_FILE);
+    if (listed.exists) {
+      categories = parseCategories(listed.source)
+        .filter((c) => c && typeof c.id === 'string' && c.id)
+        .map((c) => [c.id, String(c.name || c.id)]);
+      withList = false;
+    }
+  } catch (e) {
+    return json(502, { error: 'could not read ' + CATEGORIES_FILE + ' from GitHub. ' + e.message });
+  }
+  if (!withList) {
+    const known = new Set(categories.map(([id]) => id));
+    const missing = [];
+    products.forEach((p, i) => {
+      if (p.cat && !known.has(p.cat)) {
+        missing.push('product #' + (i + 1) + ' (' + (p.name || p.id) + '): category "' + p.cat +
+                     '" is not in the Categories tab -- add it there and Save it first, or pick another');
+      }
+    });
+    if (missing.length) return json(400, { error: 'validation failed', errors: missing });
+  } else {
+    categories = categoryList(current.source, products, true);
+  }
+  const content = render(header, products, categories, withList);
   const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
   const message = 'Catalog: ' + products.length + ' products, edited in the web editor' +
                   (who ? ' by ' + who : '');

@@ -106,11 +106,11 @@
     var title = p.name + ' | MyCampusKorner';
     document.title = title;
     var pairs = [
-      ['meta[name="description"]', 'content', p.name + ' — available at ' + p.merchant + '.'],
+      ['meta[name="description"]', 'content', p.name + ', available at ' + p.merchant + '.'],
       ['meta[property="og:title"]', 'content', title],
       ['meta[name="twitter:title"]', 'content', title],
-      ['meta[property="og:description"]', 'content', p.name + ' — available at ' + p.merchant + '.'],
-      ['meta[name="twitter:description"]', 'content', p.name + ' — available at ' + p.merchant + '.'],
+      ['meta[property="og:description"]', 'content', p.name + ', available at ' + p.merchant + '.'],
+      ['meta[name="twitter:description"]', 'content', p.name + ', available at ' + p.merchant + '.'],
       ['meta[property="og:image"]', 'content', p.img],
       ['meta[name="twitter:image"]', 'content', p.img]
     ];
@@ -201,7 +201,16 @@
     }
   }
 
+  // A category renamed in the Categories tab (js/categories.js) shows its
+  // new name at once, before each of its products has been saved again.
+  function relabel() {
+    var names = {};
+    (window.CATEGORIES || []).forEach(function (c) { if (c && c.id && c.name) names[c.id] = c.name; });
+    (window.PRODUCTS || []).forEach(function (p) { if (p && names[p.cat]) p.catLabel = names[p.cat]; });
+  }
+
   function init() {
+    relabel();
     var all = window.PRODUCTS || [];
     var id = new URLSearchParams(window.location.search).get('id');
     var product = null;

@@ -1,0 +1,43 @@
+# MyCampusKorner
+
+> MyCampusKorner (mycampuskorner.com) is a college shopping guide for US students and their parents. It gathers hand-picked dorm, classroom, tech, travel, money and wellness picks in one place, sorted into simple categories, so a family can cross off a move-in list without endless tab-switching. Built by a college parent in Ann Arbor, Michigan. The blog adds practical campus advice: "Real campus advice. No retail bias."
+
+Who it is for: incoming and current college students, and parents shopping for move-in day. Products link to the retailers that sell them; some links are affiliate links, which earn the site a commission at no extra cost to the buyer (see the disclosure on every page). Contact: support@mycampuskorner.com.
+
+## Shop by category
+
+- [Dorm & Living Essentials](https://mycampuskorner.com/category?id=dorm-living-essentials): Turn a bare dorm room into a place that feels like home. Bedding, storage, lighting and the small organizers that make a shared room work, picked for tight spaces and a smooth move-in day.
+- [Academic Essentials](https://mycampuskorner.com/category?id=academic-essentials): Secure the precise study setups required to crush your specific major. From workspace organization and high-quality writing instruments to STEM-ready graphing calculators and capable, budget-friendly tech options.
+- [Personal Lifestyle](https://mycampuskorner.com/category?id=personal-lifestyle): The everyday gear that keeps campus life running, from headphones and bags to self-care basics, chosen with a student budget in mind.
+- [Travel & Entertainment](https://mycampuskorner.com/category?id=event-tickets-travel): Game days, concerts and weekend trips: tickets, travel gear and ways to get around, so getting home and getting out is one less thing to plan.
+- [Financial Services](https://mycampuskorner.com/category?id=financial-services): Student-friendly banking, budgeting and money tools for managing your own finances, often for the first time.
+- [Health & Fitness](https://mycampuskorner.com/category?id=health-fitness): Stay active between classes and keep your energy up through finals: workout gear, running shoes, recovery and wellness picks that fit a student budget and a small dorm.
+- [Every product](https://mycampuskorner.com/store): the whole catalog, with search and filters
+
+## Campus advice (newest articles)
+
+- [The October Slump: A College Student's Wellness Reset Before Midterms](https://mycampuskorner.com/blog-post?id=the-october-slump-a-college-students-wellness-reset-before-midterms): Midterms are coming, the days are getting shorter, and your sleep schedule has quietly fallen apart. If October has you feeling tired, stressed, or a little homesick, these simple habits will get you...
+- [The Ultimate Move-In Day Checklist: A Step-by-Step Guide](https://mycampuskorner.com/blog-post?id=the-ultimate-move-in-day-checklist-a-step-by-step-guide): Move-in day is chaos. Hundreds of families converging simultaneously. Elevators backed up for hours. Emotions running high. The students who have a smooth experience are the ones who planned ahead.
+- [Best Subscription Services for College Students in 2026](https://mycampuskorner.com/blog-post?id=best-subscription-services-for-college-students-in-2026): Subscriptions can be a massive money drain or a legitimate way to access premium tools at student prices. The key is being strategic. Here are the subscriptions worth your money, broken down by...
+- [The Sophomore Year Upgrade Guide: Level Up Your College Experience](https://mycampuskorner.com/blog-post?id=the-sophomore-year-upgrade-guide-level-up-your-college-experience): Freshman year was survival. Sophomore year is optimization. You know what works, what you used, and what was a waste. This is the year to make strategic upgrades that genuinely improve your...
+- [Budget-Friendly Tech Every College Student Needs](https://mycampuskorner.com/blog-post?id=budget-friendly-tech-every-college-student-needs): Technology is the foundation of how you attend classes, submit assignments, and stay connected. But student budgets are real. The good news is that affordable tech has gotten incredibly capable.
+- [The Finals Survival Kit: Everything You Need to Crush Exam Week](https://mycampuskorner.com/blog-post?id=the-finals-survival-kit-everything-you-need-to-crush-exam-week): Finals week is the ultimate test of endurance, focus, and preparation. It is not just about knowing the material. It is about having the right setup to sustain multiple days of intense studying...
+- [15 Student Discounts You're Probably Missing Right Now](https://mycampuskorner.com/blog-post?id=15-student-discounts-youre-probably-missing-right-now): Your .edu email address is worth way more than you think. Dozens of major brands offer serious discounts exclusively for college students, and most students have no idea these deals exist. We...
+- [The Parent's Complete Guide to College Shopping: What Your Student Actually Needs](https://mycampuskorner.com/blog-post?id=the-parents-complete-guide-to-college-shopping-what-your-student-actually-needs): Sending your kid to college is emotional enough without the stress of figuring out what they actually need. Retailers push massive checklists designed to sell you everything. The truth is somewhere...
+- [Best Study Kits for Every College Major: What You Actually Need](https://mycampuskorner.com/blog-post?id=best-study-kits-for-every-college-major-what-you-actually-need): Every college major has unique requirements. Whether you are diving into STEM, exploring the humanities, or tackling a creative field, each major comes with its own set of must-have tools. Let us...
+- [The Ultimate Dorm Room Setup Guide: How to Make a Tiny Space Feel Like Home](https://mycampuskorner.com/blog-post?id=the-ultimate-dorm-room-setup-guide-how-to-make-a-tiny-space-feel-like-home): Your dorm room is roughly the size of a large walk-in closet, and you are sharing it with another person. But with the right strategy, smart storage, and a few key purchases, you can turn that...
+- [Top 10 Must-Have Items Every College Freshman Needs in 2026](https://mycampuskorner.com/blog-post?id=top-10-must-have-items-every-college-freshman-needs-in-2026): Starting college is one of the biggest transitions you will ever make. New city, new people, new responsibilities, and a tiny dorm room you are supposed to call home for the next nine months. Whether...
+- [All articles](https://mycampuskorner.com/blog)
+
+## About
+
+- [About MyCampusKorner](https://mycampuskorner.com/about): who runs the site, how it works and how it is funded
+- [Contact](https://mycampuskorner.com/contact-us): questions, partnerships and press
+- [Privacy policy](https://mycampuskorner.com/privacy-policy)
+- [Terms of service](https://mycampuskorner.com/terms)
+
+## Official social accounts
+
+- [TikTok @my.campus.korner](https://www.tiktok.com/@my.campus.korner)
+- [Instagram @mycampuskorner.shop](https://www.instagram.com/mycampuskorner.shop/)
+- [Facebook My Campus Korner](https://www.facebook.com/people/My-Campus-Korner/61595547363296/)

@@ -14,11 +14,14 @@
 # cache:'no-store'), and /admin + /api (auth-guarded, served through
 # Pages Functions, which _headers does not apply to anyway).
 #
-# css: a style tweak takes at most a day to reach repeat visitors; the
-# main mycampuskorner-<hash>.webflow.css gets a new filename on every
-# Webflow re-export, so it busts its own cache regardless. The pages link
-# css/site-custom.css?v=<date>: bump that date in every page when a change
-# must reach everyone at once.
+# css and js: the pages name every one of their own scripts and stylesheets
+# as file?v=<fingerprint of its content> (stamp_assets.py; the GitHub Action
+# keeps it current), so a changed file is a new address and reaches every
+# visitor on their next page load. That matters because caching is long:
+# a day for css here, and Cloudflare's zone-wide "Browser Cache TTL" (4 hours
+# by default) for every .js file, data included -- which is NOT set in this
+# file, and which made a deploy look like it had changed nothing before the
+# fingerprints existed.
 # images: site chrome (heroes, favicons, logos), the blog cover images in
 # images/blog, and the copies of product images and partner logos that
 # fetch_images.py keeps in images/products and images/partners. Those copies
@@ -53,6 +56,12 @@
   Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox
 
 /images/partners/*
+  Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox
+
+/images/categories/*
+  Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox
+
+/images/blog-covers/*
   Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox
 
 /documents/*

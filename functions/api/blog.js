@@ -486,10 +486,12 @@ export async function onRequestPost({ request, env }) {
 
   const content = render(current.exists ? headerBefore(current.source, 'BLOG_CATEGORIES') : '',
                          categories, clean);
-  const live = clean.filter((p) => !p.hidden).length;
+  const now = Date.now();
+  const live = clean.filter((p) => !p.hidden && !(p.dateMs > now)).length;
+  const later = clean.filter((p) => !p.hidden && p.dateMs > now).length;
   const who = (body.author || '').toString().slice(0, 40).replace(/[^\p{L}\p{N} .@'_-]/gu, '');
   const message = 'Blog: ' + clean.length + ' post' + (clean.length === 1 ? '' : 's') +
-                  (live !== clean.length ? ' (' + live + ' live)' : '') +
+                  (live !== clean.length ? ' (' + live + ' live' + (later ? ', ' + later + ' scheduled' : '') + ')' : '') +
                   ', edited in the web editor' + (who ? ' by ' + who : '');
 
   // Last check before the commit. settleBase() above can wait a couple of

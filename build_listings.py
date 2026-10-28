@@ -25,6 +25,7 @@ unknown category, a missing field -- nothing is written and the problems are
 listed instead.
 """
 import argparse
+import glob
 import html
 import json
 import os
@@ -233,8 +234,11 @@ def load_categories(source, products, path, quiet=False):
     return out
 
 
-def validate(products, categories=None):
-    """Return (errors, warnings). Errors stop the build; warnings do not."""
+def validate(products, categories=None, strict_categories=True):
+    """Return (errors, warnings). Errors stop the build; warnings do not.
+    With strict_categories=False (the list is js/categories.js) a product in a
+    category the list lacks is only a warning: the editor refuses that on
+    Save, and one stray hand edit must not stop every page being rebuilt."""
     category_label = dict(categories) if categories else CATEGORY_LABEL
     errors, warnings = [], []
     if not products:
@@ -272,8 +276,9 @@ def validate(products, categories=None):
 
         cat = p.get('cat')
         if cat and cat not in category_label:
-            errors.append('%s: unknown category "%s".\n    Valid: %s'
-                          % (where, cat, ', '.join(category_label)))
+            (errors if strict_categories else warnings).append(
+                '%s: unknown category "%s".\n    Valid: %s'
+                % (where, cat, ', '.join(category_label)))
         elif cat and p.get('catLabel') and p['catLabel'] != category_label[cat]:
             warnings.append('%s: catLabel "%s" does not match "%s" for cat "%s"'
                             % (where, p['catLabel'], category_label[cat], cat))
@@ -529,9 +534,10 @@ def write_if_changed(path, data, check):
     """Write bytes (from encode_pages) only if they differ. Through a temporary
     file and a rename, so the page is either the old one or the new one --
     never half-written, or empty."""
-    with open(path, 'rb') as f:
-        if f.read() == data:
-            return 'unchanged'
+    if os.path.isfile(path):
+        with open(path, 'rb') as f:
+            if f.read() == data:
+                return 'unchanged'
     if check:
         return 'would change'
     tmp = path + '.tmp'
@@ -546,11 +552,320 @@ def write_if_changed(path, data, check):
     return 'updated'
 
 
-# Both pages are built in memory first and written only when both succeeded,
-# so a problem in one never leaves the other half-updated.
-def build_store(root, products, show_prices=False, categories=None):
+# --------------------------------------------------------------- categories
+# js/categories.js (the admin's Categories tab) is THE category list. This
+# script bakes it into the pages: the category cards on the home page and the
+# "N core campus tracks" sentence above them, the category links in every
+# page's header menu and footer, and the Store's filters. A category set to
+# "Shown" is featured: it has a home page card and a place in the menus. A
+# "Hidden" one keeps its own page and its Store filter only.
+CATEGORY_FILE = os.path.join('js', 'categories.js')
+ACCORDION = r'<div class="accordion">'
+MEGA_MENU = r'<div class="mega-menu-column w-dyn-items" role="list">'
+FOOTER_CATS = r'<div class="footer-link-list w-dyn-items" role="list">'
+COUNT_WORDS = ('no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+               'ten', 'eleven', 'twelve')
+
+
+def load_category_list(root, quiet=False):
+    """The categories in js/categories.js as dicts, in order -- or None when
+    the file does not exist (the older list then applies)."""
+    path = os.path.join(root, CATEGORY_FILE)
+    if not os.path.isfile(path):
+        return None
+    out, seen = [], set()
+    for c in extract_array(open(path, encoding='utf-8').read(), 'CATEGORIES', path, quiet):
+        if not isinstance(c, dict):
+            continue
+        cid = c.get('id').strip() if isinstance(c.get('id'), str) else ''
+        name = c.get('name').strip() if isinstance(c.get('name'), str) else ''
+        if cid and name and re.match(r'^[a-z0-9][a-z0-9-]*$', cid) and cid not in seen:
+            seen.add(cid)
+            out.append(dict(c, id=cid, name=name))
+    return out
+
+
+def image_width(path):
+    """Width in pixels from the file's own header (AVIF, PNG, JPEG, WebP,
+    GIF), or None. No image library needed."""
+    try:
+        with open(path, 'rb') as f:
+            data = f.read(1 << 16)
+    except OSError:
+        return None
+    if data[:8] == b'\x89PNG\r\n\x1a\n':
+        return int.from_bytes(data[16:20], 'big')
+    if data[:6] in (b'GIF87a', b'GIF89a'):
+        return int.from_bytes(data[6:8], 'little')
+    if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+        kind = data[12:16]
+        if kind == b'VP8X':
+            return 1 + int.from_bytes(data[24:27], 'little')
+        if kind == b'VP8 ':
+            return int.from_bytes(data[26:28], 'little') & 0x3fff
+        if kind == b'VP8L':
+            return (int.from_bytes(data[21:25], 'little') & 0x3fff) + 1
+        return None
+    if data[4:12] in (b'ftypavif', b'ftypavis'):
+        i = data.find(b'ispe')                      # the image's spatial extents
+        return int.from_bytes(data[i + 8:i + 12], 'big') if i > 0 else None
+    if data[:3] == b'\xff\xd8\xff':
+        i = 2
+        while i + 9 < len(data):
+            if data[i] != 0xff:
+                i += 1
+                continue
+            mark = data[i + 1]
+            if 0xc0 <= mark <= 0xcf and mark not in (0xc4, 0xc8, 0xcc):
+                return int.from_bytes(data[i + 7:i + 9], 'big')
+            i += 2 + int.from_bytes(data[i + 2:i + 4], 'big')
+    return None
+
+
+def card_srcset(root, img):
+    """srcset for a card picture saved the Webflow way -- images/NAME_1NAME.ext
+    with NAME_1-p-500/-800/-1080 beside it -- else '' (just the one file)."""
+    m = re.match(r'^images/(.+?)_1\1\.(avif|webp|jpe?g|png)$', img)
+    if not m:
+        return ''
+    base, ext = m.group(1), m.group(2)
+    parts = []
+    for w in (500, 800, 1080):
+        rel = 'images/%s_1-p-%d.%s' % (base, w, ext)
+        if os.path.isfile(os.path.join(root, rel)):
+            parts.append('%s %dw' % (rel, w))
+    full = image_width(os.path.join(root, img))
+    if not parts or not full:
+        return ''
+    return ', '.join(parts + ['%s %dw' % (img, full)])
+
+
+def category_card(root, n, c, local):
+    """One card in the home page's category accordion -- the same markup the
+    designed cards have."""
+    img = str(c.get('img') or '').strip()
+    src = local.get(img, img)
+    srcset = card_srcset(root, src)
+    return (
+        '<div class="accordion-item">\n'
+        '<div class="accordion-bg-image"><img alt="{alt}" class="max-width-full" loading="lazy" '
+        'sizes="100vw" src="{src}"{srcset}/></div>\n'
+        '<div class="accordion-overlay"></div>\n'
+        '<div class="accordion-number">\n'
+        '<div class="heading-style-three text-color-white op-50">{n:02d}</div>\n'
+        '</div>\n'
+        '<div class="accordion-label">\n'
+        '<div class="heading-style-three text-color-white">{name}</div>\n'
+        '</div>\n'
+        '<div class="accordion-content">\n'
+        '<div class="accordion-header">\n'
+        '<div class="accordion-title">\n'
+        '<div class="heading-style-two text-color-white">{name}</div>\n'
+        '</div>\n'
+        '<div class="accordion-index">\n'
+        '<div class="heading-style-three text-color-white op-50">{n:02d}</div>\n'
+        '</div>\n'
+        '</div>\n'
+        '<div class="accordion-footer">\n'
+        '<div class="accordion-text">\n'
+        '<p class="text-size-medium text-color-of-white">{text}</p>\n'
+        '</div>\n'
+        '<div class="accordion-button">\n'
+        '<a class="pr-btn-wrap w-variant-0db183cc-d48a-dba3-2a04-f24898eccb6a w-inline-block" '
+        'data-wf--pr-btn-wrap--variant="second" href="category.html?id={id}">\n'
+        '<div class="pr-btn-text">{button}</div>\n'
+        '</a>\n'
+        '</div>\n'
+        '</div>\n'
+        '</div>\n'
+        '</div>'
+    ).format(alt=e(c.get('alt') or c['name']), src=e(src),
+             srcset=' srcset="%s"' % e(srcset) if srcset else '', n=n, name=e(c['name']),
+             text=e(' '.join(str(c.get('text') or '').split())), id=e(c['id']),
+             button=e(c.get('button') or 'Shop ' + c['name']))
+
+
+def home_categories(cat_list):
+    """The featured categories ("Shown"), in list order: a home page card each
+    and a place in the header menu and footer."""
+    return [c for c in cat_list if c.get('home') != 'hidden']
+
+
+def menu_categories(cat_list):
+    return [(c['id'], c['name']) for c in home_categories(cat_list)]
+
+
+def bake_category_cards(doc, root, cat_list, local, label):
+    """The home page's category cards, and the count in the sentence above."""
+    cards = home_categories(cat_list)
+    if re.search(ACCORDION, doc):
+        doc = replace_inner(doc, ACCORDION, '\n' + '\n'.join(
+            category_card(root, n, c, local) for n, c in enumerate(cards, 1)) + '\n',
+            label + ' category cards')
+    word = COUNT_WORDS[len(cards)] if len(cards) < len(COUNT_WORDS) else str(len(cards))
+    track = ' core campus track' if len(cards) == 1 else ' core campus tracks'
+    return re.sub(r'(into )\w+ core campus tracks?\b', lambda m: m.group(1) + word + track, doc)
+
+
+def bake_category_menus(doc, cats, label):
+    """The category links in the header menu and the footer: the featured
+    categories, cats = menu_categories(...), in order. Each page keeps its own
+    link style (the 404 page links from the site root)."""
+    for container, cls in ((MEGA_MENU, 'mega-menu_link-wrapper w-inline-block'),
+                           (FOOTER_CATS, 'footer-link w-inline-block')):
+        m = re.search(container, doc)
+        if not m:
+            continue
+        first = re.search(r'href="([^"]*?)category\.html\?id=', doc[m.end():m.end() + 1000])
+        prefix = first.group(1) if first else ''
+        items = ''.join(
+            '<div class="w-dyn-item" role="listitem">\n<a class="%s" href="%scategory.html?id=%s">\n'
+            '<div class="">%s</div>\n</a>\n</div>' % (cls, e(prefix), e(cid), e(name))
+            for cid, name in cats)
+        doc = replace_inner(doc, container, '\n\n' + items, label + ' category links')
+    return doc
+
+
+def build_other_pages(root, cats, done):
+    """Every other page in the site folder: only its category links."""
+    out = []
+    for path in sorted(glob.glob(os.path.join(root, '*.html'))):
+        name = os.path.basename(path)
+        if name not in done:
+            doc = open(path, encoding='utf-8', newline='').read()
+            out.append((name, None, path, bake_category_menus(doc, cats, name)))
+    return out
+
+
+# ------------------------------------------------------------- social links
+# SOCIAL_LINKS in js/site-config.js is the one list of the brand's profiles.
+# The script there draws the footer icons in the browser; this writes the same
+# markup into the pages, so crawlers that run no script (most AI crawlers) see
+# the links too, together with labelled buttons and the structured data.
+SITE_CONFIG = os.path.join('js', 'site-config.js')
+SOCIAL_SLOT = r'<div class="social-media-link-wrap" data-social-links="">'
+SOCIAL_BUTTONS = r'<div class="social-pills" data-social-handles="">'
+SOCIAL_BLOCK = re.compile(r'<div class="social-media-main-wrap"( hidden="")?>(\s*<div class="eyebrow">Follow us</div>)')
+
+
+def read_social(root):
+    """([(key, label, url, svg path), ...] in the file's order, or [])."""
+    path = os.path.join(root, SITE_CONFIG)
+    if not os.path.isfile(path):
+        return []
+    src = open(path, encoding='utf-8').read()
+    block = re.search(r'var\s+SOCIAL_LINKS\s*=\s*\{(.*?)\};', src, re.S)
+    icons = dict((k, (label, d)) for k, label, d in
+                 re.findall(r"^\s*(\w+):\s*\{\s*label:\s*'([^']+)',\s*d:\s*'([^']+)'\s*\}", src, re.M))
+    out = []
+    for key, url in re.findall(r"^\s*(\w+):\s*'([^']*)'", block.group(1), re.M) if block else []:
+        url = url.strip()
+        if url.startswith('https://') and key in icons:
+            out.append((key, icons[key][0], url, icons[key][1]))
+    return out
+
+
+def social_handle(key, url):
+    """What the profile is called: @name where the address has one."""
+    parts = [p for p in re.sub(r'^https://[^/]+/', '', url).split('?')[0].split('/') if p]
+    if not parts:
+        return 'MyCampusKorner'
+    if parts[0].startswith('@'):
+        return parts[0]
+    if key == 'facebook':
+        if parts[0] == 'people' and len(parts) > 1:
+            return parts[1].replace('-', ' ')
+        return 'MyCampusKorner' if parts[0].isdigit() or parts[0] == 'profile.php' else parts[0]
+    return '@' + parts[0]
+
+
+def social_icons(links):
+    """The footer icons: exactly what drawSocial() in js/site-config.js draws."""
+    return ''.join(
+        '<a class="social-media-link w-inline-block" href="%s" target="_blank" rel="noopener me"'
+        ' aria-label="MyCampusKorner on %s" title="%s">'
+        '<svg aria-hidden="true" focusable="false" width="100%%" height="100%%" viewBox="0 0 50 50" fill="none">'
+        '<circle cx="25" cy="25" r="24.5" stroke="currentColor"/>'
+        '<g transform="translate(16 16) scale(.75)"><path fill="currentColor" d="%s"/></g>'
+        '</svg></a>' % (url.replace('"', '&quot;'), label, label, d)
+        for key, label, url, d in links)
+
+
+def social_buttons(links):
+    """Labelled buttons: the network and the handle, as text."""
+    return ''.join(
+        '\n<a class="social-pill" href="%s" target="_blank" rel="noopener me" title="MyCampusKorner on %s">'
+        '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path fill="currentColor" d="%s"/></svg>'
+        '<span class="social-pill-text"><span class="social-pill-name">%s</span>'
+        '<span class="social-pill-handle">%s</span></span></a>'
+        % (e(url), e(label), d, e(label), e(social_handle(key, url)))
+        for key, label, url, d in links) + ('\n' if links else '')
+
+
+def bake_social(doc, links, label):
+    """Footer icons, labelled buttons and the "Follow us" block's visibility."""
+    if re.search(SOCIAL_SLOT, doc):
+        doc = replace_inner(doc, SOCIAL_SLOT, social_icons(links), label + ' social icons')
+        doc = SOCIAL_BLOCK.sub(lambda m: '<div class="social-media-main-wrap"%s>%s'
+                               % ('' if links else ' hidden=""', m.group(2)), doc)
+    pos = 0                                       # every slot on the page, in turn
+    while True:
+        m = re.compile(SOCIAL_BUTTONS).search(doc, pos)
+        if not m:
+            return doc
+        doc = doc[:m.start()] + replace_inner(doc[m.start():], SOCIAL_BUTTONS, social_buttons(links),
+                                              label + ' social buttons')
+        pos = m.end()
+
+
+ORG_ID = SITE + '/#organization'
+
+
+def bake_org_profiles(doc, links, label):
+    """Every Organization in the page's structured data: one @id across pages,
+    and sameAs = the brand's profiles (how search engines and AI assistants
+    tie the accounts to the site)."""
+    def visit(node):
+        hit = False
+        if isinstance(node, dict):
+            if node.get('@type') == 'Organization' and node.get('name') == 'MyCampusKorner':
+                node['@id'] = ORG_ID
+                if links:
+                    node['sameAs'] = [url for _, _, url, _ in links]
+                else:
+                    node.pop('sameAs', None)
+                hit = True
+            for v in list(node.values()):
+                hit = visit(v) or hit
+        elif isinstance(node, list):
+            for v in node:
+                hit = visit(v) or hit
+        return hit
+    out, last = [], 0
+    for m in re.finditer(r'<script type="application/ld\+json">(.*?)</script>', doc, re.S):
+        raw = m.group(1)
+        try:
+            data = json.loads(raw)
+        except ValueError:
+            continue
+        if not visit(data):
+            continue
+        if '\n' in raw.strip():
+            new = '\n' + json.dumps(data, indent=2, ensure_ascii=False).replace('<', '\\u003c') + '\n'
+        else:
+            new = json.dumps(data, ensure_ascii=False).replace('<', '\\u003c')
+        out.append(doc[last:m.start(1)] + new)
+        last = m.end(1)
+    return ''.join(out) + doc[last:] if out else doc
+
+
+# Every page is built in memory first and written only when all succeeded,
+# so a problem in one never leaves the others half-updated.
+def build_store(root, products, show_prices=False, categories=None, menus=None):
     path = os.path.join(root, 'store.html')
     doc = open(path, encoding='utf-8', newline='').read()
+    if menus is not None:
+        doc = bake_category_menus(doc, menus, 'store.html')
     doc = replace_inner(doc, GRID, ''.join(grid_card(p) for p in products), 'store.html grid')
     doc = replace_inner(doc, RADIOS, category_radios(products, categories),
                         'store.html category filter')
@@ -559,9 +874,12 @@ def build_store(root, products, show_prices=False, categories=None):
     return 'store.html', len(products), path, doc
 
 
-def build_index(root, products, show_prices=False):
+def build_index(root, products, show_prices=False, cat_list=None, local=None):
     path = os.path.join(root, 'index.html')
     doc = open(path, encoding='utf-8', newline='').read()
+    if cat_list is not None:
+        doc = bake_category_cards(doc, root, cat_list, local or {}, 'index.html')
+        doc = bake_category_menus(doc, menu_categories(cat_list), 'index.html')
     featured = products[:FEATURED]
     doc = replace_inner(doc, SLIDER, ''.join(slide_card(p) for p in featured),
                         'index.html featured rail')
@@ -723,12 +1041,22 @@ def main():
 
     try:
         products = load_products(catalog)
-        categories = load_categories(open(catalog, encoding='utf-8').read(), products, catalog)
+        cat_list = load_category_list(root)
+        if cat_list is None:
+            categories = load_categories(open(catalog, encoding='utf-8').read(), products, catalog)
+        else:
+            categories = [(c['id'], c['name']) for c in cat_list]
+            # Each product shows its category's current name, so a rename in
+            # the Categories tab reaches every card without re-saving each one.
+            names = dict(categories)
+            products = [dict(p, catLabel=names[p['cat']])
+                        if isinstance(p, dict) and p.get('cat') in names else p
+                        for p in products]
     except BuildError as exc:
         print('error: %s' % exc)
         return 1
 
-    errors, warnings = validate(products, categories)
+    errors, warnings = validate(products, categories, strict_categories=cat_list is None)
     for w in warnings:
         print('warning: %s' % w)
     if errors:
@@ -748,9 +1076,24 @@ def main():
         show = prices_shown(root)
         # Cards show the copies fetch_images.py keeps on the site; validation
         # above, and the mismatch check below, see the catalog as saved.
-        shown = with_local_images(products, read_local_images(root))
-        built = encode_pages([build_store(root, shown, show, categories),
-                              build_index(root, shown, show)])
+        local = read_local_images(root)
+        shown = with_local_images(products, local)
+        if cat_list is None:
+            built = encode_pages([build_store(root, shown, show, categories),
+                                  build_index(root, shown, show)])
+        else:
+            # A product left in a category the list lacks still gets a filter.
+            filters = list(categories)
+            for p in shown:
+                if p.get('cat') and p['cat'] not in dict(filters):
+                    filters.append((p['cat'], p.get('catLabel') or p['cat']))
+            menus = menu_categories(cat_list)
+            social = read_social(root)
+            pages = ([build_store(root, shown, show, filters, menus),
+                      build_index(root, shown, show, cat_list, local)] +
+                     build_other_pages(root, menus, ('store.html', 'index.html')))
+            built = encode_pages([(name, n, path, bake_org_profiles(bake_social(doc, social, name), social, name))
+                                  for name, n, path, doc in pages])
     except BuildError as exc:
         print('error: %s' % exc)
         print('\nnothing was written.')
@@ -758,6 +1101,10 @@ def main():
     rows = [(name, n, write_if_changed(path, doc, args.check)) for name, n, path, doc in built]
 
     for name, n, state in rows:
+        if n is None:                              # a page with only category links
+            if state != 'unchanged':
+                print('  %-19s category links  %s' % (name, state))
+            continue
         print('  %-14s %3d products   %s%s'
               % (name, n, state, '   (empty)' if n == 0 else ''))
 

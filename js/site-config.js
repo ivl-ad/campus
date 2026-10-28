@@ -20,7 +20,13 @@ var SHOW_PRICES = false;
 
 
 /* ---------------------------------------------------------- social links ---
- * The "Follow us" icons in the footer of every page.
+ * The "Follow us" icons in the footer of every page, the labelled buttons on
+ * the Contact page and under "Stay connected to the Korner" on the home page,
+ * the profiles named in the site's structured data (so search engines and AI
+ * assistants know these accounts are ours) and in /llms.txt. The rebuild
+ * (build_listings.py / build_content.py, run by the GitHub Action whenever
+ * this file changes) writes them into the pages, so they are there for
+ * crawlers that do not run scripts too.
  *
  * Paste the full address of each profile between the quotes, e.g.
  *     instagram: 'https://www.instagram.com/mycampuskorner',
@@ -29,9 +35,9 @@ var SHOW_PRICES = false;
  * shows an icon that goes nowhere. Icons appear in the order listed here.
  */
 var SOCIAL_LINKS = {
-  instagram: '',
-  tiktok:    '',
-  facebook:  '',
+  tiktok:    'https://www.tiktok.com/@my.campus.korner',
+  instagram: 'https://www.instagram.com/mycampuskorner.shop/',
+  facebook:  'https://www.facebook.com/people/My-Campus-Korner/61595547363296/',
   youtube:   '',
   pinterest: '',
   x:         '',
@@ -49,12 +55,25 @@ var SOCIAL_LINKS = {
  *   2 = never more than twice its size: a small image is shown smaller,
  *       centred on white, and stays reasonably sharp
  *
- * TRY IT FIRST on the live site, in your browser only: open any page with
- * ?imgcap=2 added to its address (?imgcap=0 to see it off). Your browser
- * remembers it -- a small label in the corner says so -- and visitors see no
- * change. ?imgcap=site goes back to the value set here.
+ * To compare, in your browser only: add ?imgcap=0 (or another number) to
+ * any page's address. Your browser remembers it -- a small label in the
+ * corner says so -- and visitors see no change. ?imgcap=site goes back to
+ * the value set here. To turn the limit off for everyone, set it to 0.
  */
-var IMAGE_ENLARGE_LIMIT = 0;
+var IMAGE_ENLARGE_LIMIT = 2;
+
+
+/* ------------------------------------------------------- Google Analytics ---
+ * Paste the GA4 Measurement ID (it looks like G-XXXXXXXXXX) between the
+ * quotes to load Google Analytics on every page; '' = off, and nothing from
+ * Google loads at all. The site's own, cookie-free visitor and click counts
+ * (Analytics tab in /admin/) work either way.
+ *
+ * BEFORE switching it on: the privacy policy must name Google Analytics, and
+ * Google sets cookies, so add a cookie notice. See admin/HANDOVER.md
+ * ("Analytics").
+ */
+var GA_MEASUREMENT_ID = '';
 
 
 (function () {
@@ -64,6 +83,18 @@ var IMAGE_ENLARGE_LIMIT = 0;
   // IMAGE_ENLARGE_LIMIT, unless this browser is previewing another value
   // (?imgcap=N, remembered; ?imgcap=site forgets it). js/product-page.js
   // applies it.
+  // Google Analytics, only when a real Measurement ID is set above.
+  if (/^G-[A-Z0-9]{4,}$/.test(GA_MEASUREMENT_ID)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GA_MEASUREMENT_ID);
+    var ga = document.createElement('script');
+    ga.async = true;
+    ga.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_MEASUREMENT_ID);
+    document.head.appendChild(ga);
+  }
+
   window.IMAGE_ENLARGE_LIMIT = IMAGE_ENLARGE_LIMIT;
   var capPreview = null;
   try {
@@ -136,5 +167,21 @@ var IMAGE_ENLARGE_LIMIT = 0;
     document.addEventListener('DOMContentLoaded', drawSocial);
   } else {
     drawSocial();
+  }
+
+  // A page opened straight from disk (file://, for a quick local look):
+  // browsers refuse the request that loads the mobile menu button's
+  // animation (documents/hamburger-menu.json), which left the button blank.
+  // Show the same three lines as a plain icon instead. Runs before webflow.js
+  // starts its animations; the published site never takes this path.
+  if (location.protocol === 'file:') {
+    document.addEventListener('DOMContentLoaded', function () {
+      var boxes = document.querySelectorAll('[data-animation-type="lottie"][data-src$="hamburger-menu.json"]');
+      for (var i = 0; i < boxes.length; i++) {
+        boxes[i].removeAttribute('data-animation-type');
+        boxes[i].innerHTML = '<svg viewBox="0 0 48 48" width="100%" height="100%" aria-hidden="true">' +
+          '<path d="M14 17h20M14 24h20M14 31h20" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>';
+      }
+    });
   }
 })();

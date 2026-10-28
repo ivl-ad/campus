@@ -1,15 +1,26 @@
 name: Rebuild listings
 
 # The admin editor commits data files and nothing else: js/products.js,
-# js/partners.js, js/blogs.js, js/team.js. Several pages carry that content
-# as baked HTML so they stay crawlable and work with JavaScript off, and the
-# product images and partner logos are kept as copies on the site rather
-# than loaded from the retailers. This job is what keeps all of it in step:
+# js/partners.js, js/categories.js, js/blogs.js, js/team.js. Several pages
+# carry that content as baked HTML so they stay crawlable and work with
+# JavaScript off, and the product images and partner logos are kept as
+# copies on the site rather than loaded from the retailers. This job is
+# what keeps all of it in step:
 #
 #   fetch_images.py     images/products/, images/partners/,  <- js/products.js,
 #                       js/local-images.js                       js/partners.js
-#   build_listings.py   store.html, index.html                <- js/products.js
-#   build_content.py    blog.html, index.html, about.html     <- js/blogs.js, js/team.js
+#                       images/categories/                    <- js/categories.js
+#                       images/blog-covers/                   <- js/blogs.js
+#   build_listings.py   store.html, index.html, and the       <- js/products.js,
+#                       category links on every page              js/categories.js
+#   build_content.py    blog.html, index.html, about.html,    <- js/blogs.js, js/team.js
+#                       llms.txt (the site described for AI)
+#   stamp_assets.py     every page's <script>/<link> ?v=      <- anything in js/ or css/
+#
+# The last one matters as much as the rest: Cloudflare caches every .js file
+# for 4 hours in visitors' browsers (data included) and the stylesheets for a
+# day, so a page must name a changed file by a new address -- its content
+# fingerprint -- for anyone to see the change before then.
 #
 # It never edits a data file, so its commit never looks like "a commit made
 # outside the editor" to the shared draft.
@@ -24,14 +35,22 @@ on:
   push:
     branches: [main]
     paths:
-      - 'js/products.js'
-      - 'js/partners.js'
-      - 'js/blogs.js'
-      - 'js/team.js'
+      # The data files (an editor's Save), and any change to the site's code
+      # or styles (a push), which needs the pages' fingerprints updated.
+      - 'js/**'
+      - 'css/**'
       - 'build_listings.py'
       - 'build_content.py'
       - 'fetch_images.py'
+      - 'stamp_assets.py'
   workflow_dispatch:        # lets you run it by hand from the Actions tab
+  # Every half hour, so a blog post scheduled for later (Published, with a
+  # date still to come) reaches the blog and home page listings soon after
+  # its time. A run that finds nothing to change commits nothing. (GitHub
+  # pauses timers in a repository with no activity for 60 days; any push or
+  # Save starts them again.)
+  schedule:
+    - cron: '7,37 * * * *'
 
 # Needed so the workflow can push the rebuilt pages back.
 permissions:
@@ -68,8 +87,7 @@ jobs:
       - name: Rebuild the baked pages and commit them
         run: |
           set -u
-          PAGES="store.html index.html blog.html about.html"
-          IMAGES="js/local-images.js images/products images/partners"
+          IMAGES="js/local-images.js images/products images/partners images/categories images/blog-covers"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -85,7 +103,7 @@ jobs:
             git reset --hard "origin/$GITHUB_REF_NAME"
             # A previous attempt's downloads are untracked, so reset leaves
             # them; clear them so only what this attempt needs is committed.
-            git clean -fdq -- images/products images/partners
+            git clean -fdq -- images/products images/partners images/categories images/blog-covers
 
             # Copies first: build_listings.py bakes them into the cards. A
             # retailer refusing a download is reported, not fatal -- that
@@ -95,6 +113,9 @@ jobs:
             # containers, so they run one after the other.
             python build_listings.py
             python build_content.py
+            # Last: fingerprints of the files as they now are (any page).
+            python stamp_assets.py
+            PAGES="$(ls *.html | tr '\n' ' ') llms.txt"
 
             if [ -z "$(git status --porcelain -- $PAGES $IMAGES)" ]; then
               echo "Pages and images already match the data files - nothing to commit."
@@ -107,10 +128,9 @@ jobs:
             # No "[skip ci]" here. Cloudflare Pages treats that as its own
             # skip-build token, so it would ignore the very commit that carries
             # the rebuilt pages and the site would stay stale.
-            # Nothing is needed to stop this workflow re-triggering itself: the
-            # paths filter above only watches the data files and the three
-            # scripts, and this commit touches none of them. (GitHub also
-            # refuses to start workflows from GITHUB_TOKEN pushes.)
+            # This commit cannot re-trigger this workflow, although it changes
+            # js/local-images.js: GitHub never starts a workflow from a push
+            # made with the job's own GITHUB_TOKEN.
             git commit -m "Rebuild baked pages and image copies from the data files"
 
             if git push; then

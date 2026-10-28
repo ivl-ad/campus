@@ -29,8 +29,11 @@ import os
 import re
 import sys
 
-from build_listings import (BuildError, encode_pages, extract_array, replace_inner,
-                            set_empty_state, write_if_changed)
+import time
+
+from build_listings import (BuildError, encode_pages, extract_array, load_category_list,
+                            read_local_images, read_social, replace_inner, set_empty_state,
+                            social_handle, write_if_changed)
 
 SITE = 'https://mycampuskorner.com'
 SLUG = re.compile(r'^[a-z0-9][a-z0-9-]*$')
@@ -63,10 +66,32 @@ def load_team(root):
     return extract_array(open(path, encoding='utf-8').read(), 'TEAM', 'js/team.js')
 
 
-def published(posts):
-    """Visible posts, newest first (id breaks ties so the order is stable)."""
-    live = [p for p in posts if isinstance(p, dict) and not p.get('hidden')]
+def published(posts, now_ms=None):
+    """Visible posts, newest first (id breaks ties so the order is stable).
+    A post set to Published with a date still to come is scheduled: it is
+    left out until then. The Action also runs on a timer, so the listings
+    catch up within about half an hour of that time; the post's own page,
+    the blog's category pages and the sitemap check the time themselves."""
+    now_ms = time.time() * 1000 if now_ms is None else now_ms
+    live = [p for p in posts if isinstance(p, dict) and not p.get('hidden') and
+            (p.get('dateMs') or 0) <= now_ms]
     return sorted(live, key=lambda p: (-(p.get('dateMs') or 0), p.get('id') or ''))
+
+
+def scheduled(posts, now_ms=None):
+    now_ms = time.time() * 1000 if now_ms is None else now_ms
+    return sorted((p for p in posts if isinstance(p, dict) and not p.get('hidden') and
+                   (p.get('dateMs') or 0) > now_ms), key=lambda p: p.get('dateMs') or 0)
+
+
+def on_page(src, local):
+    """An image address as a baked page at the site root should write it:
+    the copy kept on the site when there is one (js/local-images.js), and a
+    site path made relative ("/images/x" -> "images/x"), so the page also
+    works opened straight from disk."""
+    src = str(src or '').strip()
+    src = local.get(src, src)
+    return src[1:] if src.startswith('/') and not src.startswith('//') else src
 
 
 # ---------------------------------------------------------------- validation
@@ -287,6 +312,62 @@ def read(root, name):
     return path, open(path, encoding='utf-8', newline='').read()
 
 
+# /llms.txt: what the site is, in plain words, for AI assistants and search
+# tools (the llmstxt.org convention). Rebuilt with the pages from the same
+# data -- the categories, the newest posts, the social profiles -- so it never
+# describes a site that has moved on.
+def plain(s):
+    return ' '.join(re.sub(r'<[^>]+>', ' ', str(s or '')).split())
+
+
+def short(s, n=200):
+    """At most n characters, ending at a whole word."""
+    s = plain(s)
+    return s if len(s) <= n else s[:s.rfind(' ', 0, n)].rstrip(' ,;:') + '...'
+
+
+def build_llms(root, live):
+    cats = [c for c in (load_category_list(root, quiet=True) or []) if c.get('home') != 'hidden']
+    social = read_social(root)
+    lines = [
+        '# MyCampusKorner',
+        '',
+        '> MyCampusKorner (mycampuskorner.com) is a college shopping guide for US students and '
+        'their parents. It gathers hand-picked dorm, classroom, tech, travel, money and wellness picks '
+        'in one place, sorted into simple categories, so a family can cross off a move-in list without '
+        'endless tab-switching. Built by a college parent in Ann Arbor, Michigan. The blog adds practical '
+        'campus advice: "Real campus advice. No retail bias."',
+        '',
+        'Who it is for: incoming and current college students, and parents shopping for move-in day. '
+        'Products link to the retailers that sell them; some links are affiliate links, which earn the site '
+        'a commission at no extra cost to the buyer (see the disclosure on every page). Contact: '
+        'support@mycampuskorner.com.',
+        '',
+        '## Shop by category',
+        '',
+    ]
+    for c in cats:
+        text = plain(c.get('text'))
+        lines.append('- [%s](%s/category?id=%s)%s' % (c['name'], SITE, c['id'], ': ' + text if text else ''))
+    lines += ['- [Every product](%s/store): the whole catalog, with search and filters' % SITE, '',
+              '## Campus advice (newest articles)', '']
+    for p in live[:12]:
+        lines.append('- [%s](%s/blog-post?id=%s): %s' % (plain(p.get('name')), SITE, p.get('id'),
+                                                         short(p.get('excerpt'))))
+    lines += ['- [All articles](%s/blog)' % SITE, '', '## About', '',
+              '- [About MyCampusKorner](%s/about): who runs the site, how it works and how it is funded' % SITE,
+              '- [Contact](%s/contact-us): questions, partnerships and press' % SITE,
+              '- [Privacy policy](%s/privacy-policy)' % SITE,
+              '- [Terms of service](%s/terms)' % SITE]
+    if social:
+        lines += ['', '## Official social accounts', '']
+        lines += ['- [%s %s](%s)' % (label, social_handle(key, url), url) for key, label, url, _ in social]
+    text = '\n'.join(lines) + '\n'
+    if re.search('[\u2013\u2014]', text):                      # house style: no long dashes
+        text = text.replace(' \u2014 ', ', ').replace('\u2014', ', ').replace('\u2013', '-')
+    return 'llms.txt', len(live), os.path.join(root, 'llms.txt'), text
+
+
 # Each builder returns (name, count, path, new_doc); main() writes only once
 # every page has been built, so a problem in one page never leaves another
 # half-updated.
@@ -347,14 +428,23 @@ def main():
         return 1
 
     live = published(posts)
-    print('blog:  %d posts (%d published, %d drafts), %d categories'
-          % (len(posts), len(live), len(posts) - len(live), len(categories)))
+    later = scheduled(posts)
+    print('blog:  %d posts (%d published, %d scheduled, %d drafts), %d categories'
+          % (len(posts), len(live), len(later), len(posts) - len(live) - len(later), len(categories)))
+    if later:
+        print('       next scheduled: "%s" at %s UTC'
+              % (later[0].get('name'), time.strftime('%Y-%m-%d %H:%M', time.gmtime(later[0]['dateMs'] / 1000))))
     print('team:  %d people\n' % len(team))
 
     try:
-        built = encode_pages([build_blog(root, categories, live),
-                              build_home(root, live),
-                              build_about(root, team)])
+        local = read_local_images(root)
+        cards = [dict(p, img=on_page(p.get('img'), local)) for p in live]
+        people = [dict(t, photo=on_page(t.get('photo'), local)) if isinstance(t, dict) and t.get('photo')
+                  else t for t in team]
+        built = encode_pages([build_blog(root, categories, cards),
+                              build_home(root, cards),
+                              build_about(root, people),
+                              build_llms(root, live)])
     except BuildError as exc:
         print('error: %s' % exc)
         print('\nnothing was written.')

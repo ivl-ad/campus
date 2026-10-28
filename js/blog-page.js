@@ -22,8 +22,12 @@
   var TEMPLATE_TITLE = /^(Product|Category|Store|Article|Blog Category) \| MyCampusKorner$/;
   function headIsTemplate() { return TEMPLATE_TITLE.test(document.title); }
 
-  // Posts marked hidden in the editor are drafts: they are never shown.
-  var POSTS = (window.BLOG_POSTS || []).filter(function (p) { return !p.hidden; });
+  // Posts marked hidden in the editor are drafts: they are never shown. A
+  // published post dated in the future is scheduled: not shown until then.
+  var NOW = Date.now();
+  var POSTS = (window.BLOG_POSTS || []).filter(function (p) {
+    return p && !p.hidden && !(Number(p.dateMs) > NOW);
+  });
   var CATS = window.BLOG_CATEGORIES || [];
   var TEAM = window.TEAM || [];
 
@@ -148,6 +152,75 @@
     return frag;
   }
 
+  /*
+   * Links to our own products, added in the editor with the Product button.
+   * A paragraph that is nothing but such a link becomes a product card (its
+   * picture, store and name, from js/products.js as it is now); a link
+   * inside a sentence stays a link. A link to a product that no longer
+   * exists keeps its words but loses the link, so no article ever sends a
+   * reader to "Product not found".
+   */
+  var PRODUCT_HREF = /^(?:\/|https?:\/\/(?:www\.)?mycampuskorner\.com\/)?product(?:\.html)?\?id=([a-z0-9][a-z0-9-]*)(?:[&#]|$)/i;
+
+  function productCard(p) {
+    var href = 'product.html?id=' + encodeURIComponent(p.id);
+    var card = document.createElement('div');
+    card.className = 'post-product';
+    var pic = document.createElement('a');
+    pic.className = 'post-product-img';
+    pic.href = href;
+    pic.setAttribute('tabindex', '-1');
+    pic.setAttribute('aria-hidden', 'true');
+    var img = document.createElement('img');
+    img.src = p.img;
+    img.alt = '';
+    img.loading = 'lazy';
+    pic.appendChild(img);
+    var body = document.createElement('div');
+    body.className = 'post-product-body';
+    var store = document.createElement('div');
+    store.className = 'post-product-store';
+    store.textContent = p.merchant || '';
+    var name = document.createElement('a');
+    name.className = 'post-product-name';
+    name.href = href;
+    name.textContent = p.name;
+    var btn = document.createElement('a');
+    btn.className = 'dark-btn-wrap w-inline-block post-product-btn';
+    btn.href = href;
+    var label = document.createElement('div');
+    label.className = 'dark-btn-text';
+    label.textContent = 'View product';
+    btn.appendChild(label);
+    body.appendChild(store);
+    body.appendChild(name);
+    body.appendChild(btn);
+    card.appendChild(pic);
+    card.appendChild(body);
+    return card;
+  }
+
+  function productLinks(root) {
+    var byId = {};
+    (window.PRODUCTS || []).forEach(function (p) { if (p && p.id) byId[p.id] = p; });
+    Array.prototype.slice.call(root.querySelectorAll('a[href]')).forEach(function (a) {
+      var m = PRODUCT_HREF.exec(a.getAttribute('href') || '');
+      if (!m) return;
+      var p = byId[m[1]];
+      if (!p) {                                         // gone: keep the words, drop the link
+        a.parentNode.replaceChild(document.createTextNode(a.textContent), a);
+        return;
+      }
+      a.setAttribute('href', 'product.html?id=' + encodeURIComponent(p.id));
+      a.removeAttribute('target');
+      a.removeAttribute('rel');
+      var block = a.parentNode;
+      var alone = block && block !== root && block.tagName === 'P' &&
+        block.textContent.trim() === a.textContent.trim() && !block.querySelector('img');
+      if (alone) block.parentNode.replaceChild(productCard(p), block);
+    });
+  }
+
   function setText(id, text) {
     var el = byId(id);
     if (el) el.textContent = text;
@@ -224,6 +297,7 @@
     if (content) {
       content.textContent = '';
       content.appendChild(safeArticle(p.contentHTML));
+      productLinks(content);
     }
 
     var rail = byId('b-related');

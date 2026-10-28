@@ -10,8 +10,14 @@ plus the fixes and features described below, in two rounds:
   as `ad80dfe`; four minutes later a partner Save went through on the live
   site (`58ebe5e`, "Partners: 22 logos … by vlad") — the first since 22 Sep.
 * **Round 3** (product images never cropped; product images and partner
-  logos stored on the site) — section 3.8. **In this folder, tested, not yet
-  deployed.**
+  logos stored on the site) — sections 3.8 and 3.9. **Deployed on 27 Oct
+  2026**, except the cache fix (3.10, `stamp_assets.py`), which was finished
+  after that push and goes out with round 4.
+* **Round 4** (the team's first two rounds of feedback: carousel, six home
+  page categories and a Categories tab, the site's own visit counts and a
+  Cloudflare tab, product descriptions, blog scheduling and product cards,
+  affiliate-link warnings, blog covers stored on the site) — the list below
+  and sections 5 and 8. **In this folder, tested, not yet deployed.**
 
 **Start with 3.1 and 3.7.** The reported error had a different cause from
 the one round 1 fixed, and those two sections are the accurate account.
@@ -37,6 +43,92 @@ work.
 The two were reconciled by comparing them file by file: the September folder
 contributed nothing that `latest/` did not already have, so `latest/` is the
 only ancestor that matters.
+
+### Round 4 — what changed since the round-3 push
+
+```
+index.html                              student carousel: 3 new photos (13 in all), the
+                                        white "price tag" bubbles removed, slower scroll;
+                                        "disparate" gone; six category cards
+images/model-11..13*, fitness-img*      NEW — the new carousel photos, the Health & Fitness card
+js/categories.js                        NEW — THE category list (Categories tab), section 5
+functions/api/categories.js             NEW — its Save: validation, delete guard, merge
+functions/api/draft.js, history.js,     the Categories tab's shared draft, History and Export
+  export.js
+functions/api/catalog.js                a product's category must be in js/categories.js;
+                                        js/products.js no longer carries a category list
+admin/index.html                        Categories tab; Products menu from it ("Manage
+                                        categories…" replaces "+ New category…"); Analytics link
+build_listings.py                       bakes the category cards, the "six core campus
+                                        tracks" count and every page's menu + footer links
+fetch_images.py, _headers, workflow     a category picture given as a link is copied too
+js/listing-page.js, js/product-page.js  category names from js/categories.js
+functions/_shared/site-data.js          the same, for titles, share text and the sitemap
+functions/hit.js, _shared/stats.js      NEW — the site's own visit counter (section 5)
+functions/api/analytics.js              NEW — its report
+admin/analytics.html                    NEW — the Analytics tab
+js/analytics.js                         NEW — on every page: page views and clicks out
+*.html (13 pages)                       the Google Analytics placeholder removed (it never
+                                        worked: G-XXXXXXXXXX); js/analytics.js added;
+                                        category pages load js/categories.js
+js/site-config.js                       GA_MEASUREMENT_ID: '' = off (switch for later)
+privacy-policy.html                     describes what is actually collected (no GA)
+stamp_assets.py                         (round 3.10, first push)
+tools/dev-server.mjs, tools/test.mjs    /hit routed; 297 checks (not committed)
+
+--- second round of feedback ---
+js/products.js                          50 products: a description for each; names and
+                                        stores tidied (typos, casing, stray dashes, the
+                                        pasted Bentgo text); the "Moving (copy)" test
+                                        entry removed; the Hisense TV and the popcorn
+                                        maker moved to Dorm & Living Essentials. Header
+                                        carries "data-release: 2026-10-28-r4" (5, below)
+js/categories.js                        the two emptied categories removed: six left
+functions/_shared/draft-save.js         a push labelled with a newer data-release is
+                                        merged without the "large change" question
+build_listings.py                       menus list the featured ("Shown") categories only
+js/listing-page.js                      a category with no products says "coming soon"
+fetch_images.py                         blog covers copied too; a big cover that is a file
+                                        on the site gets a lighter WebP copy
+images/blog-covers/                     NEW, GENERATED — those copies (1.85 MB -> 240 KB)
+build_content.py                        covers from the copies, as relative paths (the
+                                        pages work opened from disk); scheduled posts
+                                        wait for their time
+functions/_shared/site-data.js,         scheduled posts hidden until their time (post
+  js/blog-page.js, functions/api/blog.js  page, blog category pages, sitemap)
+js/blog-page.js, css/site-custom.css    product links in articles; a paragraph that is
+                                        only a product link shows as a product card
+blog-post.html, blog-category.html      load js/products.js / js/local-images.js
+admin/index.html                        Blog: Scheduled status, a Product button in the
+                                        article toolbar, "not on the site yet" made loud;
+                                        Products/Partners: links without affiliate
+                                        tracking in red, with a line naming them;
+                                        Categories: "Shown" = home card + menu link
+functions/api/cf-analytics.js           NEW — Cloudflare Web Analytics for the admin
+admin/analytics.html                    the Cloudflare tab (?source=cloudflare)
+.github/workflows/rebuild-listings.yml  a half-hourly timer (scheduled posts); covers folder
+privacy-policy.html                     Cloudflare Web Analytics named
+*.html, product functions               visible em dashes removed (footer, home, contact,
+                                        blog description, generated share text)
+
+--- third pass ---
+*.html (13 pages)                       jQuery tag without crossorigin/integrity (a page
+                                        opened from disk lost every animation: see 5)
+js/site-config.js                       SOCIAL_LINKS set (TikTok, Instagram, Facebook);
+                                        a plain menu icon when a page is opened from disk
+build_listings.py                       footer icons, labelled social buttons and the
+                                        Organization's @id + sameAs written into the pages
+contact-us.html, index.html             social buttons (data-social-handles slots)
+build_content.py                        writes /llms.txt
+llms.txt                                NEW, GENERATED -- the site described for AI tools
+css/site-custom.css                     .social-pill buttons
+```
+
+`js/partners.js`, `js/blogs.js` and `js/team.js` are byte-for-byte what
+GitHub has (`2f1a990`, after vlad's Saves of 27 Oct); `js/products.js` is that
+file plus the changes listed. `js/local-images.js` keeps this folder's four
+larger image copies (book, king-hunter, moving, ticket-liquidator); GitHub's
+are the 150 px originals.
 
 ### Round 3 — what changed since the round-2 deploy
 
@@ -154,6 +246,33 @@ Everything here was tested against a stand-in GitHub and an in-memory
 database, never against the real ones — no token for them, and rightly so. So
 the first few minutes after the deploy are the real test. In order, each one
 checking something that was changed:
+
+For round 4, in order:
+
+1. **Home page** (Ctrl+F5 once): 13 photos in the student strip and no white
+   bubbles; six category cards, the sixth Health & Fitness; the sentence above
+   them says "six core campus tracks"; the header's Featured Categories menu
+   and the footer list the eight categories.
+2. **`/admin/?view=categories`** shows eight rows. Delete on *Living & Social
+   Spaces* is refused, naming the product that uses it.
+3. **Products tab:** the category menu lists the same eight and ends with
+   **Manage categories…**.
+4. **Actions tab:** the push changes `build_listings.py`, so the workflow runs
+   once. Its commit should change nothing, or only `?v=` stamps.
+5. **`/admin/analytics`** loads (zeros at first). Open a few public pages in
+   another browser and press Refresh: they appear under Top pages. Then press
+   **Don't count this browser** on each browser the team uses.
+6. **Categories → Save** once, even with no change: that writes
+   `js/categories.js` through the editor, so its History starts there.
+7. **Products → change anything small → Save.** It goes through with no
+   question and its message ends "This Save also took in the change made on
+   GitHub…": that is the new descriptions and names being merged into the
+   shared draft (the data-release label, section 5). Three rows show red urls
+   (Belkin weekly deals, Gemini, Cloudfield: no affiliate tracking yet).
+8. **Blog:** the two posts the team added are still in the shared draft:
+   check their Status (Draft / Published / Scheduled) and press **Save**.
+9. **Cloudflare tab** shows the setup card until SETUP.md section 17 is done;
+   after that and a redeploy, the numbers.
 
 For round 3, in order:
 
@@ -580,6 +699,34 @@ log says so.
   address): `python fetch_images.py --refresh <product id>`, or delete the
   file and run it.
 
+### 3.10 Why a deploy "changed nothing": browser caching, and the fix
+
+After the 3.8/3.9 deploy the live site looked unchanged. Two caches:
+
+* **JavaScript — 4 hours.** Every `.js` file comes back with
+  `Cache-Control: public, max-age=14400`. That is not in `_headers`; it is the
+  Cloudflare zone's **Browser Cache TTL** (4 hours is Cloudflare's default),
+  which overrides Pages' own `max-age=0` for static file types. It applies to
+  the data files too, so an editor's Save could take up to 4 hours to reach a
+  returning shopper. (HTML is not affected: pages come back `max-age=0`.)
+* **Stylesheets — a day**, from `_headers`, keyed by `?v=`. The stylesheet
+  changed but its `?v=20261027` did not, so Cloudflare's edge kept serving the
+  old one (`cf-cache-status: HIT`).
+
+**The fix does not depend on any dashboard setting:** `stamp_assets.py` writes
+each page's own scripts and stylesheets as `file?v=<first 10 of the content's
+sha1>`. Pages are never cached, so a changed file is a new address on the very
+next page load; unchanged files keep theirs and stay cached. The Action runs
+it last on every rebuild and commits any page whose stamps moved — so an
+editor's Save now reaches shoppers in the ~2 minutes the Action takes, not up
+to 4 hours. It also runs on any push touching `js/` or `css/`. `js/vendor/`
+is left alone (versioned file names, cached a year). Simulated against a
+throwaway repo: after two Saves, `product.html` names `products.js?v=` equal
+to the file's real fingerprint, and the race retry still works.
+
+(Optional, not required: setting the zone's Browser Cache TTL to "Respect
+Existing Headers" in Cloudflare would also stop the 4-hour override.)
+
 ### 3.9 Small product images: a full-size version is fetched automatically, and an optional enlargement limit
 
 Measured on the product page (photo area ~650 × 540 on a desktop): 9 images
@@ -603,9 +750,21 @@ Product images only — partner logos are shown small, and a full-size logo is
 weight with no visible gain. Verified against real CDNs from thumbnail
 addresses: Shopify 200 → 1000, Walmart 180 → 2500, Best Buy 200 → 2000, and
 end to end in the admin (paste a thumbnail → "low-res" → Save → rebuild →
-the copy is 1000 × 1000 and the mark is gone). `--retry-small` ran once over
-the existing copies: no current product image has a bigger version at its
-address (they are the fixed-size creatives above).
+the copy is 1000 × 1000 and the mark is gone).
+
+**Impact thumbnails.** `app.impact.com/display-thumbnail/<ad>` is the
+thumbnail of a banner; the product's Impact link (`/c/<account>/<ad>/<campaign>`)
+names the campaign, and Impact's own banner code loads the full creative from
+`a.impactradius-go.com/display-ad/<campaign>-<ad>` (views are counted by a
+separate `/i/` pixel this never touches; the link is only read, never
+followed, since following it would count as a click). `--retry-small` was run
+once over every existing copy with this rule: Good Greek 150×125 → 300×250,
+Ticket Liquidator 150×150 → 250×250, King Hunter 150×85 → 3024×1700, Book
+Seats 150×150 → 4320×4320. Still low-res, with nothing bigger anywhere:
+Huffy bikes and Blick Art Supplys (fixed-size AvantLink/ShareASale banners),
+Marriot Bonvoy (Impact campaign logo) and Ticket Liquidator (its creative is
+250 px). A covers those. Run `--retry-small` by hand again only when the rules
+here gain a new case; new images get the check automatically.
 
 The admin's product thumbnails now show the **copy the site shows**
 (`siteCopy()`, reading `js/local-images.js`), so the low-res mark reflects
@@ -613,15 +772,15 @@ what visitors see; a product with no copy yet, or set to "retailer's
 address", shows its pasted address.
 
 **A — the enlargement limit (`IMAGE_ENLARGE_LIMIT` in `js/site-config.js`,
-applied by `capPhoto()` in `js/product-page.js`).** Ships at **0 (off)**.
+applied by `capPhoto()` in `js/product-page.js`).** **On, at 2** (it first
+shipped at 0 for preview; the operator then asked to see it live).
 With a value above 0, the product page photo is never enlarged more than that
 many times: the photo's inset grows so the space it is fitted into is exactly
 the capped size, so the panel never changes size and nothing moves.
-**Preview on the live site without affecting anyone:** `?imgcap=2` on any
-page sets it for that browser only (localStorage, with a small label in the
-corner); `?imgcap=0` previews "off"; `?imgcap=site` forgets the preview. To
-adopt it, set `IMAGE_ENLARGE_LIMIT = 2` and push; to undo, set it back (or
-revert that commit). Cards are not limited — they fill or frame as in 3.8.
+**Compare without affecting anyone:** `?imgcap=0` on any page shows that
+browser the site without the limit (localStorage, with a small label in the
+corner); `?imgcap=site` forgets it. To turn it off for everyone, set
+`IMAGE_ENLARGE_LIMIT = 0` and push. Cards are not limited — they fill or frame as in 3.8.
 
 AI upscaling was considered and deferred (the operator may run it locally
 later); if it comes back, the advice was to do it in the same rebuild step,
@@ -726,33 +885,165 @@ changes what you should worry about:
 * **Sign-ups** come in through `functions/forms/*` into D1 and are read back
   at `/admin/signups`.
 
-### Product categories (round 2)
+### Product categories (round 4: the Categories tab)
 
-The ten categories used to be a fixed list, written out four times (server,
-build script, category page, editor). Now **`js/products.js` carries the list
-itself**, as `window.PRODUCT_CATEGORIES = [{"id", "label"}, …]` after the
-products — the same way `js/blogs.js` carries `BLOG_CATEGORIES` — and every
-reader takes it from there:
+**`js/categories.js` is the list** — `window.CATEGORIES = [{id, name, home,
+button, text, img, alt}, …]`, in site order — edited in its own tab
+(`/admin/?view=categories`) with the same shared draft, Save, History and
+outside-commit merge as Partners and Team. `id` is the category page's address
+and what each product's `cat` refers to; it never changes once products use
+it. A **rename** changes `name` only, and reaches every page at the next
+rebuild — before any product is saved again (the readers below take the name
+from the list, not from each product's `catLabel`; the next products Save
+updates `catLabel` too). `home: "hidden"` = no card on the home page; the
+category still has its page, menu link and Store filter.
 
 | Reader | What it does with it |
 | --- | --- |
-| `functions/api/catalog.js` `categoryList()` | the one rule: the file's list, then any built-in one it lacks, then any category a product names that neither has (labelled from that product). On Save, added categories no product uses are dropped; the ten built-ins never are. Written back on every Save. |
-| `build_listings.py` `load_categories()` | the Store page's filter buttons; the same rule |
-| `js/listing-page.js` `categories()` | `category.html` heading and title, `merchant.html` filters |
+| `build_listings.py` | the home page cards (shown ones, in order, numbered 01…), the "N core campus tracks" count, every page's header menu and footer category links, the Store filters. A card picture saved the Webflow way (`images/X_1X.avif` + `X_1-p-500/800/1080`) gets a srcset; any other gets just `src`. A product in a category the list lacks is a **warning**, not a stopped build. |
+| `functions/api/catalog.js` | products Save refuses a category the list lacks, by name; `catLabel` = the list's name |
+| `functions/api/categories.js` | its own Save: `validate()` (slug ids, unique; a shown card needs picture, text and button) and the **delete guard**: a category used by any product — published, or in the products' shared draft — is refused, naming the products. Changing an id counts as deleting the old one. |
+| `admin/index.html` | Categories tab (same rules client-side, plus Delete refused on the spot); Products menu loads the list from the Categories draft (so a category added a minute ago is offered) and re-reads it when the tab regains focus |
+| `js/listing-page.js`, `js/product-page.js` | names on category/merchant/product pages |
 | `functions/_shared/site-data.js` | `category.js` (real title / 404) and `sitemap.xml.js` |
-| `functions/api/draft.js` → editor | the category menu (`extra.categories`, refreshed on each Save) |
+| `fetch_images.py` | a card picture given as an https link is copied into `images/categories/` |
 
-**Creating one** is the blog's pattern: the category menu ends with
-**+ New category…**, which asks for the name, makes the slug, and puts both
-on that product (`cat`, `catLabel`). It is in every editor's menu as soon as
-the row syncs and on the site after Save. Renaming or deleting has no button:
-delete = move the products out (Save drops the empty category); rename = edit
-the label in `window.PRODUCT_CATEGORIES` in git (the file's label wins).
+The older arrangement — a `window.PRODUCT_CATEGORIES` list inside
+`js/products.js`, and **+ New category…** in the product menu — is gone. The
+code still reads it when `js/categories.js` does not exist (a rollback), and
+the first products Save after the deploy drops it from `js/products.js`.
 
-**Not covered:** the "Featured Categories" mega-menu and the footer are
-hand-built HTML in every page and still link the ten built-ins only. An added
-category is reachable from the Store filter, its product pages, its category
-page and the sitemap, but not from the menus unless someone adds a link by hand.
+The two categories still used by one product each (Living & Social Spaces,
+Kitchen & Dining) are kept, hidden from the home page; Laundry & Cleaning,
+Bathroom and Bedroom & Study had no products and were removed.
+
+### A deliberate bulk change pushed from git: `data-release`
+
+A push that changes more than three rows of a data file makes the next Save
+in that tab stop and ask (3.7), because the usual cause is an old copy pushed
+by mistake. A *meant* bulk change says so in the file's header comment:
+
+```
+ * data-release: 2026-10-28-r4
+```
+
+`releaseBumped()` in `functions/_shared/draft-save.js`: a label newer (as text,
+so keep the date first) than the one in the draft's base merges like a small
+change. An old copy has an older label or none and is still asked about.
+Editors' Saves keep the header, so the label stays. Round 4's `js/products.js`
+carries one. Next time you hand-edit many rows in git, bump it. A row that an
+editor had also changed (unsaved in the shared draft) keeps the editor's
+version, as for any merge; the Save's message names it.
+
+### Blog: scheduled posts, product links, covers
+
+* **Scheduled** = Status Published with a publish date still to come. The
+  post's page, blog category pages and the sitemap hide it until then on each
+  request (`site-data.js` `posts` is a getter; `js/blog-page.js` filters in the
+  browser). The baked listings (`blog.html`, the home page's three cards) are
+  rebuilt by the Action, which now also runs every 30 minutes (cron
+  `7,37 * * * *`), so they catch up within about half an hour. GitHub pauses
+  timers after 60 days without repository activity. The editor shows
+  "Scheduled" in the Status column and the panel (`isScheduled()`).
+* **Product links**: the article toolbar's **Product** button links the
+  selected words to `product.html?id=…`, or with nothing selected adds a
+  paragraph holding only such a link. `js/blog-page.js` `productLinks()` turns
+  that paragraph into a card (picture, store, name, "View product") from
+  `js/products.js` as it is at view time; a link to a product that no longer
+  exists keeps its words and loses the link. No new markup: these are plain
+  links, already allowed by both cleaners.
+* **Covers** are copied by `fetch_images.py` like product images: an https
+  cover is downloaded; a big cover that is a file on the site (`LIGHTER`
+  folders) gets a WebP copy named after its content. `build_content.py` uses
+  the copy and writes site paths relative (`images/…`, not `/images/…`), which
+  is what made the home page's blog cards lose their pictures when the page
+  was opened from disk. `js/local-images.js` swaps `BLOG_POSTS` too.
+
+### Affiliate links (admin only)
+
+`isAffiliate()` in `admin/index.html`: the networks' click hosts (`AFF_HOSTS`:
+Rakuten/LinkShare, Awin, FlexOffers, ShareASale, CJ's domains, Impact's
+shared domains, Amazon with `tag=` …) plus Impact's link shapes on a brand's
+own tracking host (`/c/<n>/<n>/<n>`, or a six-character code). A product or
+partner url that is none of these is red, and one line under the toolbar names
+them. It never blocks a Save. A new network's links will show red until its
+host is added to `AFF_HOSTS`.
+
+### Cloudflare Web Analytics (the Cloudflare tab)
+
+`functions/api/cf-analytics.js` reads the GraphQL Analytics API
+(`rumPageloadEventsAdaptiveGroups`) with a read-only token, in windows of at
+most 30 days, and answers in the same shape as `/api/analytics`, so
+`admin/analytics.html?source=cloudflare` draws it with the same code. The
+dataset's fields are not in Cloudflare's public docs (they are what its own
+dashboard asks for), so a refused query is passed to the page word for word.
+If Cloudflare refuses the `bot: 0` filter it is dropped and the query retried.
+Numbers on busy days are sampled estimates (`sampled`). The site is found by
+host name through `/accounts/<id>/rum/site_info/list` (needs Account
+Settings: Read), or set `CF_WEB_ANALYTICS_SITE`. Setup: SETUP.md 17.
+
+### Social profiles, structured data and llms.txt
+
+`SOCIAL_LINKS` in `js/site-config.js` is the one list. The page script
+there draws the footer icons in the browser; `build_listings.py`
+(`read_social()`, `bake_social()`) writes the same markup into every page, and
+fills each `data-social-handles` slot (Contact page, home page "Stay
+connected") with labelled buttons (network + handle), because most AI crawlers
+run no script. `bake_org_profiles()` gives every MyCampusKorner Organization
+in the pages' JSON-LD one `@id` (`https://mycampuskorner.com/#organization`)
+and `sameAs` = the profiles: that is how search engines and AI assistants
+link the accounts to the site. `build_content.py` writes `/llms.txt` (the
+llmstxt.org convention: what the site is, its categories, the newest
+published posts, the profiles) from the same data on every rebuild; the
+Action commits it with the pages. Change a profile: edit `SOCIAL_LINKS` and
+push; the Action rebuilds everything from it.
+
+Cloudflare's managed robots.txt (on for this zone) blocks AI *training*
+crawlers (GPTBot, ClaudeBot: 403) and allows search and assistant crawlers
+(OAI-SearchBot, ChatGPT-User, PerplexityBot, Googlebot: 200). That is what
+lets ChatGPT and others read the site when someone asks. Whether to also let
+training crawlers in is a business choice (SETUP.md 11).
+
+### Pages opened straight from disk
+
+Two browser rules apply to `file://` only, never to the published site:
+the jQuery tag carried `crossorigin="anonymous"` + `integrity` (left from
+the Webflow CDN tag), which a file page cannot satisfy, so jQuery did not
+load, `webflow.js` stopped and no animation ran (the stacked blog cards on
+the home page did not scale and overlapped). The attributes are gone: SRI
+protects against a third-party CDN, and this file is the site's own. And the
+mobile menu button's Lottie animation (`documents/hamburger-menu.json`)
+cannot be fetched from disk, so `js/site-config.js` puts a plain three-line
+icon there in that case. The suite checks no page brings the attributes back.
+`404.html` addresses everything from the site root on purpose (it is shown at
+any address), so it only looks right served.
+
+### Visit counts (round 4)
+
+The site counts its own visits; nothing is sent to a third party.
+`js/analytics.js` (every public page, deferred) sends a beacon to **`/hit`**
+(`functions/hit.js`, public, always 204) on page load and when a link out to
+another site is followed: a product's Buy button (by product id), a partner
+logo (by name) or any other link (by host). `functions/_shared/stats.js`
+turns that into **daily totals only** — five tables, `stats_pages`,
+`stats_sources`, `stats_places`, `stats_devices`, `stats_clicks`, created on
+first use in the same D1 database. No IP address, cookie, identifier or
+per-visitor row is stored, so no consent banner is needed; the privacy policy
+says exactly this. A "visit" is a page view whose referrer is not this site.
+Paths are reduced to the site's own pages (`/product?id=…` etc.); anything
+else counts as `/404`, so a stray request cannot fill the tables. Crawler
+user agents and other origins are ignored. `/admin/analytics` reads
+`/api/analytics?days=7|30|90|365` (behind the password). "Don't count this
+browser" sets `localStorage.mckNoStats`, which the page script checks.
+
+Cost: one D1 write batch per page view (1–4 rows), well inside the free
+tier's 100,000 rows written a day.
+
+**Google Analytics** is not loaded. The old snippet only ever had the
+placeholder ID `G-XXXXXXXXXX`, so it never reported anything. To add GA4
+later: put the Measurement ID in `GA_MEASUREMENT_ID` in `js/site-config.js`,
+and first add a cookie notice and a GA paragraph to the privacy policy (GA
+sets cookies; the own counts above do not).
 
 Files worth knowing:
 
@@ -785,7 +1076,7 @@ the file. It serves GitHub's `git/blobs` endpoint (the merge's base version)
 and Pages' `env.ASSETS` binding, so `/sitemap.xml` works locally; the other
 SEO functions rewrite pages with `HTMLRewriter` and fall back to the plain page.
 
-**The suite is 210 checks and should be 0 failures.** Two tests report as
+**The suite is 218 checks and should be 0 failures.** Two tests report as
 *skipped*: both need `HTMLRewriter`, a Cloudflare runtime API with no Node
 equivalent, used to sanitise pasted article HTML. There is
 deliberately no polyfill — a hand-made one would let the suite claim a
@@ -842,8 +1133,24 @@ Then run the suite, and add a case for whatever you just changed.
   `functions/api/blog.js`. For the same reason the blog's *merge* path is
   tested by the shared merge tests and a scratch run, not by an end-to-end
   blog Save in the suite.
-* **Added product categories are not in the menus** (section 5) — the mega-menu
-  and footer are hand-built in every page.
+* **A category with no products** still gets its page, menu link and (if
+  shown) home card — Health & Fitness today — and its page says "No items
+  found" until products are put in it.
+* **Two Saves at the same moment** — one deleting a category, the other moving
+  a product into it — can publish a product in a deleted category. The build
+  then only warns, the page still works, and the Products tab flags the row
+  until it is moved.
+* **Field-level merging is not done**: a product edited both in the push and
+  in the editor's unsaved draft keeps the editor's whole row (5).
+* **Cloudflare tab** depends on fields Cloudflare does not document; if it
+  renames them, the tab shows Cloudflare's error until
+  `functions/api/cf-analytics.js` is updated. Page addresses there have no
+  `?id=`, so products are not told apart (the Analytics tab does that).
+* **Blog article saves are still not covered end to end locally** (the
+  cleaner needs Cloudflare's HTMLRewriter; section 6).
+* **Visit counts start at the deploy**: there is no history before it, and
+  visitors with JavaScript off, or blockers that block same-site beacons, are
+  not counted. Reloads count as views (not visits).
 * **Image copies arrive a minute or two after a Save** (the Action), and only
   if the retailer lets GitHub's servers download them; otherwise that image
   keeps its own address (3.8). Affiliate networks no longer count views of a

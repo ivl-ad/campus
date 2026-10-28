@@ -5,6 +5,151 @@
  * generated stylesheets without losing these rules. Loaded last, so it wins.
  */
 
+/* ------------------------------------------------------- social buttons ---
+ * The brand's profiles as labelled buttons (network + handle), on the Contact
+ * page and under "Stay connected to the Korner" on the home page. Written in
+ * by build_listings.py from SOCIAL_LINKS in js/site-config.js. Both sit on
+ * dark green.
+ */
+.social-pills-lead {
+  font-family: var(--rubik), Arial, sans-serif;
+  margin-top: 28px;
+  margin-bottom: 0;
+  opacity: 0.85;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.social-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.social-pills:empty {
+  display: none;
+}
+.social-pill {
+  font-family: var(--rubik), Arial, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: var(--_color---white);
+  text-decoration: none;
+  transition: background-color 0.25s, border-color 0.25s, color 0.25s;
+}
+.social-pill svg {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  color: #7ed96a;
+  transition: color 0.25s;
+}
+.social-pill-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.social-pill-name {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.social-pill-handle {
+  font-size: 15px;
+}
+.social-pill:hover,
+.social-pill:focus-visible {
+  background-color: #7ed96a;
+  border-color: #7ed96a;
+  color: var(--_color---pr-dark-green);
+}
+.social-pill:hover svg,
+.social-pill:focus-visible svg {
+  color: var(--_color---pr-dark-green);
+}
+
+/* ------------------------------------------------ products in blog posts ---
+ * A paragraph in an article that is only a link to one of our products is
+ * shown as this card (js/blog-page.js productLinks()); the Product button in
+ * the editor's article toolbar adds one.
+ */
+.blog-rich-text .post-product {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 600px;
+  margin: 28px 0;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  background: var(--_color---white);
+}
+.blog-rich-text .post-product-img {
+  flex: 0 0 132px;
+  height: 132px;
+  border-radius: 10px;
+  background: var(--_color---white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.blog-rich-text .post-product-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  margin: 0;
+}
+.blog-rich-text .post-product-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.blog-rich-text .post-product-store {
+  font-size: 13px;
+  color: var(--_color---black-second);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.blog-rich-text .post-product-name {
+  color: var(--_color---black);
+  font-size: 18px;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.blog-rich-text .post-product-name:hover {
+  text-decoration: underline;
+}
+.blog-rich-text .post-product-btn {
+  margin-top: 6px;
+  text-decoration: none;
+  color: var(--_color---white);
+}
+.blog-rich-text .post-product-btn:hover {
+  color: var(--_color---black);
+}
+.blog-rich-text .post-product-btn .dark-btn-text {
+  color: inherit;
+}
+@media screen and (max-width: 479px) {
+  .blog-rich-text .post-product {
+    gap: 14px;
+  }
+  .blog-rich-text .post-product-img {
+    flex-basis: 96px;
+    height: 96px;
+  }
+  .blog-rich-text .post-product-name {
+    font-size: 16px;
+  }
+}
+
 /* ------------------------------------------------- product card alignment ---
  * Cards sitting side by side vary in height: a title may run one line or two,
  * and some items carry no price. Letting the text block grow and pushing the

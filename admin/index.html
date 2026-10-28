@@ -164,6 +164,11 @@
   td select.st,.dr-field select.st{font-weight:650}
   select.st-live{color:var(--green-dark)}
   select.st-draft{color:var(--amber)}
+  select.st-sched{color:#1f5f99}
+  #affwarn{padding:6px 14px;color:var(--red);font-size:13px;background:#fff6f5;border-bottom:1px solid #f0d4d1}
+  #affwarn b{font-weight:600}
+  td.noaff input{color:var(--red)}
+  button.primary.attention:not(:disabled){box-shadow:0 0 0 3px rgba(46,107,34,.28)}
   tbody tr.is-draft td.w-name input{font-style:italic;color:var(--muted)}
   td button.body-btn{width:100%;border:0;border-radius:0;background:transparent;text-align:left;
         padding:6px 8px;color:var(--green-dark);font-weight:600}
@@ -207,6 +212,18 @@
             border-radius:8px 8px 0 0;position:sticky;top:-18px;z-index:2}
   .rich-bar button{padding:3px 9px;font-size:12.5px}
   .rich-bar button[aria-pressed="true"]{background:var(--green);color:#fff;border-color:var(--green)}
+  .rich{position:relative}
+  .pp{position:absolute;z-index:6;left:8px;right:8px;top:42px;background:#fff;border:1px solid var(--line);
+      border-radius:8px;box-shadow:0 8px 24px rgba(23,33,15,.18);padding:10px;max-width:560px}
+  .pp-head{font-weight:600;margin:0 0 6px}
+  .pp input{width:100%;font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:6px}
+  .pp-list{max-height:260px;overflow:auto;margin:6px 0}
+  .pp-list button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);
+                  border-radius:0;padding:6px 4px;background:#fff}
+  .pp-list button:hover,.pp-list button:focus{background:var(--head)}
+  .pp-list small{color:var(--muted);margin-left:6px}
+  .pp-note{color:var(--muted);font-size:12.5px}
+  .pp-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
   .rich-bar .sep{width:1px;background:var(--line);margin:2px 3px}
   .rich-ed{min-height:380px;padding:18px 24px;font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
            color:#1a1a1a;outline:none;overflow-wrap:anywhere}
@@ -261,10 +278,13 @@
   <h1 id="title" class="sr-only">Catalog editor</h1>
   <nav class="tabs" aria-label="Section">
     <a href="./" data-view="products">Products</a>
+    <a href="./?view=categories" data-view="categories">Categories</a>
     <a href="./?view=partners" data-view="partners">Partners</a>
     <a href="./?view=blog" data-view="blog">Blog</a>
     <a href="./?view=team" data-view="team">Team</a>
     <a href="signups">Signups</a>
+    <a href="analytics">Analytics</a>
+    <a href="analytics?source=cloudflare">Cloudflare</a>
   </nav>
   <span class="count" id="count">loading…</span>
   <span class="count" id="who"></span>
@@ -284,6 +304,7 @@
 </header>
 
 <div id="status"></div>
+<div id="affwarn" hidden role="status"></div>
 
 <section id="preview" hidden>
   <div class="pv-head">
@@ -332,21 +353,19 @@
 (function () {
   'use strict';
 
-  // The built-in product categories (SITE_CATEGORIES in build_listings.py).
-  // The server sends the real list -- the one kept in js/products.js, which
-  // also holds categories added with "+ New category…" -- and it replaces
-  // this. See productCategories() for what the menu offers.
+  // The product categories: js/categories.js, edited in the Categories tab.
+  // The Products view loads the live list from that tab's shared draft at
+  // start (loadCategoryOptions()); this copy is only the fallback for when it
+  // cannot. See productCategories() for what the menu offers.
   var CATEGORIES = [
     ['dorm-living-essentials', 'Dorm & Living Essentials'],
     ['academic-essentials', 'Academic Essentials'],
     ['personal-lifestyle', 'Personal Lifestyle'],
-    ['event-tickets-travel', 'Event Tickets & Travel'],
+    ['event-tickets-travel', 'Travel & Entertainment'],
     ['financial-services', 'Financial Services'],
-    ['laundry-cleaning', 'Laundry & Cleaning'],
+    ['health-fitness', 'Health & Fitness'],
     ['living-social-spaces', 'Living & Social Spaces'],
-    ['bathroom', 'Bathroom'],
-    ['kitchen-dining', 'Kitchen & Dining'],
-    ['bedroom-study', 'Bedroom & Study']
+    ['kitchen-dining', 'Kitchen & Dining']
   ];
 
   // A full https:// address; a logo may also be a file in the site's images/.
@@ -389,12 +408,15 @@
       // there is one (see siteCopy()), so its low-res mark is right even when
       // the rebuild found a bigger version than the address pasted here.
       thumbSrc: function (v, row) { return siteCopy(v, row) || siteSrc(v); },
-      boot: function () { loadSiteCopies(); },
+      boot: function () { loadSiteCopies(); loadCategoryOptions(); },
+      // Back on this tab: a category added or renamed meanwhile is offered.
+      onVisible: function () { loadCategoryOptions(); },
       // Smaller than this on its long side and it looks soft on the site's
       // cards (~350 x 300): the thumbnail says so. Same limit as LOW_RES in
       // fetch_images.py, which reports them in the rebuild log.
       lowRes: 300,
       kinds: { imgFrom: imgFromKind() },
+      affiliate: 'url',
       search: ['id', 'name', 'merchant', 'catLabel'],
       filterHint: 'Filter by name, id, merchant…  ( / )',
       blank: function () { return { cat: CATEGORIES[0][0], catLabel: CATEGORIES[0][1] }; },
@@ -420,9 +442,12 @@
             if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id))
               out.push(at + ': id must be lowercase letters, numbers and dashes');
           }
-          // The server's rule: any well-formed category id. One it has not
-          // seen before is a new category ("+ New category…").
-          if (p.cat && !/^[a-z0-9][a-z0-9-]*$/.test(p.cat))
+          // The server's rule (functions/api/catalog.js): a category in the
+          // Categories tab -- checked once that list has loaded.
+          if (p.cat && CAT_TAB && !CAT_TAB.some(function (c) { return c[0] === p.cat; }))
+            out.push(at + ': category "' + p.cat + '" is not in the Categories tab — pick another, ' +
+                     'or add it there and Save that tab first');
+          else if (p.cat && !/^[a-z0-9][a-z0-9-]*$/.test(p.cat))
             out.push(at + ': category id "' + p.cat + '" must be lowercase letters, numbers and dashes');
           if (p.merchantSlug && !/^[a-z0-9][a-z0-9-]*$/.test(p.merchantSlug))
             out.push(at + ': merchantSlug must be lowercase letters, numbers and dashes');
@@ -462,6 +487,7 @@
         return !v || /^(https?:|data:|\/)/i.test(v) ? v : '/' + v;
       },
       placeholder: { name: 'Partner name', url: 'https://partner.com', logo: 'https://partner.com/logo.png' },
+      affiliate: 'url',
       search: ['name', 'url', 'logo'],
       filterHint: 'Filter by name or link…  ( / )',
       blank: function () { return {}; },
@@ -524,7 +550,7 @@
                author: authorKind(), contentHTML: bodyKind() },
       drawer: [
         ['name', 'Title', 'title'],
-        ['|', ['hidden', 'Status', 'kind', 'Drafts are saved but never shown on the site.'],
+        ['|', ['hidden', 'Status', 'kind', 'Draft: kept here, never shown on the site. Published: on the site once you press Save. With a publish date still to come it is Scheduled: Save now, and it goes live at that time by itself.'],
               ['dateMs', 'Publish date & time (Michigan)', 'kind', 'now'],
               ['cat', 'Category', 'kind'],
               ['author', 'Author', 'kind', 'People come from the Team tab.']],
@@ -536,7 +562,9 @@
       ],
       openOnAdd: true,
       raw: true,            // "Raw block": the whole post as one copy/paste-able block
-      viewUrl: function (d) { return d.id && !d.hidden ? '/blog-post?id=' + encodeURIComponent(d.id) : ''; },
+      viewUrl: function (d) {
+        return d.id && !d.hidden && !isScheduled(d) ? '/blog-post?id=' + encodeURIComponent(d.id) : '';
+      },
       search: ['id', 'name', 'catLabel', 'excerpt'],
       filterHint: 'Filter by title, category, id…  ( / )',
       blank: function () {
@@ -655,6 +683,105 @@
         });
         return out;
       }
+    },
+
+    /*
+     * The product categories (js/categories.js), in order. The home page's
+     * category cards, the header and footer menus, the Store's filters and
+     * the Products tab's category menu all come from this list. The id is
+     * the category page's address and what each product refers to, so a
+     * rename changes the name only -- and a category any product still uses
+     * cannot be deleted (here, and again on the server at Save).
+     */
+    categories: {
+      title: 'Product categories',
+      one: 'category', many: 'categories', what: 'category list',
+      file: 'js/categories.js', listKey: 'categories',
+      parseFile: function (t) { return parseList(t, 'CATEGORIES'); },
+      draftApi: '/api/draft?doc=categories', saveApi: '/api/categories',
+      historyApi: '/api/history?doc=categories',
+      cols: [
+        ['_thumb', 'card picture', 90, '', 'img'],
+        ['name', 'name', 220],
+        ['home', 'home page card', 150],
+        ['button', 'button text', 200],
+        ['text', 'card text', 320],
+        ['img', 'picture url', 250, '(images/… or https://)'],
+        ['alt', 'picture description', 240, '(for screen readers)'],
+        ['id', 'id', 200, '(permalink)']
+      ],
+      text: ['text'],
+      thumb: 'img',
+      thumbSrc: siteSrc,
+      kinds: { home: homeKind() },
+      titleHint: 'Category name',
+      placeholder: { button: 'Shop health & fitness', img: 'images/… or https://…/photo.jpg' },
+      drawer: [
+        ['name', 'Name', 'title'],
+        ['home', 'Home page card', 'kind', 'Shown: a card on the home page and a link in the menu at the top of every page and in the footer, in this tab’s order. Hidden: no card and no menu link, but the category keeps its own page and its Store filter.'],
+        ['img', 'Card picture', 'image', 'A file under images/ (like the current cards) or a full https:// address — the rebuild keeps a copy on the site. Landscape, about 1500 × 1130 px.'],
+        ['alt', 'Picture description', 'text', 'What the picture shows, for screen readers and search engines.'],
+        ['text', 'Card text', 'textarea', 'Two or three sentences, shown when the card is open.'],
+        ['button', 'Button text', 'text', 'For example “Shop health & fitness”. The button opens the category page.'],
+        ['id', 'Permalink', 'slug', 'The category page’s address: /category?id=… — filled in from the name. Products refer to it, so it cannot change while any product uses it.']
+      ],
+      openOnAdd: true,
+      viewUrl: function (d) { return d.id ? '/category?id=' + encodeURIComponent(d.id) : ''; },
+      search: ['name', 'id', 'text'],
+      filterHint: 'Filter by name or id…  ( / )',
+      // Hidden to start with, so a new category can be saved with just its
+      // name and used for products before its home page card is ready.
+      blank: function () { return { home: 'hidden' }; },
+      addAtEnd: true,
+      reorder: true,
+      orderNote: 'on the home page and in the menus',
+      noCopy: true,
+      actW: 200,
+      boot: function () { loadProductUse(); },
+      onVisible: function () { loadProductUse(); },
+      canDelete: function (row) { return categoryInUse(row, 'deleted'); },
+      slugLock: function (row) { return categoryInUse(row, 'given a new permalink'); },
+      soloNote: 'Save writes js/categories.js; the home page cards, menus and Store filters are rebuilt from it.',
+      syncNote: 'Edits sync to every open editor within a few seconds — nothing touches the site ' +
+        'until Save, which writes js/categories.js; the home page cards, the menus on every page and ' +
+        'the Store filters follow once the rebuild finishes (~2 min). Order here is the order on the ' +
+        'site. Every Save is kept in History.',
+      saveTitle: 'Publish the shared draft: commits js/categories.js and rebuilds the pages',
+      publishing: 'the pages update in ~2 min',
+      problems: function (rows) {
+        var out = [], seen = Object.create(null);
+        rows.forEach(function (r, i) {
+          var p = r.data, at = 'row ' + (i + 1) + ' (' + (p.name || p.id || 'untitled') + ')';
+          if (!p.name || !String(p.name).trim()) out.push(at + ': name is required');
+          if (!p.id || !String(p.id).trim()) out.push(at + ': id is required');
+          else {
+            if (!/^[a-z0-9][a-z0-9-]*$/.test(p.id)) out.push(at + ': id must be lowercase letters, numbers and dashes');
+            if (seen[p.id]) out.push(at + ': duplicate id "' + p.id + '" (also row ' + seen[p.id] + ')');
+            seen[p.id] = i + 1;
+          }
+          if (p.img && String(p.img).trim() && !LOGO_RE.test(String(p.img).trim()))
+            out.push(at + ': the picture must be a path under images/ or a full https:// image address');
+          // The server's rule (functions/api/categories.js validate()): a
+          // card on the home page needs all of its parts.
+          if (p.home !== 'hidden') {
+            [['img', 'picture'], ['text', 'card text'], ['button', 'button text']].forEach(function (f) {
+              if (!p[f[0]] || !String(p[f[0]]).trim())
+                out.push(at + ': a home page card needs its ' + f[1] + ' (or set “home page card” to Hidden)');
+            });
+          }
+        });
+        // A category products still use must stay (a changed id counts as
+        // removing it): the Save would be refused for exactly this.
+        for (var id in (PRODUCT_USE || {})) {
+          if (seen[id]) continue;
+          var used = PRODUCT_USE[id];
+          out.push('category "' + id + '" is used by ' + used.length + ' product' +
+                   (used.length === 1 ? '' : 's') + ' (' + used.slice(0, 3).join(', ') +
+                   (used.length > 3 ? ', …' : '') + ') — put it back (Undo), or move ' +
+                   (used.length === 1 ? 'that product' : 'them') + ' to another category in the Products tab first');
+        }
+        return out;
+      }
     }
   };
 
@@ -716,16 +843,14 @@
   var $ = function (id) { return document.getElementById(id); };
   var rowsEl = $('rows');
 
-  // The product category menu: the server's list, anything a row already
-  // uses (another editor's new category arrives that way, before it is
-  // saved) and any made on this screen.
-  var NEW_CAT = '__new';
-  var ADDED_CATS = [];
+  // The product category menu: the Categories tab's list, then any category
+  // a row still uses that the list lacks (so the row shows what it holds --
+  // problems() asks for another before Save).
+  var MANAGE_CATS = '__manage';
   function productCategories() {
     var out = [], seen = {};
     function add(id, name) { if (id && !seen[id]) { seen[id] = 1; out.push([id, name || id]); } }
     CATEGORIES.forEach(function (c) { add(c[0], c[1]); });
-    ADDED_CATS.forEach(function (c) { add(c[0], c[1]); });
     if (DOC === DOCS.products) rows.forEach(function (r) { add(r.data.cat, r.data.catLabel); });
     return out;
   }
@@ -738,23 +863,10 @@
     return '';
   }
 
-  // "+ New category…": the name shoppers will see, and a slug made from it.
-  // It is real as soon as a product uses it -- in every editor's menu once
-  // the row syncs, and on the site after Save, which adds it to
-  // window.PRODUCT_CATEGORIES in js/products.js (categoryList() in
-  // functions/api/catalog.js). One no product uses is dropped again at Save.
-  function newCategory() {
-    var name = String(prompt('Name of the new product category, as shoppers will see it ' +
-                             '(e.g. "Health & Wellness"):', '') || '').trim();
-    var id = slugify(name);
-    if (!name || !id) return '';
-    if (!label(id)) ADDED_CATS.push([id, name]);
-    return id;
-  }
-
   // The category <select>: every category, "— choose a category —" when the
-  // row has none, and "+ New category…" last. Rebuilt only when what it
-  // would show has changed, so focusing it does not disturb an open menu.
+  // row has none, and "Manage categories…" last (opens the Categories tab,
+  // where categories are added, renamed and deleted). Rebuilt only when what
+  // it would show has changed, so focusing it does not disturb an open menu.
   function fillCatSelect(sel, want) {
     var cats = productCategories();
     var key = JSON.stringify(cats) + '|' + (want || '');
@@ -777,9 +889,9 @@
       none.textContent = '— choose a category —';
       sel.insertBefore(none, sel.firstChild);
     }
-    var add = document.createElement('option');
-    add.value = NEW_CAT; add.textContent = '+ New category…';
-    sel.appendChild(add);
+    var manage = document.createElement('option');
+    manage.value = MANAGE_CATS; manage.textContent = 'Manage categories…';
+    sel.appendChild(manage);
     sel.value = want || '';
   }
 
@@ -817,9 +929,10 @@
   function updateDirty() {           // sync mode: draft ahead of the site?
     if (mode !== 'sync') return;
     var un = seqCounter > publishedSeq || localPending();
-    $('dirty').textContent = un ? '● unpublished changes' : '';
+    $('dirty').textContent = un ? '● Not on the site yet: press Save to publish' : '';
     $('dirty').className = un ? 'dirty' : '';
     $('save').disabled = !un || saving || reloading;
+    $('save').classList.toggle('attention', un);
   }
 
   function plural(n) { return n + ' ' + (n === 1 ? DOC.one : DOC.many); }
@@ -828,6 +941,7 @@
     var shown = rows.filter(function (r) { return r.el.style.display !== 'none'; }).length;
     $('count').textContent = plural(rows.length) +
       (shown !== rows.length ? '  ·  ' + shown + ' shown' : '');
+    if (DOC.affiliate) affiliateSummary();
   }
 
   // ------------------------------------------------------- column layout
@@ -1050,10 +1164,10 @@
         row.data.price = n; patch.price = n;
       }
     } else if (field === 'cat') {
-      if (v === NEW_CAT) {
-        v = newCategory();
-        fillCatSelect(input, v || row.data.cat);
-        if (!v) return;                       // cancelled: nothing changes
+      if (v === MANAGE_CATS) {                // a tab of its own; the row keeps its category
+        input.value = row.data.cat || '';
+        window.open('./?view=categories', '_blank', 'noopener');
+        return;
       }
       if (v === (row.data.cat || '')) return; // the select's second event
       // The label is looked up BEFORE the row changes: the list includes
@@ -1070,6 +1184,7 @@
       row.data[field] = v;
       patch[field] = v;
       if (field === DOC.thumb) setThumb(row);
+      if (field === DOC.affiliate) rowDecor(row);
     }
     // One undo entry per stay in a cell: created on the first keystroke,
     // then it just tracks the latest value until focus leaves the input.
@@ -1142,7 +1257,8 @@
     act.className = 'act';
 
     if (DOC.reorder) {
-      [['↑', -1, 'Move up — earlier in the strip'], ['↓', 1, 'Move down — later in the strip']]
+      var where = DOC.orderNote || 'in the strip';
+      [['↑', -1, 'Move up — earlier ' + where], ['↓', 1, 'Move down — later ' + where]]
         .forEach(function (m) {
           var b = document.createElement('button');
           b.className = 'mv';
@@ -1175,6 +1291,8 @@
     del.textContent = 'Delete';
     del.title = 'Remove this row (Undo brings it back)';
     del.addEventListener('click', function () {
+      var no = DOC.canDelete ? DOC.canDelete(row) : '';
+      if (no) { setStatus('warn', no); return; }
       pushAction(deleteAction(row));
       removeRowLocal(row);
       renumber(); counts();
@@ -1757,7 +1875,7 @@
   function renderFull(d) {
     reloading = false;
     clearHistory();
-    if (d.categories && d.categories.length) CATEGORIES = d.categories;
+    if (d.categories && d.categories.length && !CAT_TAB) CATEGORIES = d.categories;
     if (DOC.onData) DOC.onData(d);
     var reopen = drawerRow ? drawerRow.rid : null;
     var reopenId = drawerRow ? String(drawerRow.data.id || '') : '';
@@ -2068,7 +2186,7 @@
         });
       })
       .then(function (d) {
-        if (d.categories && d.categories.length) CATEGORIES = d.categories;
+        if (d.categories && d.categories.length && !CAT_TAB) CATEGORIES = d.categories;
         if (DOC.onData) DOC.onData(d);
         liveEditor = true;
         // Sent back on save so a second editor cannot silently overwrite us.
@@ -2595,6 +2713,72 @@
     return '';
   }
 
+  // ---- the category menu (Products): the Categories tab's shared draft, so a
+  // category added there a minute ago is offered already; the published
+  // js/categories.js if not. CAT_TAB stays null until one of them answers,
+  // and problems() checks categories against it only then.
+  var CAT_TAB = null;
+  function loadCategoryOptions() {
+    fetch('/api/draft?doc=categories&since=0', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('no draft'); return r.json(); })
+      .then(function (d) {
+        if (d.mode !== 'sync' || !d.rows) throw new Error('no draft');
+        return d.rows.filter(function (r) { return !r.del; })
+          .sort(function (a, b) { return a.pos - b.pos; })
+          .map(function (r) { return r.data; });
+      })
+      .catch(function () {
+        return fetch('/js/categories.js', { cache: 'no-store' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(function (t) { return parseList(t, 'CATEGORIES'); });
+      })
+      .then(function (list) {
+        var pairs = (list || []).filter(function (c) { return c && c.id && c.name; })
+          .map(function (c) { return [String(c.id), String(c.name)]; });
+        if (!pairs.length) return;
+        CAT_TAB = CATEGORIES = pairs;
+        rows.forEach(function (r) {
+          var sel = fieldInput(r, 'cat');
+          if (sel) fillCatSelect(sel, r.data.cat);
+        });
+      }, function () { /* keep the server's list */ });
+  }
+
+  // ---- which products use each category (Categories): the products' shared
+  // draft, so a product moved a minute ago counts; the published catalog if
+  // there is none. Delete and problems() use it; the server checks again at
+  // Save, against both.
+  var PRODUCT_USE = null;           // category id -> [product names]
+  function loadProductUse() {
+    fetch('/api/draft?since=0', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('no draft'); return r.json(); })
+      .then(function (d) {
+        if (d.mode !== 'sync' || !d.rows) throw new Error('no draft');
+        return d.rows.filter(function (r) { return !r.del; }).map(function (r) { return r.data; });
+      })
+      .catch(function () {
+        return fetch('/js/products.js', { cache: 'no-store' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(function (t) { return parseList(t, 'PRODUCTS'); });
+      })
+      .then(function (list) {
+        var use = Object.create(null);
+        (list || []).forEach(function (p) {
+          if (p && p.cat) (use[p.cat] = use[p.cat] || []).push(p.name || p.id || 'untitled');
+        });
+        PRODUCT_USE = use;
+      }, function () { if (!PRODUCT_USE) PRODUCT_USE = {}; });
+  }
+  function categoryInUse(row, what) {
+    if (!PRODUCT_USE) return 'Still checking which products use this category — try again in a moment.';
+    var used = PRODUCT_USE[row.data.id] || [];
+    if (!used.length) return '';
+    return '“' + (row.data.name || row.data.id) + '” can’t be ' + what + ': ' + used.length +
+      ' product' + (used.length === 1 ? ' uses' : 's use') + ' it (' + used.slice(0, 3).join(', ') +
+      (used.length > 3 ? ', …' : '') + '). Move ' + (used.length === 1 ? 'it' : 'them') +
+      ' to another category in the Products tab first.';
+  }
+
   // A permalink no other row uses: base, base-2, base-3…
   function freeSlug(base, row) {
     base = base || DOC.one;
@@ -2619,9 +2803,13 @@
         });
         return s;
       },
-      write: function (s, v) {
+      write: function (s, v, row) {
+        var later = !v && row && isScheduled(row.data);
         s.value = v ? 'draft' : 'live';
-        s.className = 'st ' + (v ? 'st-draft' : 'st-live');
+        s.options[0].textContent = later ? 'Scheduled' : 'Published';
+        s.className = 'st ' + (v ? 'st-draft' : later ? 'st-sched' : 'st-live');
+        s.title = later ? 'Goes live ' + (row.data.dateLabel || '') + ', ' + timeOf(row.data.dateMs) +
+                          ' (Michigan time), once saved' : '';
       },
       read: function (s) { return s.value === 'draft' ? true : undefined; }
     };
@@ -2648,6 +2836,25 @@
         s.className = 'imgfrom' + (v === 'retailer' ? ' imgfrom-retailer' : '');
       },
       read: function (s) { return s.value === 'retailer' ? 'retailer' : undefined; }
+    };
+  }
+  // Categories: a card on the home page, or none. "Shown" is the default and
+  // is not written to the file.
+  function homeKind() {
+    return {
+      self: true,
+      make: function () {
+        var s = el('select', 'st');
+        [['', 'Shown (card + menu)'], ['hidden', 'Hidden']].forEach(function (o) {
+          var opt = el('option', '', o[1]); opt.value = o[0]; s.appendChild(opt);
+        });
+        return s;
+      },
+      write: function (s, v) {
+        s.value = v === 'hidden' ? 'hidden' : '';
+        s.className = 'st ' + (v === 'hidden' ? 'st-draft' : 'st-live');
+      },
+      read: function (s) { return s.value === 'hidden' ? 'hidden' : undefined; }
     };
   }
   function dateKind() {
@@ -2811,9 +3018,76 @@
     if (K.self) K.write(input, row.data[field], row);
   }
 
-  function rowDecor(row) {
-    if (DOC.kinds && DOC.kinds.hidden) row.el.classList.toggle('is-draft', !!row.data.hidden);
+  /*
+   * Affiliate links. Every product and partner link should carry our
+   * affiliate tracking, or a sale through it earns nothing. A plain link is
+   * not an error -- Save still works, say while a product is tried out before
+   * its affiliate link exists -- but it stays red, in its column and in one
+   * line under the toolbar, until someone with the link fixes it.
+   *
+   * Recognised: the networks' own click hosts, and Impact's links, which use
+   * many brand-specific hosts but always the same shapes (/c/<acct>/<ad>/<id>,
+   * or a six-character code). A network not listed here shows as red too:
+   * add its host to AFF_HOSTS.
+   */
+  var AFF_HOSTS = /(^|\.)(linksynergy\.com|awin1\.com|zenaps\.com|flexlinkspro\.com|flexlinks\.com|fxo\.co|shareasale\.com|shrsl\.com|prf\.hn|kqzyfj\.com|anrdoezrs\.net|jdoqocy\.com|tkqlhce\.com|dpbolvw\.net|tqlkg\.com|emjcd\.com|qksrv\.net|ftjcfx\.com|lduhtrp\.net|awltovhc\.com|yceml\.net|apmebf\.com|afcyhf\.com|pntra\.com|pntrs\.com|pntrac\.com|gopjn\.com|pjtra\.com|pjatr\.com|avantlink\.com|skimresources\.com|redirectingat\.com|viglink\.com|sovrn\.co|amzn\.to|rover\.ebay\.com|ebay\.us|sjv\.io|pxf\.io|evyy\.net|7tiv\.net|93n6tx\.net|ijrn\.net|k77v\.net|vdvm\.net|auhm\.net|i3f2\.net|mvnp\.net|ojrq\.net|dubn\.net|xhwq\.net|uqhv\.net|bnfh\.net|ztk5\.net|rfvk\.net|hxbm\.net|vqfz\.net|attfm2\.net|goto\.target\.com|goto\.walmart\.com|impact\.com|partnerize\.com|cj\.com|clickbank\.net|hop\.clickbank\.net|refersion\.com|gotrackier\.com|everflow\.io)$/i;
+  function isAffiliate(url) {
+    var u;
+    try { u = new URL(String(url || '').trim()); } catch (e) { return false; }
+    var host = u.hostname.toLowerCase();
+    if (AFF_HOSTS.test(host)) return true;
+    if (/(^|\.)amazon\.[a-z.]+$/.test(host) && u.searchParams.get('tag')) return true;
+    // Impact on a brand's own tracking host: brand.<short domain>/c/1/2/3 or /AbC12x
+    var sub = host.split('.').length > 2 && !/^www\./.test(host);
+    return sub && (/^\/c\/\d+\/\d+\/\d+/.test(u.pathname) ||
+                   /^\/(?=[A-Za-z0-9]*[A-Z0-9])[A-Za-z0-9]{6}\/?$/.test(u.pathname));
   }
+  var affTimer = null;
+  function affiliateSummary() {
+    clearTimeout(affTimer);
+    affTimer = setTimeout(function () {
+      var box = $('affwarn');
+      var f = DOC.affiliate;
+      var bad = f ? rows.filter(function (r) { return r.data[f] && !isAffiliate(r.data[f]); }) : [];
+      box.hidden = !bad.length;
+      box.textContent = '';
+      if (!bad.length) return;
+      box.appendChild(el('b', '', bad.length + ' ' + (bad.length === 1 ? DOC.one + ' links' : DOC.many + ' link') +
+                                  ' without our affiliate code: '));
+      box.appendChild(document.createTextNode(bad.slice(0, 8).map(function (r) {
+        return r.data.name || r.data.id || 'untitled';
+      }).join(', ') + (bad.length > 8 ? ' and ' + (bad.length - 8) + ' more' : '') +
+        '. They are red in the ' + (f === 'url' ? 'url' : f) + ' column; paste the affiliate link when you have it.'));
+    }, 50);
+  }
+
+  function rowDecor(row) {
+    if (DOC.affiliate) {
+      var v = row.data[DOC.affiliate];
+      var td = row.el.querySelector('[data-field="' + DOC.affiliate + '"]');
+      var off = !!(v && String(v).trim() && !isAffiliate(v));
+      if (td) {
+        td.classList.toggle('noaff', off);
+        td.title = off ? 'Not an affiliate link: no commission is earned through it.' : '';
+      }
+      affiliateSummary();
+    }
+    if (DOC.kinds && DOC.kinds.hidden) {
+      row.el.classList.toggle('is-draft', !!row.data.hidden);
+      // The status reads "Scheduled" while the date is still to come, so it
+      // follows the date as well as itself.
+      var st = fieldInput(row, 'hidden');
+      if (st) DOC.kinds.hidden.write(st, row.data.hidden, row);
+    }
+  }
+
+  // A published post whose date is still to come: the site shows it from
+  // that time (functions/_shared/site-data.js, js/blog-page.js,
+  // build_content.py, and the Action's half-hourly timer for the listings).
+  function isScheduled(d) { return !!d && !d.hidden && Number(d.dateMs) > Date.now(); }
+  var TIME_FMT = window.Intl ? new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit',
+                                                                   timeZone: 'America/Detroit' }) : null;
+  function timeOf(ms) { try { return TIME_FMT ? TIME_FMT.format(new Date(ms)) : ''; } catch (e) { return ''; } }
 
   // ---------------------------------------------------------- side panel
   function openDrawer(row, focusField) {
@@ -2872,6 +3146,10 @@
     drawerRow = null;
     drawerCtl = [];
     raw.reset();
+    if (!silent && mode === 'sync' && (seqCounter > publishedSeq || localPending())) {
+      setStatus('warn', 'Your changes are in the shared draft, but not on the site yet. ' +
+                        'Press Save (top right) to publish them.');
+    }
     $('drawer').hidden = true;
     $('drawerShade').hidden = true;
     $('drBody').textContent = '';
@@ -2890,7 +3168,12 @@
     $('drTitle').textContent = (DOC.one.charAt(0).toUpperCase() + DOC.one.slice(1)) + ': ' +
                                (d.name || 'untitled');
     var meta = [];
-    if (DOC.kinds && DOC.kinds.hidden) meta.push(d.hidden ? 'Draft — not on the site' : 'Published');
+    if (DOC.kinds && DOC.kinds.hidden) {
+      meta.push(d.hidden ? 'Draft: not on the site'
+                : isScheduled(d) ? 'Scheduled: goes live ' + (d.dateLabel || 'at its publish date') +
+                  ', ' + timeOf(d.dateMs) + ' (after Save)'
+                : 'Published');
+    }
     if (DOC.kinds && DOC.kinds.contentHTML) meta.push(wordCount(d.contentHTML).toLocaleString() + ' words');
     meta.push(mode === 'sync' ? 'changes sync to the shared draft; Save publishes' : 'Save to publish');
     $('drMeta').textContent = '· ' + meta.join(' · ');
@@ -2948,7 +3231,7 @@
       box.id = id;
       if (!multi) box.type = 'text';
       if (DOC.placeholder && DOC.placeholder[field]) box.placeholder = DOC.placeholder[field];
-      if (type === 'title') box.placeholder = DOC.one === 'post' ? 'Post title' : 'Full name';
+      if (type === 'title') box.placeholder = DOC.titleHint || (DOC.one === 'post' ? 'Post title' : 'Full name');
       box.addEventListener('input', function () {
         var v = box.value;
         var ch = {};
@@ -2984,6 +3267,8 @@
         gen.addEventListener('click', function () {
           var want = freeSlug(slugify(row.data.name), row);
           if (!want || want === row.data.id) return;
+          var lock = row.data.id && DOC.slugLock ? DOC.slugLock(row) : '';
+          if (lock) { setStatus('warn', lock); return; }
           if (row.data.id && !row.data.hidden && DOC.one === 'post' &&
               !confirm('This post is published. Changing its permalink breaks every existing link to it. Continue?')) return;
           commitEdit(row, { id: want }, {});
@@ -3150,6 +3435,108 @@
       if (sel.isCollapsed) exec('insertHTML', '<a href="' + escAttr(url) + '">' + escText(url) + '</a>');
       else exec('createLink', url);
     }
+    /*
+     * Product: pick one of the site's products. With words selected in the
+     * article they become a link to its page; with nothing selected a
+     * product card goes in -- a paragraph holding only a link to the
+     * product, which the article page shows as a card with its picture,
+     * name and store (js/blog-page.js). Both are ordinary links in the saved
+     * article, so nothing new has to survive cleaning, and the card always
+     * shows the product as it is now.
+     */
+    function productLink() {
+      if (!src.hidden) return;
+      var old = wrap.querySelector('.pp');
+      if (old) { old.remove(); return; }
+      var sel = window.getSelection();
+      var saved = sel.rangeCount && ed.contains(sel.anchorNode) ? sel.getRangeAt(0).cloneRange() : null;
+      var linking = !!(saved && !saved.collapsed && String(saved).trim());
+      var box = el('div', 'pp');
+      box.appendChild(el('div', 'pp-head', linking ? 'Link “' + String(saved).trim().slice(0, 60) +
+                                                    '” to a product' : 'Add a product card'));
+      var q = el('input');
+      q.type = 'search';
+      q.placeholder = 'Search products by name or store…';
+      box.appendChild(q);
+      var list = el('div', 'pp-list');
+      list.appendChild(el('div', 'pp-note', 'Loading products…'));
+      box.appendChild(list);
+      var foot = el('div', 'pp-foot');
+      foot.appendChild(el('span', 'pp-note', linking
+        ? 'The selected words will open the product’s page on this site.'
+        : 'Shows as a card with the product’s picture, name and store. To link words instead, select them first.'));
+      var cancel = el('button', '', 'Cancel');
+      cancel.type = 'button';
+      cancel.addEventListener('click', function () { box.remove(); ed.focus(); });
+      foot.appendChild(cancel);
+      box.appendChild(foot);
+      wrap.appendChild(box);
+      q.focus();
+      var products = [];
+      function show() {
+        var words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+        var hits = products.filter(function (p) {
+          var hay = (p.name + ' ' + p.merchant + ' ' + p.id).toLowerCase();
+          return words.every(function (w) { return hay.indexOf(w) > -1; });
+        }).slice(0, 40);
+        list.textContent = '';
+        if (!hits.length) { list.appendChild(el('div', 'pp-note', products.length ? 'No product matches.' : 'Could not load the products.')); return; }
+        hits.forEach(function (p) {
+          var b = el('button', '', p.name);
+          b.type = 'button';
+          b.appendChild(el('small', '', p.merchant || ''));
+          b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+          b.addEventListener('click', function () { choose(p); });
+          list.appendChild(b);
+        });
+      }
+      function choose(p) {
+        box.remove();
+        ed.focus();
+        var s2 = window.getSelection();
+        s2.removeAllRanges();
+        if (saved) s2.addRange(saved);
+        else {                                   // no caret in the article: add it at the end
+          var end = document.createRange();
+          end.selectNodeContents(ed);
+          end.collapse(false);
+          s2.addRange(end);
+        }
+        var href = 'product.html?id=' + encodeURIComponent(p.id);
+        if (linking) { exec('createLink', href); return; }
+        // A card is a paragraph of its own, after the one the caret is in
+        // (inserting HTML at the caret would put it inside that paragraph).
+        var para = document.createElement('p');
+        var a = document.createElement('a');
+        a.setAttribute('href', href);
+        a.textContent = p.name;
+        para.appendChild(a);
+        var block = saved ? saved.endContainer : null;
+        while (block && block !== ed && block.parentNode !== ed) block = block.parentNode;
+        if (block && block !== ed) ed.insertBefore(para, block.nextSibling);
+        else ed.appendChild(para);
+        var after = document.createRange();
+        after.setStartAfter(para);
+        after.collapse(true);
+        s2.removeAllRanges();
+        s2.addRange(after);
+        commit(ed);
+      }
+      q.addEventListener('input', show);
+      q.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); box.remove(); ed.focus(); }
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          var first = list.querySelector('button');
+          if (first) first.click();
+        }
+      });
+      loadCatalogIds().then(function (c) {
+        products = (c.list || []).filter(function (p) { return p && p.id && p.name; })
+          .map(function (p) { return { id: String(p.id), name: String(p.name), merchant: String(p.merchant || '') }; });
+        show();
+      });
+    }
     function image() {
       if (!src.hidden) return;
       var url = withSelection(function () { return prompt('Image address (https://…):', 'https://'); });
@@ -3190,6 +3577,7 @@
       ['Link', 'Link the selected text', link],
       ['Unlink', 'Remove the link', function () { exec('unlink'); }],
       ['Image', 'Insert an image from its address', image],
+      ['Product', 'Link the selected words to one of our products, or add a product card', productLink],
       ['Clear', 'Remove bold/italic/links from the selection', function () { exec('removeFormat'); exec('unlink'); }],
       null,
       ['HTML', 'Show / edit the HTML source', toggleSource]
@@ -3637,7 +4025,7 @@
   function loadCatalogIds() {
     if (CATALOG && Date.now() - CATALOG.at < 60000) return Promise.resolve(CATALOG);
     function build(list) {
-      var c = { ok: list.length > 0, products: Object.create(null),
+      var c = { ok: list.length > 0, products: Object.create(null), list: list,
                 merchants: Object.create(null), cats: Object.create(null), at: Date.now() };
       list.forEach(function (p) {
         c.products[p.id] = 1; c.merchants[p.merchantSlug] = 1; c.cats[p.cat] = 1;
@@ -3654,7 +4042,7 @@
           .then(function (t) { return build(t ? listFrom(t, 'PRODUCTS') : []); });
       })
       .catch(function () {
-        return { ok: false, products: Object.create(null), merchants: Object.create(null), at: 0 };
+        return { ok: false, products: Object.create(null), merchants: Object.create(null), list: [], at: 0 };
       });
   }
 
@@ -4253,7 +4641,8 @@
          'Every section plus the sign-up tables, and each data file verbatim — a whole restore kit.');
     var hr = document.createElement('hr');
     m.appendChild(hr);
-    [['products', 'Products'], ['partners', 'Partners'], ['blog', 'Blog'], ['team', 'Team']]
+    [['products', 'Products'], ['categories', 'Categories'], ['partners', 'Partners'],
+     ['blog', 'Blog'], ['team', 'Team']]
       .forEach(function (c) {
         item('?section=' + c[0], c[1] + ' (JSON)', null);
       });
@@ -4431,6 +4820,9 @@
   initPreview();
   initDrawer();
   if (DOC.boot) DOC.boot();
+  if (DOC.onVisible) {
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) DOC.onVisible(); });
+  }
   boot();
 })();
 </script>

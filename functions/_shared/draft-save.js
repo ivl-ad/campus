@@ -151,6 +151,31 @@ export const RACE_MESSAGE =
 // More rows than this removed or changed on GitHub, and the Save asks first.
 const BIG = 3;
 
+/*
+ * Unless the push says it was meant. A deliberate bulk change made in git
+ * (a release that rewrites many rows) carries a label in the data file's
+ * header comment, above the list:
+ *
+ *     * data-release: 2026-10-28-r4
+ *
+ * A label newer than the one in the draft's base (or one where the base had
+ * none) is merged without asking, like a small change. An old copy pushed by
+ * mistake has an older label, or none, so it is still asked about. Labels
+ * compare as text: keep the date first. Editors' Saves keep the header, so
+ * the label stays in the file.
+ */
+const RELEASE = /data-release:\s*([0-9A-Za-z._-]+)/;
+export function releaseOf(source) {
+  const text = String(source || '');
+  const list = text.search(/^[ \t]*window\.[A-Z_]+\s*=/m);
+  const m = RELEASE.exec(list >= 0 ? text.slice(0, list) : text);
+  return m ? m[1] : '';
+}
+export const releaseBumped = (baseSource, currentSource) => {
+  const now = releaseOf(currentSource);
+  return !!now && now > releaseOf(baseSource);
+};
+
 // Field order and empty values never count as a difference.
 export function canonical(v) {
   if (Array.isArray(v)) return '[' + v.map(canonical).join(',') + ']';
@@ -359,19 +384,20 @@ export async function planOutside(db, meta, o) {
   const chosen = o.choice && o.choiceSha && o.choiceSha === o.current.sha ? o.choice : null;
   if (chosen === 'overwrite') return { overwrite: true };
 
-  let theirs, base;
+  let theirs, base, baseSource = null;
   try { theirs = o.current.exists === false ? [] : o.parse(o.current.source); } catch (e) {
     return { ask: askReply(o.file, o.current.sha, { unreadable: e.message }) };
   }
   try {
-    const src = await o.fetchBase(o.base);
-    base = src === null ? [] : o.parse(src);
+    baseSource = await o.fetchBase(o.base);
+    base = baseSource === null ? [] : o.parse(baseSource);
   } catch (e) {
     return { ask: askReply(o.file, o.current.sha, { nobase: e.message }) };
   }
 
   const summary = outsideSummary(base, theirs, o.rules);
-  if (chosen !== 'merge' && summary.removed.length + summary.changed.length > BIG) {
+  if (chosen !== 'merge' && summary.removed.length + summary.changed.length > BIG &&
+      !releaseBumped(baseSource, o.current.exists === false ? '' : o.current.source)) {
     return { ask: askReply(o.file, o.current.sha, { summary }) };
   }
   const saved = await savedSeq(db, meta);
