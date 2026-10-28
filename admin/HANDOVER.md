@@ -120,6 +120,15 @@ contact-us.html, index.html             social buttons (data-social-handles slot
 build_content.py                        writes /llms.txt
 llms.txt                                NEW, GENERATED -- the site described for AI tools
 css/site-custom.css                     .social-pill buttons
+
+--- fourth pass ---
+build_listings.py                       FOOTER_TEMPLATE: one footer, written into every
+                                        page (brand, Shop, Company, Help, bottom line)
+css/site-custom.css                     .mck-footer styles
+privacy-policy.html                     id="affiliate-disclosure" (the footer links there)
+index.html                              category cards: live behaviour, smoother ease,
+                                        last card stays open, dimmed closed cards, up to
+                                        12 (open card keeps its width), gentle reduced motion
 ```
 
 `js/partners.js`, `js/blogs.js` and `js/team.js` are byte-for-byte what
@@ -975,6 +984,41 @@ depends on it; no Cloudflare API token or variable is needed. If it is ever
 wanted again it is in this round's history (the dataset is
 `rumPageloadEventsAdaptiveGroups`, whose fields Cloudflare documents only
 through its dashboard).
+
+### The footer is written by the build
+
+`FOOTER_TEMPLATE` in `build_listings.py` is the one footer: the build replaces
+each page's `<footer>` with it (`bake_footer()`, called first thing in
+`bake_category_menus()`), then fills its category list and social icons as
+before. Edit the footer there, never in a page: the next build would put the
+template back. `{P}` is the link prefix (`/` on 404.html), `{YEAR}` the year at
+build time (the half-hourly Action keeps it current), and the page's own link
+gets `aria-current="page"`. Styles: `.mck-footer` in `css/site-custom.css`.
+
+### The home page's category cards
+
+Markup per card comes from `category_card()` in `build_listings.py`; the
+styles and script are the inline `<style>` / `<script>` beside the cards in
+`index.html`. It is the original (live) behaviour, refined, after a "cards
+follow the pointer" version was tried and dropped as too much motion:
+
+* The card under the pointer opens at once (`mouseenter`), one card at a
+  time, widening over 0.65 s with a smooth ease-in-out (it was a 1.1 s
+  fast-start curve), the photo easing from 3% zoom (was 8%). The text arrives
+  in two steps (title row, then text and button), as before.
+* Leaving the row keeps the last card open (it used to snap back to the
+  first). Closed cards are dimmed and brighten a little under the pointer.
+  Nothing in a closed card can be clicked; tabbing to a card's button opens it.
+* Up to 12 cards (`MAX_CARDS` in `build_listings.py`; more Shown categories
+  keep their menu link, page and Store filter). The script keeps the open card
+  at least 520 px wide (`MIN_OPEN`, via `--open`), so with many cards the
+  closed ones slim down instead: 77 px each at 12 cards on a 1366 px screen.
+* Reduced motion (the visitor's system asks for it, e.g. Windows' "Animation
+  effects" off): the same, in a short 0.35 s ease, with no zoom or sliding.
+* Phones and tablets (900 px and below): the vertical stack, tap to open.
+
+Tested by driving a real mouse in Chrome and in real Firefox (WebDriver
+BiDi), with the page served and opened from disk.
 
 ### Social profiles, structured data and llms.txt
 

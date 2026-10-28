@@ -466,3 +466,126 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ----------------------------------------------------------------- footer ---
+ * Written into every page by build_listings.py (FOOTER_TEMPLATE): the brand,
+ * then Shop / Company / Help, then a bottom line with the copyright and the
+ * affiliate disclosure. Text is light on the brand's dark green, well above
+ * the WCAG AA contrast ratio, with a visible focus ring for keyboard users.
+ */
+.mck-footer {
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--rubik), Arial, sans-serif;
+}
+.mck-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.6fr) repeat(3, minmax(150px, 1fr));
+  gap: 48px 40px;
+  padding: 80px 0 56px;
+}
+.mck-footer-logo {
+  display: inline-block;
+  line-height: 0;
+}
+.mck-footer-logo img {
+  width: auto;
+  height: 32px;
+  /* the logo is drawn dark for the light header: shown white here */
+  filter: brightness(0) invert(1);
+}
+.mck-footer-about {
+  max-width: 340px;
+  margin: 22px 0 28px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.mck-footer .social-media-main-wrap {
+  flex-direction: column;
+  gap: 12px;
+}
+.mck-footer .social-media-main-wrap .eyebrow {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+.mck-footer .social-media-link {
+  width: 40px;
+  height: 40px;
+}
+.mck-footer-title {
+  margin: 0 0 18px;
+  color: #7ed96a;
+  font-family: var(--rubik), Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+.mck-footer .footer-link-list {
+  display: block;
+}
+.mck-footer-link,
+.mck-footer .footer-link {
+  display: block;
+  width: fit-content;
+  padding: 5px 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 15px;
+  line-height: 1.45;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color 0.2s ease;
+}
+.mck-footer-link:hover,
+.mck-footer .footer-link:hover,
+.mck-footer-link[aria-current="page"] {
+  color: #7ed96a;
+}
+.mck-footer-more {
+  margin-top: 8px;
+  font-weight: 500;
+}
+.mck-footer a:focus-visible {
+  outline: 2px solid #7ed96a;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.mck-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 40px;
+  padding: 26px 0 34px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.mck-footer-bottom p {
+  margin: 0;
+}
+.mck-footer-disclosure {
+  max-width: 620px;
+}
+@media screen and (max-width: 991px) {
+  .mck-footer-grid {
+    grid-template-columns: 1fr 1fr;
+    padding-top: 64px;
+  }
+  .mck-footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+@media screen and (max-width: 479px) {
+  .mck-footer-grid {
+    gap: 40px 24px;
+    padding: 56px 0 40px;
+  }
+  .mck-footer-col:last-child {
+    grid-column: 1 / -1;
+  }
+  .mck-footer-bottom {
+    flex-direction: column;
+  }
+}

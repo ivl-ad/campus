@@ -739,6 +739,26 @@
       boot: function () { loadProductUse(); },
       onVisible: function () { loadProductUse(); },
       canDelete: function (row) { return categoryInUse(row, 'deleted'); },
+      // A line under the toolbar (never blocks Save): a category with products
+      // but no home page card, and more Shown categories than cards.
+      notice: function (rows) {
+        var out = [];
+        var hidden = rows.filter(function (r) {
+          return r.data.home === 'hidden' && PRODUCT_USE && (PRODUCT_USE[r.data.id] || []).length;
+        });
+        if (hidden.length) {
+          out.push(hidden.map(function (r) { return r.data.name || r.data.id; }).join(', ') +
+                   (hidden.length === 1 ? ' has' : ' have') + ' products but no home page card: set ' +
+                   (hidden.length === 1 ? 'it' : 'them') + ' to Shown (with a picture, card text and button text) to add one.');
+        }
+        var shown = rows.filter(function (r) { return r.data.home !== 'hidden'; });
+        if (shown.length > 12) {
+          out.push(shown.length + ' categories are Shown; the home page has room for 12 cards, so only the first 12 in ' +
+                   'this tab\u2019s order get one (' + shown.slice(12).map(function (r) { return r.data.name || r.data.id; }).join(', ') +
+                   ' keep their menu link, page and Store filter).');
+        }
+        return out.join(' ');
+      },
       slugLock: function (row) { return categoryInUse(row, 'given a new permalink'); },
       soloNote: 'Save writes js/categories.js; the home page cards, menus and Store filters are rebuilt from it.',
       syncNote: 'Edits sync to every open editor within a few seconds — nothing touches the site ' +
@@ -940,7 +960,7 @@
     var shown = rows.filter(function (r) { return r.el.style.display !== 'none'; }).length;
     $('count').textContent = plural(rows.length) +
       (shown !== rows.length ? '  ·  ' + shown + ' shown' : '');
-    if (DOC.affiliate) affiliateSummary();
+    if (DOC.affiliate || DOC.notice) affiliateSummary();
   }
 
   // ------------------------------------------------------- column layout
@@ -2766,6 +2786,7 @@
           if (p && p.cat) (use[p.cat] = use[p.cat] || []).push(p.name || p.id || 'untitled');
         });
         PRODUCT_USE = use;
+        if (DOC.notice) affiliateSummary();
       }, function () { if (!PRODUCT_USE) PRODUCT_USE = {}; });
   }
   function categoryInUse(row, what) {
@@ -3046,6 +3067,12 @@
     clearTimeout(affTimer);
     affTimer = setTimeout(function () {
       var box = $('affwarn');
+      if (DOC.notice) {                         // a tab's own note instead
+        var note = DOC.notice(rows);
+        box.hidden = !note;
+        box.textContent = note || '';
+        return;
+      }
       var f = DOC.affiliate;
       var bad = f ? rows.filter(function (r) { return r.data[f] && !isAffiliate(r.data[f]); }) : [];
       box.hidden = !bad.length;

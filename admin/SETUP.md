@@ -571,6 +571,11 @@ follow when the rebuild finishes (~2 min).
   core campus tracks"). **Hidden** categories keep their own page and their
   Store filter only. A category with no products yet shows a friendly "coming
   soon" note with a link to the Store.
+- **How many cards:** up to 12 Shown categories get a home page card (in
+  this tab's order); more keep their menu link, page and Store filter. The
+  open card stays readable however many there are; the closed ones slim down.
+  The tab shows a note under the toolbar when more than 12 are Shown, or when
+  a category has products but no card (set it to Shown to add one).
 - **Rename**: change the name. The permalink stays, so no link breaks.
 - **Delete**: only when **no product uses it** — move those products to
   another category in the Products tab first. Delete says which products are

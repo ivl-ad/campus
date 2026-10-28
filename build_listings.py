@@ -32,6 +32,7 @@ import os
 import re
 import shutil
 import sys
+import time
 
 # how many products the home page rail shows
 FEATURED = 8
@@ -687,8 +688,14 @@ def category_card(root, n, c, local):
 
 def home_categories(cat_list):
     """The featured categories ("Shown"), in list order: a home page card each
-    and a place in the header menu and footer."""
+    (the first MAX_CARDS) and a place in the header menu and footer."""
     return [c for c in cat_list if c.get('home') != 'hidden']
+
+
+# The home page row of cards stays readable up to this many (the open card
+# keeps its width and the closed ones slim down); more Shown categories still
+# get their menu links, page and Store filter, and the Categories tab says so.
+MAX_CARDS = 12
 
 
 def menu_categories(cat_list):
@@ -697,7 +704,7 @@ def menu_categories(cat_list):
 
 def bake_category_cards(doc, root, cat_list, local, label):
     """The home page's category cards, and the count in the sentence above."""
-    cards = home_categories(cat_list)
+    cards = home_categories(cat_list)[:MAX_CARDS]
     if re.search(ACCORDION, doc):
         doc = replace_inner(doc, ACCORDION, '\n' + '\n'.join(
             category_card(root, n, c, local) for n, c in enumerate(cards, 1)) + '\n',
@@ -707,22 +714,91 @@ def bake_category_cards(doc, root, cat_list, local, label):
     return re.sub(r'(into )\w+ core campus tracks?\b', lambda m: m.group(1) + word + track, doc)
 
 
+# ------------------------------------------------------------------- footer
+# One footer for every page, written in by this script: edit it here, never in
+# a page (the next build would put this back). The category links and the
+# social icons are filled into its slots by bake_category_menus() and
+# bake_social(), as everywhere else. {P} is how the page links to the site
+# root: "" for every page, "/" for 404.html, which is shown at any address.
+FOOTER_TEMPLATE = """<footer class="footer mck-footer">
+<div class="padding-global">
+<div class="container-large">
+<div class="mck-footer-grid">
+<div class="mck-footer-brand">
+<a aria-label="MyCampusKorner home" class="mck-footer-logo" href="{P}index.html"><img alt="MyCampusKorner" height="32" loading="lazy" src="{P}images/mycampuskorner-logo.avif" width="245"/></a>
+<p class="mck-footer-about">Hand-picked college essentials and honest campus advice, built by a college parent in Ann Arbor, Michigan.</p>
+<div class="social-media-main-wrap">
+<div class="eyebrow">Follow us</div>
+<div class="social-media-link-wrap" data-social-links=""></div>
+</div>
+</div>
+<nav aria-label="Shop by category" class="mck-footer-col">
+<h2 class="mck-footer-title">Shop</h2>
+<div class="w-dyn-list">
+<div class="footer-link-list w-dyn-items" role="list">{CATS}</div>
+</div>
+<a class="mck-footer-link mck-footer-more" href="{P}store.html">All products</a>
+</nav>
+<nav aria-label="Company" class="mck-footer-col">
+<h2 class="mck-footer-title">Company</h2>
+<a class="mck-footer-link" href="{P}about.html">About us</a>
+<a class="mck-footer-link" href="{P}blog.html">Blog</a>
+<a class="mck-footer-link" href="{P}contact-us.html">Contact</a>
+<a class="mck-footer-link" href="{P}contact-us.html?reason=partner">Become a partner</a>
+</nav>
+<nav aria-label="Help and legal" class="mck-footer-col">
+<h2 class="mck-footer-title">Help</h2>
+<a class="mck-footer-link" href="mailto:support@mycampuskorner.com">support@mycampuskorner.com</a>
+<a class="mck-footer-link" href="{P}privacy-policy.html">Privacy policy</a>
+<a class="mck-footer-link" href="{P}terms.html">Terms of service</a>
+<a class="mck-footer-link" href="{P}privacy-policy.html#affiliate-disclosure">Affiliate disclosure</a>
+</nav>
+</div>
+<div class="mck-footer-bottom">
+<p>© {YEAR} MyCampusKorner. All rights reserved.</p>
+<p class="mck-footer-disclosure">Some links on this site are affiliate links: if you buy through them, we may earn a commission at no extra cost to you.</p>
+</div>
+</div>
+</div>
+</footer>"""
+FOOTER_RE = re.compile(r'<footer\b[^>]*>.*?</footer>', re.S)
+
+
+def category_items(cats, cls, prefix):
+    """The category links of the header menu (cls mega-menu_link-wrapper) or
+    the footer (cls footer-link), in the markup both lists use."""
+    return ''.join(
+        '<div class="w-dyn-item" role="listitem">\n<a class="%s" href="%scategory.html?id=%s">\n'
+        '<div class="">%s</div>\n</a>\n</div>' % (cls, e(prefix), e(cid), e(name))
+        for cid, name in cats)
+
+
+def bake_footer(doc, cats, label):
+    """The page's footer, from FOOTER_TEMPLATE. The link to the page itself is
+    marked as the current one."""
+    if not FOOTER_RE.search(doc):
+        return doc
+    prefix = '/' if label.startswith('404') else ''
+    html_ = (FOOTER_TEMPLATE.replace('{P}', prefix).replace('{YEAR}', str(time.localtime().tm_year))
+             .replace('{CATS}', '\n\n' + category_items(cats, 'footer-link w-inline-block', prefix)))
+    own = 'href="%s%s"' % (prefix, label)
+    html_ = html_.replace('class="mck-footer-link" ' + own, 'aria-current="page" class="mck-footer-link" ' + own)
+    return FOOTER_RE.sub(lambda m: html_, doc, count=1)
+
+
 def bake_category_menus(doc, cats, label):
     """The category links in the header menu and the footer: the featured
     categories, cats = menu_categories(...), in order. Each page keeps its own
     link style (the 404 page links from the site root)."""
+    doc = bake_footer(doc, cats, label)
     for container, cls in ((MEGA_MENU, 'mega-menu_link-wrapper w-inline-block'),
                            (FOOTER_CATS, 'footer-link w-inline-block')):
         m = re.search(container, doc)
         if not m:
             continue
         first = re.search(r'href="([^"]*?)category\.html\?id=', doc[m.end():m.end() + 1000])
-        prefix = first.group(1) if first else ''
-        items = ''.join(
-            '<div class="w-dyn-item" role="listitem">\n<a class="%s" href="%scategory.html?id=%s">\n'
-            '<div class="">%s</div>\n</a>\n</div>' % (cls, e(prefix), e(cid), e(name))
-            for cid, name in cats)
-        doc = replace_inner(doc, container, '\n\n' + items, label + ' category links')
+        prefix = first.group(1) if first else ('/' if label.startswith('404') else '')
+        doc = replace_inner(doc, container, '\n\n' + category_items(cats, cls, prefix), label + ' category links')
     return doc
 
 
