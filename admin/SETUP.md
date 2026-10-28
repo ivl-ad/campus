@@ -596,58 +596,31 @@ set up: it uses the same D1 database and starts counting at the deploy.
 - For Google-side numbers (search queries, impressions) use Google Search
   Console, which needs no code on the site.
 
-## 17. Cloudflare Web Analytics — the Cloudflare tab
+## 17. Cloudflare Web Analytics (site owner only, in Cloudflare)
 
-Cloudflare's own visitor statistics (free, no cookies), shown in the editor
-at **Cloudflare** next to Analytics. Three things to do, once, in the
-Cloudflare dashboard. Nothing here touches the site's files.
+Not part of the editor: the team's numbers are on the **Analytics** tab
+(section 16). Cloudflare's own statistics are for whoever manages the
+Cloudflare account, and are read in the Cloudflare dashboard.
 
-**A. Turn Web Analytics on**
+Web Analytics lives at the **account** level, not inside the domain. The
+domain's own Analytics page (Requests, Visitors, Performance, Security,
+Cache…) is a different, server-side report and has no Web Analytics option.
 
-1. Cloudflare dashboard → your account → **Analytics & Logs** →
-   **Web Analytics**.
-2. If **mycampuskorner.com** is already listed (Cloudflare switched it on by
-   default for many free sites in October 2025), open **Manage site** and make
-   sure it is enabled; the default may exclude visitors from the EU, and
-   choosing plain **Enable** includes everyone. If it is not listed: **Add a
-   site** → pick **mycampuskorner.com** → **Done** (automatic setup).
-3. Use only this route. Do **not** also click Enable under Workers & Pages →
-   the project → Metrics: two snippets on one page do not work together.
+1. Open `https://dash.cloudflare.com/?to=/:account/web-analytics` (or, from
+   the account home, the left sidebar: **Analytics & Logs** → **Web
+   Analytics**).
+2. If **mycampuskorner.com** is listed, it is on. If not: **Add a site** →
+   choose **mycampuskorner.com** from the list → **Done**. Cloudflare adds
+   its small script to the pages as they are served: no deploy, no file
+   change. (Use this route only, not also Workers & Pages → the project →
+   Metrics → Web Analytics: two snippets on one page do not work.)
+3. Visits show on that page, under the site, a few minutes later: visits,
+   page views, top pages, referrers, countries, devices, browsers and page
+   speed (Core Web Vitals). It counts pages without their `?id=…`, so every
+   product shows as `/product`; the editor's Analytics tab has each product
+   and the clicks to retailers.
 
-**B. A read-only API token for the editor**
-
-1. Account home → **Manage account** → **Account API tokens** (the direct
-   address is `dash.cloudflare.com/?to=/:account/api-tokens`; **My Profile →
-   API Tokens** works too) → **Create Token** → **Custom token** →
-   **Get started**.
-2. Name: `MyCampusKorner editor - analytics (read only)`.
-3. Permissions, two rows: **Account** · **Account Analytics** · **Read**, and
-   **Account** · **Account Settings** · **Read** (the second lets the editor
-   find the site by its name).
-4. Account resources: Include · your account. **Continue to summary** →
-   **Create Token**. Copy the token now: it is shown only once.
-5. Copy your **Account ID** too: Workers & Pages → right-hand column, or
-   press Ctrl+K and search "Copy account ID".
-
-**C. Give them to the site**
-
-1. Workers & Pages → the site's project → **Settings** → **Variables and
-   Secrets** → **Add**, for **Production**:
-   - `CF_API_TOKEN`, type **Secret**, value: the token;
-   - `CF_ACCOUNT_ID`, type Text, value: the Account ID.
-2. **Save**, then redeploy (Deployments → the latest → **Retry deployment**,
-   or simply push): variables reach the site with the next deployment.
-3. Open the **Cloudflare** tab. Numbers appear a few minutes after visits.
-   If it shows an error from Cloudflare about the site, add a third variable
-   `CF_WEB_ANALYTICS_SITE` with the site tag (Web Analytics → the site: the
-   tag is in the address bar as `siteTag~in=…`) and redeploy.
-
-What it shows: page views, visits, top pages, where visits come from,
-countries, devices and browsers, for 7, 30 or 90 days. Cloudflare counts
-pages without their `?id=…`, so all products appear as `/product`; the
-Analytics tab (the site's own counter) has each product and the clicks to
-retailers. On busy days Cloudflare's numbers are estimates from a sample, and
-the page says so. Ad blockers hide some visitors from both tabs.
+The privacy policy already names Cloudflare Web Analytics.
 
 ## If something goes wrong
 

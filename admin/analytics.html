@@ -78,8 +78,7 @@
     <a href="./?view=blog">Blog</a>
     <a href="./?view=team">Team</a>
     <a href="signups">Signups</a>
-    <a href="analytics" data-source="site">Analytics</a>
-    <a href="analytics?source=cloudflare" data-source="cloudflare">Cloudflare</a>
+    <a href="analytics" aria-current="page">Analytics</a>
   </nav>
   <div class="seg" role="group" aria-label="Period">
     <button type="button" data-days="7" aria-pressed="false">7 days</button>
@@ -93,17 +92,7 @@
 </header>
 <main>
   <div id="out"><div class="empty">Loading…</div></div>
-  <p class="note" data-for="cloudflare" hidden>
-    From <b>Cloudflare Web Analytics</b>: Cloudflare's own count of the same
-    site, by a small script it adds to every page. No cookies either. Its
-    <b>visits</b> are page views that came from another site or a direct link;
-    page addresses are counted without their <code>?id=…</code> part, so
-    every product shows as <code>/product</code> (the Analytics tab has them
-    one by one, plus the clicks to retailers). On busy days Cloudflare counts
-    a sample and scales it up, so these are estimates. Ad blockers hide some
-    visitors from both counts. Days are UTC days.
-  </p>
-  <p class="note" data-for="site">
+  <p class="note">
     Counted by the site itself, without cookies: each page view adds 1 to that
     day's totals and nothing is kept about the person — no IP address, no
     identifier, no history across visits. A <b>visit</b> is a page view that did
@@ -126,22 +115,6 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var days = 30, data = null;
-  // Which count: the site's own (/api/analytics) or Cloudflare Web Analytics
-  // (/api/cf-analytics). Same page, same shape of data.
-  var SOURCE = /(?:^|[?&])source=cloudflare(?:&|$)/.test(location.search.slice(1)) ? 'cloudflare' : 'site';
-  var CF = SOURCE === 'cloudflare';
-  Array.prototype.forEach.call(document.querySelectorAll('.tabs a[data-source]'), function (a) {
-    if (a.getAttribute('data-source') === SOURCE) a.setAttribute('aria-current', 'page');
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('.note[data-for]'), function (p) {
-    p.hidden = p.getAttribute('data-for') !== SOURCE;
-  });
-  if (CF) {
-    document.title = 'Cloudflare analytics · Catalog editor';
-    var year = document.querySelector('[data-days="365"]');
-    if (year) year.hidden = true;       // Cloudflare keeps about six months
-    document.getElementById('mine').hidden = true;
-  }
   var NUM = new Intl.NumberFormat('en-US');
   var REGION = window.Intl && Intl.DisplayNames ? new Intl.DisplayNames(['en'], { type: 'region' }) : null;
 
@@ -233,7 +206,7 @@
     var card = el('div', 'card');
     var per = days <= 31 ? 'day' : days > 120 ? 'month' : 'week';
     var h = el('h2', '', 'Page views per ' + per + ' ');
-    h.appendChild(el('small', '', CF ? '(hover a column for visits)' : '(hover a column for visits and clicks)'));
+    h.appendChild(el('small', '', '(hover a column for visits and clicks)'));
     card.appendChild(h);
     var bs = buckets(list);
     var sc = scaleFor(Math.max.apply(null, bs.map(function (b) { return b.views; }).concat([0])));
@@ -251,7 +224,7 @@
       bar.style.height = (b.views / top * 100) + '%';
       c.appendChild(bar);
       c.tabIndex = 0;
-      c.setAttribute('aria-label', when(b) + ': ' + b.views + ' page views, ' + b.visits + ' visits' + (CF ? '' : ', ' + b.clicks + ' clicks'));
+      c.setAttribute('aria-label', when(b) + ': ' + b.views + ' page views, ' + b.visits + ' visits, ' + b.clicks + ' clicks');
       c.addEventListener('mouseenter', function (ev) { tip(b, c); });
       c.addEventListener('focus', function () { tip(b, c); });
       c.addEventListener('mouseleave', hideTip);
@@ -271,7 +244,7 @@
     var t = $('tip');
     t.textContent = '';
     t.appendChild(el('b', '', when(b)));
-    [[b.views, 'page views'], [b.visits, 'visits']].concat(CF ? [] : [[b.clicks, 'clicks to retailers']]).forEach(function (r) {
+    [[b.views, 'page views'], [b.visits, 'visits'], [b.clicks, 'clicks to retailers']].forEach(function (r) {
       t.appendChild(el('div', '', NUM.format(r[0]) + ' ' + r[1]));
     });
     t.hidden = false;
@@ -313,23 +286,16 @@
     var stats = el('div', 'stats');
     stats.appendChild(stat(NUM.format(T.views), 'Page views', change(T.views, P.views)));
     stats.appendChild(stat(NUM.format(T.visits), 'Visits', change(T.visits, P.visits)));
-    if (CF) {
-      stats.appendChild(stat(T.visits ? (T.views / T.visits).toFixed(1) : '–', 'Pages per visit',
-                             data.sampled ? 'estimated: Cloudflare sampled some days' : 'from Cloudflare'));
-    } else {
-      stats.appendChild(stat(NUM.format(T.clicks), 'Clicks to retailers', change(T.clicks, P.clicks)));
-      stats.appendChild(stat(T.visits ? Math.round(T.clicks / T.visits * 100) + '%' : '–',
-                             'Clicks per visit', T.visits ? (T.views / T.visits).toFixed(1) + ' pages per visit' : ''));
-    }
+    stats.appendChild(stat(NUM.format(T.clicks), 'Clicks to retailers', change(T.clicks, P.clicks)));
+    stats.appendChild(stat(T.visits ? Math.round(T.clicks / T.visits * 100) + '%' : '–',
+                           'Clicks per visit', T.visits ? (T.views / T.visits).toFixed(1) + ' pages per visit' : ''));
     out.appendChild(stats);
     out.appendChild(chart(data.days));
     var g = el('div', 'tables');
-    if (!CF) {
-      g.appendChild(table('Clicks to retailers', ['What', 'Clicks'], data.clicks.map(function (c) {
-        var l = clickLabel(c);
-        return [c.kind === 'product' && PRODUCTS[c.target] ? pageLink('/product?id=' + encodeURIComponent(c.target), l[0]) : l[0], l[1], c.clicks];
-      }), 'No clicks out to retailers in this period yet.'));
-    }
+    g.appendChild(table('Clicks to retailers', ['What', 'Clicks'], data.clicks.map(function (c) {
+      var l = clickLabel(c);
+      return [c.kind === 'product' && PRODUCTS[c.target] ? pageLink('/product?id=' + encodeURIComponent(c.target), l[0]) : l[0], l[1], c.clicks];
+    }), 'No clicks out to retailers in this period yet.'));
     g.appendChild(table('Top pages', ['Page', 'Views', 'Visits began'], data.pages.map(function (p) {
       var l = pageLabel(p.path);
       return [pageLink(p.path, l[0]), l[1], p.views, p.visits];
@@ -340,36 +306,13 @@
       data.countries.map(function (c) { return [country(c.name), '', c.visits]; })));
     g.appendChild(table('Devices', ['Device', 'Visits'],
       data.devices.map(function (d) { return [d.name, '', d.visits]; })));
-    if (data.browsers) {
-      g.appendChild(table('Browsers', ['Browser', 'Visits'],
-        data.browsers.map(function (b) { return [b.name, '', b.visits]; })));
-    }
     out.appendChild(g);
   }
 
-  // Cloudflare is not connected yet: what to do, in short (SETUP.md 17).
-  function setup(missing) {
-    var out = $('out');
-    out.textContent = '';
-    var card = el('div', 'card');
-    card.appendChild(el('h2', '', 'Connect Cloudflare Web Analytics'));
-    [
-      'Turn on Web Analytics for mycampuskorner.com in the Cloudflare dashboard (Analytics & Logs > Web Analytics).',
-      'Create a read-only API token: Account API tokens > Create Token > Custom token, with Account Analytics: Read and Account Settings: Read.',
-      'In Workers & Pages > this project > Settings > Variables and Secrets, add CF_API_TOKEN (as a Secret) and CF_ACCOUNT_ID, then deploy again.'
-    ].forEach(function (t, i) { card.appendChild(el('p', '', (i + 1) + '. ' + t)); });
-    card.appendChild(el('p', 'note', 'Not set yet: ' + missing.join(', ') +
-      '. Step-by-step instructions are in admin/SETUP.md, section 17.'));
-    out.appendChild(card);
-  }
-
   function load() {
-    fetch((CF ? '../api/cf-analytics?days=' : '../api/analytics?days=') + days, { cache: 'no-store' })
+    fetch('../api/analytics?days=' + days, { cache: 'no-store' })
       .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status); return d; }); })
-      .then(function (d) {
-        if (d.configured === false) { setup(d.missing || []); return; }
-        data = d; render();
-      })
+      .then(function (d) { data = d; render(); })
       .catch(function (e) {
         var out = $('out');
         out.textContent = '';

@@ -14,8 +14,8 @@ plus the fixes and features described below, in two rounds:
   2026**, except the cache fix (3.10, `stamp_assets.py`), which was finished
   after that push and goes out with round 4.
 * **Round 4** (the team's first two rounds of feedback: carousel, six home
-  page categories and a Categories tab, the site's own visit counts and a
-  Cloudflare tab, product descriptions, blog scheduling and product cards,
+  page categories and a Categories tab, the site's own visit counts,
+  product descriptions, blog scheduling and product cards,
   affiliate-link warnings, blog covers stored on the site) — the list below
   and sections 5 and 8. **In this folder, tested, not yet deployed.**
 
@@ -104,8 +104,6 @@ admin/index.html                        Blog: Scheduled status, a Product button
                                         Products/Partners: links without affiliate
                                         tracking in red, with a line naming them;
                                         Categories: "Shown" = home card + menu link
-functions/api/cf-analytics.js           NEW — Cloudflare Web Analytics for the admin
-admin/analytics.html                    the Cloudflare tab (?source=cloudflare)
 .github/workflows/rebuild-listings.yml  a half-hourly timer (scheduled posts); covers folder
 privacy-policy.html                     Cloudflare Web Analytics named
 *.html, product functions               visible em dashes removed (footer, home, contact,
@@ -271,8 +269,6 @@ For round 4, in order:
    (Belkin weekly deals, Gemini, Cloudfield: no affiliate tracking yet).
 8. **Blog:** the two posts the team added are still in the shared draft:
    check their Status (Draft / Published / Scheduled) and press **Save**.
-9. **Cloudflare tab** shows the setup card until SETUP.md section 17 is done;
-   after that and a redeploy, the numbers.
 
 For round 3, in order:
 
@@ -969,18 +965,16 @@ partner url that is none of these is red, and one line under the toolbar names
 them. It never blocks a Save. A new network's links will show red until its
 host is added to `AFF_HOSTS`.
 
-### Cloudflare Web Analytics (the Cloudflare tab)
+### Cloudflare Web Analytics: not in the editor
 
-`functions/api/cf-analytics.js` reads the GraphQL Analytics API
-(`rumPageloadEventsAdaptiveGroups`) with a read-only token, in windows of at
-most 30 days, and answers in the same shape as `/api/analytics`, so
-`admin/analytics.html?source=cloudflare` draws it with the same code. The
-dataset's fields are not in Cloudflare's public docs (they are what its own
-dashboard asks for), so a refused query is passed to the page word for word.
-If Cloudflare refuses the `bot: 0` filter it is dropped and the query retried.
-Numbers on busy days are sampled estimates (`sampled`). The site is found by
-host name through `/accounts/<id>/rum/site_info/list` (needs Account
-Settings: Read), or set `CF_WEB_ANALYTICS_SITE`. Setup: SETUP.md 17.
+An admin tab that read Cloudflare Web Analytics through the GraphQL API
+(`functions/api/cf-analytics.js`) was built and then removed at the owner's
+request: the editor is for the three content admins, and Cloudflare is the
+owner's to read in its own dashboard (SETUP.md 17). Nothing in the site
+depends on it; no Cloudflare API token or variable is needed. If it is ever
+wanted again it is in this round's history (the dataset is
+`rumPageloadEventsAdaptiveGroups`, whose fields Cloudflare documents only
+through its dashboard).
 
 ### Social profiles, structured data and llms.txt
 
@@ -1142,10 +1136,6 @@ Then run the suite, and add a case for whatever you just changed.
   until it is moved.
 * **Field-level merging is not done**: a product edited both in the push and
   in the editor's unsaved draft keeps the editor's whole row (5).
-* **Cloudflare tab** depends on fields Cloudflare does not document; if it
-  renames them, the tab shows Cloudflare's error until
-  `functions/api/cf-analytics.js` is updated. Page addresses there have no
-  `?id=`, so products are not told apart (the Analytics tab does that).
 * **Blog article saves are still not covered end to end locally** (the
   cleaner needs Cloudflare's HTMLRewriter; section 6).
 * **Visit counts start at the deploy**: there is no history before it, and
