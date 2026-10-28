@@ -84,9 +84,10 @@ password.
 password is checked, against `EDITOR_PASSWORD`. There is no username to set
 anywhere in Cloudflare.
 
-If the box keeps reappearing, the password does not match the variable. Press
-Escape/Cancel at the prompt to read the error page, which says which case you
-are in.
+If the box keeps reappearing, the password does not match the variable (check
+for a stray space or newline pasted into the value, then redeploy). Pressing
+Cancel shows only "Unauthorized." on purpose: the page tells a stranger
+nothing about how the editor is set up.
 
 After a save: GitHub shows a new commit, the Action runs, and the site updates.
 Watch progress in the repo's **Actions** tab.

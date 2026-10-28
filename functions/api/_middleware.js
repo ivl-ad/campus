@@ -63,12 +63,7 @@ function crossSiteWrite(request) {
 
 function challenge() {
   return new Response(
-    'Not signed in.\n\n' +
-    'The username is ignored - leave it blank or type anything. Only the\n' +
-    'password is checked, against the EDITOR_PASSWORD variable on this\n' +
-    'Cloudflare Pages project.\n\n' +
-    'If the password keeps being refused, it does not match that variable.\n' +
-    'Check for a stray space or newline pasted into the value, then redeploy.\n',
+    'Unauthorized.',
     {
       status: 401,
       headers: {
