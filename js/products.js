@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "nba", "name": "nba", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "nba", "merchantSlug": "nba", "url": "https://nbastore.vwz6.net/gRB9jX", "img": "https://cdn1.impact.com/display-campaign-image/152511.gif"},
   {"id": "frank", "name": "frank", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "frank", "merchantSlug": "frank", "url": "https://franklinsports.sjv.io/AgQrda", "img": "https://cdn1.impact.com/display-campaign-image/53407.gif"},
   {"id": "contacts", "name": "contacts", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "contact", "merchantSlug": "contact", "url": "https://1800contacts.fxo.co/g/1485277/158602/2000000003/DxCPTgc", "img": "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=2137859.3&type=4"},
   {"id": "bloom", "name": "bloom", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "bloom", "merchantSlug": "bloom", "url": "https://bloomingdales.fxo.co/g/1485277/619/2010003382/DxCPTgc", "img": "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1544160.10003382&type=4"},
