@@ -87,6 +87,7 @@ window.LOCAL_IMAGES = {
   "https://www.belkin.com/on/demandware.static/-/Sites/default/dw58ddf68f/2026-Falcon-gaming-campaign-dotcom-homepage-banner-03-mobile-373x400-us.jpg": "images/products/belkin-tech-accessories-weekly-deals-46b324388c.webp",
   "https://www.belkin.com/on/demandware.static/Sites-BELKUS-Site/-/default/dw39bf336a/images/brand/belkin_logo_notm.svg": "images/partners/belkin-e0c0f0f7f9.svg",
   "https://www.fanatics.com/content/ws/all/b88152dc-ebb5-4bbb-a3fe-fe3b2f15de08.svg": "images/partners/fanatics-a224d9339a.svg",
+  "https://www.fragranceshop.com/wp-content/uploads/2024/06/fragranceshop_logo.jpg": "images/products/fragrance-d41c9101a7.webp",
   "https://www.hilton.com/modules/assets/svgs/logos/WW.svg": "images/products/hilton-b1528fe401.svg",
   "https://www.huffy.com/media/logo/stores/8/red-huffy-logo.png": "images/products/huffy-b4fd35191e.webp",
   "https://www.lduhtrp.net/image-101879885-15619460": "images/products/vaio-laptops-0130b34b2f.jpg",
