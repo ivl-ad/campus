@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "lane", "name": "lane", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "lane", "merchantSlug": "lane", "url": "https://lanebryant.fxo.co/g/1485277/158952/2000000060/DxCPTgc", "img": "https://assets.lanebryant.com/image/upload/LB/102926-header-logo-green.svg"},
   {"id": "southwest", "name": "southwest", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "south", "merchantSlug": "south", "url": "https://swa.eyjo.net/c/5891219/510760/4705", "img": "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg"},
   {"id": "united", "name": "united", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "united", "merchantSlug": "united", "url": "https://united.elfm.net/c/5891219/748964/4704", "img": "https://app.impact.com/display-thumbnail/748964"},
   {"id": "hilton", "name": "hilton", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "hilton", "merchantSlug": "hilton", "url": "https://hilton.ijrn.net/c/5891219/624937/4823", "img": "https://www.hilton.com/modules/assets/svgs/logos/WW.svg"},
