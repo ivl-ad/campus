@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "united", "name": "united", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "united", "merchantSlug": "united", "url": "https://united.elfm.net/c/5891219/748964/4704", "img": "https://app.impact.com/display-thumbnail/748964"},
   {"id": "hilton", "name": "hilton", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "hilton", "merchantSlug": "hilton", "url": "https://hilton.ijrn.net/c/5891219/624937/4823", "img": "https://www.hilton.com/modules/assets/svgs/logos/WW.svg"},
   {"id": "keurig", "name": "keurig", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "keurig", "merchantSlug": "keurig", "url": "https://keurig.fxo.co/g/1485277/170716/1000001662/DxCPTgc", "img": "https://www.keurig.com/medias/coffee-makers-swc.jpg?context=bWFzdGVyfEhPTElEQVlDVVBTfDE3MTA1fGltYWdlL2pwZWd8SE9MSURBWUNVUFMvaDZiL2hmNS82OTUyOTI2MzY2OTI3OC5qcGd8OGVlOTYyYzNiZTNjMzQ1NGFlODA2NzBjMzA3ZTE3NzQ5NmYxYzY2ZjY5MDU0N2IzMGJiMzY2MTJlYTNmYWFlZQ"},
   {"id": "farberware", "name": "Farberware", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "farber", "merchantSlug": "farber", "url": "https://farberware.sjv.io/c/5891219/998374/11993", "img": "https://app.impact.com/display-thumbnail/998374"},
