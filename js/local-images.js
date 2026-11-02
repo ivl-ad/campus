@@ -73,6 +73,7 @@ window.LOCAL_IMAGES = {
   "https://feeds.frgimages.com/_ss5_p-203735675+u-cxpteakquvr2sgllwq8n+v-7nr0sujhzcork0ydmsji.jpg?_hv=2": "images/products/fan-nails-10d3c9b9dc.webp",
   "https://feeds.frgimages.com/_ss5_p-204464813+u-l6ge63ho1zibxqqybsqa+v-y5pbawaz4vjs4dii59h5.jpg?_hv=2": "images/products/fan-bag-2d8910493f.webp",
   "https://i5.walmartimages.com/asr/7436642f-73d7-476a-ad13-3df823b44468.478cf2e6e13b071082d10d79d898cb83.jpeg?odnHeight=2000&odnWidth=2000&odnBg=ffffff": "images/products/fan-seat-2d5b841d5e.webp",
+  "https://members.cj.com/member/publisher/logo/10689470.gif": "images/products/mms-787f70e88b.png",
   "https://merchant.linksynergy.com/fs/banners/815/815_10000930.jpg": "images/partners/sharper-image-54dd4a1544.jpg",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6b3a7d46-76a7-46a0-9a06-ea387ba51100.jpg": "images/products/fan-pillow-1770d1cbea.webp",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/70cedbe1-01d0-4415-bb49-5f40e5716df2.png": "images/products/hisense-flat-screen-9ea98d2024.webp",
