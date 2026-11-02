@@ -76,6 +76,7 @@ window.LOCAL_IMAGES = {
   "https://merchant.linksynergy.com/fs/banners/815/815_10000930.jpg": "images/partners/sharper-image-54dd4a1544.jpg",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6b3a7d46-76a7-46a0-9a06-ea387ba51100.jpg": "images/products/fan-pillow-1770d1cbea.webp",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/70cedbe1-01d0-4415-bb49-5f40e5716df2.png": "images/products/hisense-flat-screen-9ea98d2024.webp",
+  "https://sharperimage.com/cdn/shop/files/si-logo.svg?height=60&v=1752157047": "images/products/sharp-16b85bcccf.svg",
   "https://static.shareasale.com/image/30103/2010drawing180x150.jpg": "images/products/blick-art-supplys-da1511b228.jpg",
   "https://static.shareasale.com/image/rcc_468_60.gif": "images/products/resume-express-e6e3bb0463.gif",
   "https://static.wixstatic.com/media/d2d7a5_25b1c6b1276c478b9697481d39c2fa50~mv2.jpg": "images/products/cloudfield-bamboo-sunglasses-blue-light-e13a58c77e.webp",
