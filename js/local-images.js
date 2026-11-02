@@ -57,6 +57,7 @@ window.LOCAL_IMAGES = {
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/178071.png": "images/products/aveda-october-promos-06b55e63ac.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/232560.png": "images/products/voltaire-45b6e55c5e.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/235731.png": "images/products/spot-loan-47637de644.webp",
+  "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/255079.png": "images/products/red-1-b6f982d748.webp",
   "https://feeds.frgimages.com/_pi2793000_ff_2793935_full.jpg?_hv=2": "images/products/fan-bed-534eb45a88.webp",
   "https://feeds.frgimages.com/_pi4469000_ff_4469222-80cf415501da8a85c285_full.jpg?_hv=2": "images/products/pan-travel-09eb60f514.jpg",
   "https://feeds.frgimages.com/_ss5_p-200232552+u-4ulpzdrinsq7h41wcid8+v-vjhshffiwfxb76djrubp.jpg?_hv=2": "images/products/fan-sheets-52c8bad27a.webp",
