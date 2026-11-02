@@ -21,6 +21,7 @@ window.LOCAL_IMAGES = {
   "http://www.avantlink.com/gbi/22353/964941/132893/160597/image.jpg": "images/products/huffy-womens-bikes-9c09a23f15.jpg",
   "https://a1.awin1.com/ads/awin/23351/imgaff___autumn_transitional___mw1___en___600x600-1787734554778.jpg": "images/partners/marks-spencer-e2974762a7.jpg",
   "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png": "images/products/art-supplies-b3d6c5581e.png",
+  "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1544160.10003382&type=4": "images/products/bloom-260cc12010.jpg",
   "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1787071.10000178&type=4": "images/partners/champion-6108db498c.jpg",
   "https://app.impact.com/display-thumbnail/2364841": "images/products/belkin-4cd8fa1a59.png",
   "https://app.impact.com/display-thumbnail/3201214": "images/products/moving-368025907b.png",
