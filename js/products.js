@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "billiards", "name": "billiards", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "bill", "merchantSlug": "bill", "url": "https://billiardscom.sjv.io/qW91bg", "img": "https://cdn1.impact.com/display-campaign-image/157574.gif"},
   {"id": "king", "name": "king", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "king", "merchantSlug": "king", "url": "https://kingbulltechnologycolimited.pxf.io/JkA112", "img": "https://cdn3.impact.com/display-campaign-image/159864.gif"},
   {"id": "nba", "name": "nba", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "nba", "merchantSlug": "nba", "url": "https://nbastore.vwz6.net/gRB9jX", "img": "https://cdn1.impact.com/display-campaign-image/152511.gif"},
   {"id": "frank", "name": "frank", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "frank", "merchantSlug": "frank", "url": "https://franklinsports.sjv.io/AgQrda", "img": "https://cdn1.impact.com/display-campaign-image/53407.gif"},
