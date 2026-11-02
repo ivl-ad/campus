@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "bloom", "name": "bloom", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "bloom", "merchantSlug": "bloom", "url": "https://bloomingdales.fxo.co/g/1485277/619/2010003382/DxCPTgc", "img": "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1544160.10003382&type=4"},
   {"id": "huffy", "name": "huffy", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "huffy", "merchantSlug": "huffy", "url": "https://huffybikes.fxo.co/g/1485277/229259/964841/DxCPTgc", "img": "https://www.huffy.com/media/logo/stores/8/red-huffy-logo.png"},
   {"id": "lane", "name": "lane", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "lane", "merchantSlug": "lane", "url": "https://lanebryant.fxo.co/g/1485277/158952/2000000060/DxCPTgc", "img": "https://assets.lanebryant.com/image/upload/LB/102926-header-logo-green.svg"},
   {"id": "southwest", "name": "southwest", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "south", "merchantSlug": "south", "url": "https://swa.eyjo.net/c/5891219/510760/4705", "img": "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg"},
