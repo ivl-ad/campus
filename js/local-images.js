@@ -82,6 +82,7 @@ window.LOCAL_IMAGES = {
   "https://www.belkin.com/on/demandware.static/Sites-BELKUS-Site/-/default/dw39bf336a/images/brand/belkin_logo_notm.svg": "images/partners/belkin-e0c0f0f7f9.svg",
   "https://www.fanatics.com/content/ws/all/b88152dc-ebb5-4bbb-a3fe-fe3b2f15de08.svg": "images/partners/fanatics-a224d9339a.svg",
   "https://www.hilton.com/modules/assets/svgs/logos/WW.svg": "images/products/hilton-b1528fe401.svg",
+  "https://www.huffy.com/media/logo/stores/8/red-huffy-logo.png": "images/products/huffy-b4fd35191e.webp",
   "https://www.lduhtrp.net/image-101879885-15619460": "images/products/vaio-laptops-0130b34b2f.jpg",
   "https://www.nflshop.com/content/assets/__0-859256003070.1062.svg": "images/partners/nfl-shop-329e91ef06.svg",
   "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg": "images/products/southwest-cad6cb9d6a.svg",
