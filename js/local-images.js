@@ -40,6 +40,7 @@ window.LOCAL_IMAGES = {
   "https://cdn.shopify.com/s/files/1/0640/1409/0461/files/BLACK_DECKER_Drill_and_Driver_plus_59_piece_project_kit..jpg?v=1726492851": "images/products/b-d-tool-set-7022737d8a.webp",
   "https://cdn.shopify.com/s/files/1/0665/9001/5680/files/CPS10126M-2_esyb7b.jpg?v=1780042897": "images/products/champion-b0c2604dd4.webp",
   "https://cdn1.impact.com/display-campaign-image/152511.gif": "images/products/nba-2fc8235082.webp",
+  "https://cdn1.impact.com/display-campaign-image/157574.gif": "images/products/billiards-c042adc649.png",
   "https://cdn1.impact.com/display-campaign-image/53407.gif": "images/partners/franklin-sports-f912b273fa.webp",
   "https://cdn1.sharperimage.com/si/img/productImages/206794/206794-g1.jpg": "images/products/sharper-image-bluetooth-speaker-6f02f2c719.jpg",
   "https://cdn1.sharperimage.com/si/img/productImages/208280/208280-g1.jpg": "images/products/sharper-image-travel-steamer-799568054c.jpg",
