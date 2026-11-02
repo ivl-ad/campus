@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "durango", "name": "durango", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "durango", "merchantSlug": "durango", "url": "https://www.tkqlhce.com/click-101879885-17329254", "img": "https://www.lduhtrp.net/image-101879885-17329254"},
   {"id": "fragrance", "name": "fragrance", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "frag", "merchantSlug": "frag", "url": "https://www.anrdoezrs.net/click-101879885-16942202", "img": "https://www.fragranceshop.com/wp-content/uploads/2024/06/fragranceshop_logo.jpg"},
   {"id": "sharp", "name": "sharp", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "sharp", "merchantSlug": "sharp", "url": "https://click.linksynergy.com/fs-bin/click?id=MdERYhlEo38&offerid=1429613.10000942&type=3&subid=0&LSNSUBSITE=LSNSUBSITE", "img": "https://sharperimage.com/cdn/shop/files/si-logo.svg?height=60&v=1752157047"},
   {"id": "onemile", "name": "onemile", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "one", "merchantSlug": "one", "url": "https://onemilebike.sjv.io/5kGRWb", "img": "https://cdn2.impact.com/display-campaign-image/92447.gif"},
