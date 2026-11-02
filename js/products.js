@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "sharp", "name": "sharp", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "sharp", "merchantSlug": "sharp", "url": "https://click.linksynergy.com/fs-bin/click?id=MdERYhlEo38&offerid=1429613.10000942&type=3&subid=0&LSNSUBSITE=LSNSUBSITE", "img": "https://sharperimage.com/cdn/shop/files/si-logo.svg?height=60&v=1752157047"},
   {"id": "onemile", "name": "onemile", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "one", "merchantSlug": "one", "url": "https://onemilebike.sjv.io/5kGRWb", "img": "https://cdn2.impact.com/display-campaign-image/92447.gif"},
   {"id": "liv", "name": "liv", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "liv", "merchantSlug": "liv", "url": "https://livwellnutrition.pxf.io/R0ozzX", "img": "https://cdn4.impact.com/display-campaign-image/54126.gif"},
   {"id": "billiards", "name": "billiards", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "bill", "merchantSlug": "bill", "url": "https://billiardscom.sjv.io/qW91bg", "img": "https://cdn1.impact.com/display-campaign-image/157574.gif"},
