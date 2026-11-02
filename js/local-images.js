@@ -27,6 +27,7 @@ window.LOCAL_IMAGES = {
   "https://app.impact.com/display-thumbnail/3894165": "images/products/king-hunter-c9417fed83.webp",
   "https://app.impact.com/display-thumbnail/3956627": "images/products/book-f7afba06dd.webp",
   "https://app.impact.com/display-thumbnail/496768": "images/products/ticket-liquidator-33e1df0b18.jpg",
+  "https://app.impact.com/display-thumbnail/748964": "images/products/united-0c0a6b5444.jpg",
   "https://app.impact.com/display-thumbnail/998374": "images/products/farberware-4ac6626daa.jpg",
   "https://assets.vans.com/images/t_img/c_fill,g_center,f_auto,h_573,e_unsharp_mask:100,w_458/dpr_2.0/v1781130631/VN000EKHFS8-HERO/Crosspath-XC-GORETEX-Shoe-VANS-HERO.png": "images/products/vans-crosspath-c0df7c6242.webp",
   "https://cdn.shopify.com/s/files/1/0471/0885/files/7054-bk_1_lg.webp?v=1770336908": "images/products/zulily-corner-shelf-a81ddd5ded.webp",
