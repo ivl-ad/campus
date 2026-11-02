@@ -91,6 +91,7 @@ window.LOCAL_IMAGES = {
   "https://www.hilton.com/modules/assets/svgs/logos/WW.svg": "images/products/hilton-b1528fe401.svg",
   "https://www.huffy.com/media/logo/stores/8/red-huffy-logo.png": "images/products/huffy-b4fd35191e.webp",
   "https://www.lduhtrp.net/image-101879885-15619460": "images/products/vaio-laptops-0130b34b2f.jpg",
+  "https://www.lduhtrp.net/image-101879885-17329254": "images/products/durango-3a6915baf3.jpg",
   "https://www.nflshop.com/content/assets/__0-859256003070.1062.svg": "images/partners/nfl-shop-329e91ef06.svg",
   "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg": "images/products/southwest-cad6cb9d6a.svg",
   "https://www.tqlkg.com/image-101879885-15859093": "images/partners/vaio-4c0777a1e5.png",
