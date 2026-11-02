@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "keurig", "name": "keurig", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "keurig", "merchantSlug": "keurig", "url": "https://keurig.fxo.co/g/1485277/170716/1000001662/DxCPTgc", "img": "https://www.keurig.com/medias/coffee-makers-swc.jpg?context=bWFzdGVyfEhPTElEQVlDVVBTfDE3MTA1fGltYWdlL2pwZWd8SE9MSURBWUNVUFMvaDZiL2hmNS82OTUyOTI2MzY2OTI3OC5qcGd8OGVlOTYyYzNiZTNjMzQ1NGFlODA2NzBjMzA3ZTE3NzQ5NmYxYzY2ZjY5MDU0N2IzMGJiMzY2MTJlYTNmYWFlZQ"},
   {"id": "farberware", "name": "Farberware", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "farber", "merchantSlug": "farber", "url": "https://farberware.sjv.io/c/5891219/998374/11993", "img": "https://app.impact.com/display-thumbnail/998374"},
   {"id": "red-1", "name": "Red Dragon", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "redragon", "merchantSlug": "redragon", "url": "https://redragonshop.fxo.co/g/1485277/255079/0/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/255079.png"},
   {"id": "belkin", "name": "Belkin", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "belkin", "merchantSlug": "belkin", "url": "https://belkin.evyy.net/c/5891219/3402315/3736", "img": "https://app.impact.com/display-thumbnail/2364841"},
