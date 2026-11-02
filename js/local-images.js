@@ -23,6 +23,7 @@ window.LOCAL_IMAGES = {
   "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png": "images/products/art-supplies-b3d6c5581e.png",
   "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1544160.10003382&type=4": "images/products/bloom-260cc12010.jpg",
   "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1787071.10000178&type=4": "images/partners/champion-6108db498c.jpg",
+  "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=2137859.3&type=4": "images/products/contacts-d20ea7a3e6.png",
   "https://app.impact.com/display-thumbnail/2364841": "images/products/belkin-4cd8fa1a59.png",
   "https://app.impact.com/display-thumbnail/3201214": "images/products/moving-368025907b.png",
   "https://app.impact.com/display-thumbnail/3894165": "images/products/king-hunter-c9417fed83.webp",
