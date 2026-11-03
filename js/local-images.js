@@ -78,6 +78,7 @@ window.LOCAL_IMAGES = {
   "https://members.cj.com/member/publisher/logo/10689470.gif": "images/products/mms-787f70e88b.png",
   "https://members.cj.com/member/publisher/logo/10996935.gif": "images/products/mountain-5fc83a9a41.jpg",
   "https://members.cj.com/member/publisher/logo/15059108.gif": "images/products/orb-be13f28a61.png",
+  "https://members.cj.com/member/publisher/logo/17471290.gif": "images/products/shelves-1ff8b21335.png",
   "https://merchant.linksynergy.com/fs/banners/815/815_10000930.jpg": "images/partners/sharper-image-54dd4a1544.jpg",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6b3a7d46-76a7-46a0-9a06-ea387ba51100.jpg": "images/products/fan-pillow-1770d1cbea.webp",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/70cedbe1-01d0-4415-bb49-5f40e5716df2.png": "images/products/hisense-flat-screen-9ea98d2024.webp",
