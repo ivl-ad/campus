@@ -42,6 +42,7 @@ window.LOCAL_IMAGES = {
   "https://cdn1.impact.com/display-campaign-image/152511.gif": "images/products/nba-2fc8235082.webp",
   "https://cdn1.impact.com/display-campaign-image/157574.gif": "images/products/billiards-c042adc649.png",
   "https://cdn1.impact.com/display-campaign-image/53407.gif": "images/partners/franklin-sports-f912b273fa.webp",
+  "https://cdn1.impact.com/display-campaign-image/57296.gif": "images/products/tourist-a6267bc5a8.webp",
   "https://cdn1.sharperimage.com/si/img/productImages/206794/206794-g1.jpg": "images/products/sharper-image-bluetooth-speaker-6f02f2c719.jpg",
   "https://cdn1.sharperimage.com/si/img/productImages/208280/208280-g1.jpg": "images/products/sharper-image-travel-steamer-799568054c.jpg",
   "https://cdn1.sharperimage.com/si/img/productImages/210751/210751-g1.jpg": "images/products/sharper-popcorn-3a8b435ad6.webp",
