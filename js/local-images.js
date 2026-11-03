@@ -57,6 +57,7 @@ window.LOCAL_IMAGES = {
   "https://cdn2.impact.com/display-campaign-image/175043.gif": "images/products/corp-direct-64a9f43acd.webp",
   "https://cdn2.impact.com/display-campaign-image/92447.gif": "images/partners/onemile-b577ddaa03.webp",
   "https://cdn3.impact.com/display-campaign-image/107841.gif": "images/products/thrifty-6377cb52a0.webp",
+  "https://cdn3.impact.com/display-campaign-image/159772.gif": "images/products/gift-42d63938e2.jpg",
   "https://cdn3.impact.com/display-campaign-image/159864.gif": "images/products/king-c00c958252.webp",
   "https://cdn3.impact.com/display-campaign-image/37058.gif": "images/partners/hilton-928a0dd463.webp",
   "https://cdn3.impact.com/display-campaign-image/38448.gif": "images/products/marriot-bonvoy-7d820eb933.webp",
