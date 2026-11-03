@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "blick2", "name": "blick2", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "blick", "merchantSlug": "blick", "url": "https://www.awin1.com/cread.php?s=4861370&v=88183&q=577484&r=3045715", "img": "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png"},
   {"id": "shelves", "name": "shelves", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "shelves", "merchantSlug": "shelves", "url": "https://www.tkqlhce.com/click-101879885-14319573", "img": "https://members.cj.com/member/publisher/logo/17471290.gif"},
   {"id": "vaio", "name": "vaio", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.jdoqocy.com/click-101879885-15619460", "img": "https://us.vaio.com/cdn/shop/files/logo.svg?v=1698412349&width=180"},
   {"id": "peet", "name": " peet", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "peet", "merchantSlug": "peet", "url": "https://www.dpbolvw.net/click-101879885-13426123", "img": "https://members.cj.com/member/publisher/logo/10552104.gif"},
