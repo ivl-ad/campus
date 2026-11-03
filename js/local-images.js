@@ -86,6 +86,7 @@ window.LOCAL_IMAGES = {
   "https://static.shareasale.com/image/rcc_468_60.gif": "images/products/resume-express-e6e3bb0463.gif",
   "https://static.wixstatic.com/media/d2d7a5_25b1c6b1276c478b9697481d39c2fa50~mv2.jpg": "images/products/cloudfield-bamboo-sunglasses-blue-light-e13a58c77e.webp",
   "https://ui.awin.com/images/upload/merchant/profile/15431.png": "images/partners/underarmour-f4c1ea3556.png",
+  "https://us.vaio.com/cdn/shop/files/logo.svg?v=1698412349&width=180": "images/products/vaio-b2d164bc89.svg",
   "https://www.awltovhc.com/image-101879885-15619457": "images/products/vaio-budget-laptops-40632defb3.jpg",
   "https://www.belkin.com/on/demandware.static/-/Sites-master-product-catalog-blk/default/dw111851b7/images/hi-res/0/121612368_F8W974btBLK_Strap_HeroWAirTag_WEB.png": "images/products/belkin-tag-ecd6984a26.webp",
   "https://www.belkin.com/on/demandware.static/-/Sites-master-product-catalog-blk/default/dw55ac3645/images/hi-res/d/136246589_AUC009bt_Belkin_SoundForm_Bolt_Web_01.png": "images/products/belkin-buds-22a7817cdc.webp",
