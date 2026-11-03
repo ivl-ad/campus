@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "gift", "name": "gift", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "gift", "merchantSlug": "gift", "url": "https://gourmetgiftbasketscom.sjv.io/GbJA5E", "img": "https://cdn3.impact.com/display-campaign-image/159772.gif"},
   {"id": "thrifty", "name": "thrifty", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "thrifty", "merchantSlug": "thrifty", "url": "https://thriftycarrentalmxmxusca.pxf.io/k4E7GL", "img": "https://cdn3.impact.com/display-campaign-image/107841.gif"},
   {"id": "shelves", "name": "shelves", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "shelves", "merchantSlug": "shelves", "url": "https://www.tkqlhce.com/click-101879885-14319573", "img": "https://members.cj.com/member/publisher/logo/17471290.gif"},
   {"id": "vaio", "name": "vaio", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "vaio", "merchantSlug": "vaio", "url": "https://www.jdoqocy.com/click-101879885-15619460", "img": "https://us.vaio.com/cdn/shop/files/logo.svg?v=1698412349&width=180"},
