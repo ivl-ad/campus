@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "peet", "name": " peet", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "peet", "merchantSlug": "peet", "url": "https://www.dpbolvw.net/click-101879885-13426123", "img": "https://members.cj.com/member/publisher/logo/10552104.gif"},
   {"id": "mountain", "name": "mountain", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "mountain", "merchantSlug": "moutnain", "url": "https://www.jdoqocy.com/click-101879885-15733673", "img": "https://members.cj.com/member/publisher/logo/10996935.gif"},
   {"id": "tourist", "name": "tourist", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "tourist", "merchantSlug": "tourist", "url": "https://imp.i184500.net/JkXgYE", "img": "https://cdn1.impact.com/display-campaign-image/57296.gif"},
   {"id": "vegas", "name": "vegas", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "vegas", "merchantSlug": "vegas", "url": "https://vegas.vdvm.net/qWv1Qg", "img": "https://cdn2.impact.com/display-campaign-image/160137.gif"},
