@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "candy", "name": "candy", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "candy", "merchantSlug": "candy", "url": "https://www.awin1.com/cread.php?awinmid=131714&awinaffid=3045715", "img": "https://ui.awin.com/images/upload/merchant/profile/131714.png"},
   {"id": "gift", "name": "gift", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "gift", "merchantSlug": "gift", "url": "https://gourmetgiftbasketscom.sjv.io/GbJA5E", "img": "https://cdn3.impact.com/display-campaign-image/159772.gif"},
   {"id": "thrifty", "name": "thrifty", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "thrifty", "merchantSlug": "thrifty", "url": "https://thriftycarrentalmxmxusca.pxf.io/k4E7GL", "img": "https://cdn3.impact.com/display-campaign-image/107841.gif"},
   {"id": "shelves", "name": "shelves", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "shelves", "merchantSlug": "shelves", "url": "https://www.tkqlhce.com/click-101879885-14319573", "img": "https://members.cj.com/member/publisher/logo/17471290.gif"},
