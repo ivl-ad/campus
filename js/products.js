@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "get", "name": "get", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "get", "merchantSlug": "get", "url": "https://www.awin1.com/cread.php?s=4711548&v=124814&q=598983&r=3045715", "img": "https://a1.awin1.com/ads/awin/124814/imggeneralaffiliate_biggestsale_buynow_2_1-11080x1080-1773050458401.jpg"},
   {"id": "ms", "name": "ms", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "marks", "merchantSlug": "marks", "url": "https://www.awin1.com/cread.php?s=4976663&v=23351&q=452492&r=3045715", "img": "https://a1.awin1.com/ads/awin/23351/imgaff___singles_day___en___300x250-1793882196779.jpg"},
   {"id": "fed", "name": "fed", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "fed", "merchantSlug": "fed", "url": "https://www.awin1.com/cread.php?s=4866920&v=125138&q=599622&r=3045715", "img": "https://a1.awin1.com/ads/awin/125138/imgwb61200x6283-1786974894210.jpg"},
   {"id": "music", "name": "music", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "music", "merchantSlug": "music", "url": "https://www.awin1.com/cread.php?s=4255151&v=90327&q=554937&r=3045715", "img": "https://static.shareasale.com/image/80878/TheMusicStand_FB_Banner-Smaller.jpg"},
