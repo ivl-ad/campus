@@ -19,6 +19,7 @@ window.LOCAL_IMAGES = {
   "/images/blog/tech.png": "images/blog-covers/tech-375c730a09.webp",
   "http://www.avantlink.com/gbi/22353/964913/132893/160597/image.jpg": "images/products/huffy-bikes-97cd463ff5.jpg",
   "http://www.avantlink.com/gbi/22353/964941/132893/160597/image.jpg": "images/products/huffy-womens-bikes-9c09a23f15.jpg",
+  "https://a1.awin1.com/ads/awin/124814/imggeneralaffiliate_biggestsale_buynow_2_1-11080x1080-1773050458401.jpg": "images/products/get-ddd92d028b.jpg",
   "https://a1.awin1.com/ads/awin/125138/imgwb61200x6283-1786974894210.jpg": "images/products/fed-dd78a75eea.jpg",
   "https://a1.awin1.com/ads/awin/23351/imgaff___autumn_transitional___mw1___en___600x600-1787734554778.jpg": "images/partners/marks-spencer-e2974762a7.jpg",
   "https://a1.awin1.com/ads/awin/23351/imgaff___singles_day___en___300x250-1793882196779.jpg": "images/products/ms-2a4666d390.jpg",
