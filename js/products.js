@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "fed", "name": "fed", "cat": "health-fitness", "catLabel": "Health & Fitness", "merchant": "fed", "merchantSlug": "fed", "url": "https://www.awin1.com/cread.php?s=4866920&v=125138&q=599622&r=3045715", "img": "https://a1.awin1.com/ads/awin/125138/imgwb61200x6283-1786974894210.jpg"},
   {"id": "music", "name": "music", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "music", "merchantSlug": "music", "url": "https://www.awin1.com/cread.php?s=4255151&v=90327&q=554937&r=3045715", "img": "https://static.shareasale.com/image/80878/TheMusicStand_FB_Banner-Smaller.jpg"},
   {"id": "candy", "name": "candy", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "candy", "merchantSlug": "candy", "url": "https://www.awin1.com/cread.php?awinmid=131714&awinaffid=3045715", "img": "https://ui.awin.com/images/upload/merchant/profile/131714.png"},
   {"id": "gift", "name": "gift", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "gift", "merchantSlug": "gift", "url": "https://gourmetgiftbasketscom.sjv.io/GbJA5E", "img": "https://cdn3.impact.com/display-campaign-image/159772.gif"},
