@@ -19,6 +19,7 @@ window.LOCAL_IMAGES = {
   "/images/blog/tech.png": "images/blog-covers/tech-375c730a09.webp",
   "http://www.avantlink.com/gbi/22353/964913/132893/160597/image.jpg": "images/products/huffy-bikes-97cd463ff5.jpg",
   "http://www.avantlink.com/gbi/22353/964941/132893/160597/image.jpg": "images/products/huffy-womens-bikes-9c09a23f15.jpg",
+  "https://a1.awin1.com/ads/awin/125138/imgwb61200x6283-1786974894210.jpg": "images/products/fed-dd78a75eea.jpg",
   "https://a1.awin1.com/ads/awin/23351/imgaff___autumn_transitional___mw1___en___600x600-1787734554778.jpg": "images/partners/marks-spencer-e2974762a7.jpg",
   "https://a1.awin1.com/ads/awin/88183/imgaffiliate-paintpromo300x2501-1786461609669.png": "images/products/art-supplies-b3d6c5581e.png",
   "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1544160.10003382&type=4": "images/products/bloom-260cc12010.jpg",
