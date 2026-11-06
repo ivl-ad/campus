@@ -34,4 +34,5 @@ window.PARTNERS = [
   {"name": "Vaio", "url": "https://www.kqzyfj.com/click-101879885-15859093", "logo": "https://www.tqlkg.com/image-101879885-15859093"},
   {"name": "Hisense", "url": "https://bestbuy.7tiv.net/dyjJOq", "logo": "https://cdn2.impact.com/display-campaign-image/173612.gif"},
   {"name": "Big10", "url": "https://bigtennetwork.pxf.io/enGO4Z", "logo": "https://cdn2.impact.com/display-campaign-image/138071.gif"},
+  {"name": "mm", "url": "https://www.jdoqocy.com/click-101879885-17234679", "logo": "https://members.cj.com/member/publisher/logo/10689470.gif"},
 ];
