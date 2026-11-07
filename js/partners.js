@@ -35,4 +35,5 @@ window.PARTNERS = [
   {"name": "Hisense", "url": "https://bestbuy.7tiv.net/dyjJOq", "logo": "https://cdn2.impact.com/display-campaign-image/173612.gif"},
   {"name": "Big10", "url": "https://bigtennetwork.pxf.io/enGO4Z", "logo": "https://cdn2.impact.com/display-campaign-image/138071.gif"},
   {"name": "mm", "url": "https://www.jdoqocy.com/click-101879885-17234679", "logo": "https://members.cj.com/member/publisher/logo/10689470.gif"},
+  {"name": "Gilt", "url": "https://gilt.fxo.co/g/1485277/158309/1011104162/DxCPTgc", "logo": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158309.png"},
 ];
