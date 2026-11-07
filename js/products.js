@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "relish", "name": "relish", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "relish", "merchantSlug": "relish", "url": "https://relish.fxo.co/g/1485277/232873/1/DxCPTgc", "img": "https://www.relish.com/assets/relish/logo.svg"},
   {"id": "kobo", "name": "kobo", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "kobo", "merchantSlug": "kobo", "url": "https://kobo.fxo.co/g/1485277/161439/2000001065/DxCPTgc", "img": "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=2138382.1065&type=4"},
   {"id": "cole", "name": "cole", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "cole", "merchantSlug": "cole", "url": "https://colehaan.fxo.co/g/1485277/196522/1000000741/DxCPTgc", "img": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/196522.png"},
   {"id": "get", "name": "get", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "get", "merchantSlug": "get", "url": "https://www.awin1.com/cread.php?s=4711548&v=124814&q=598983&r=3045715", "img": "https://a1.awin1.com/ads/awin/124814/imggeneralaffiliate_biggestsale_buynow_2_1-11080x1080-1773050458401.jpg"},
