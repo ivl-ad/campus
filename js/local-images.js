@@ -70,6 +70,7 @@ window.LOCAL_IMAGES = {
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158350.png": "images/products/ugg-boots-womens-6d5537dea7.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/159735.png": "images/products/bradford-a4bab90201.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/178071.png": "images/products/aveda-october-promos-06b55e63ac.webp",
+  "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/196522.png": "images/products/cole-90b597afcd.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/232560.png": "images/products/voltaire-45b6e55c5e.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/235731.png": "images/products/spot-loan-47637de644.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/255079.png": "images/products/red-1-b6f982d748.webp",
