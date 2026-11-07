@@ -95,6 +95,7 @@ window.LOCAL_IMAGES = {
   "https://static.shareasale.com/image/80878/TheMusicStand_FB_Banner-Smaller.jpg": "images/products/music-87fef93093.jpg",
   "https://static.shareasale.com/image/rcc_468_60.gif": "images/products/resume-express-e6e3bb0463.gif",
   "https://static.wixstatic.com/media/d2d7a5_25b1c6b1276c478b9697481d39c2fa50~mv2.jpg": "images/products/cloudfield-bamboo-sunglasses-blue-light-e13a58c77e.webp",
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/StubHub_Logo.svg/3840px-StubHub_Logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail": "images/products/stub-45ac509733.webp",
   "https://ui.awin.com/images/upload/merchant/profile/131714.png": "images/products/candy-0b175abc72.png",
   "https://ui.awin.com/images/upload/merchant/profile/15431.png": "images/partners/underarmour-f4c1ea3556.png",
   "https://us.vaio.com/cdn/shop/files/logo.svg?v=1698412349&width=180": "images/products/vaio-b2d164bc89.svg",
