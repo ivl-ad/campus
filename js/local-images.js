@@ -82,6 +82,7 @@ window.LOCAL_IMAGES = {
   "https://feeds.frgimages.com/_ss5_p-203735675+u-cxpteakquvr2sgllwq8n+v-7nr0sujhzcork0ydmsji.jpg?_hv=2": "images/products/fan-nails-10d3c9b9dc.webp",
   "https://feeds.frgimages.com/_ss5_p-204464813+u-l6ge63ho1zibxqqybsqa+v-y5pbawaz4vjs4dii59h5.jpg?_hv=2": "images/products/fan-bag-2d8910493f.webp",
   "https://i5.walmartimages.com/asr/7436642f-73d7-476a-ad13-3df823b44468.478cf2e6e13b071082d10d79d898cb83.jpeg?odnHeight=2000&odnWidth=2000&odnBg=ffffff": "images/products/fan-seat-2d5b841d5e.webp",
+  "https://media.pepperjamnetwork.com/banners/9372/464176_1637094254": "images/products/gilt-2cfcbd3b4b.jpg",
   "https://members.cj.com/member/publisher/logo/10552104.gif": "images/products/peet-84a8b91a7b.jpg",
   "https://members.cj.com/member/publisher/logo/10689470.gif": "images/products/mms-787f70e88b.png",
   "https://members.cj.com/member/publisher/logo/10996935.gif": "images/products/mountain-5fc83a9a41.jpg",
