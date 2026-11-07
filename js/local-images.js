@@ -110,6 +110,7 @@ window.LOCAL_IMAGES = {
   "https://www.lduhtrp.net/image-101879885-15619460": "images/products/vaio-laptops-0130b34b2f.jpg",
   "https://www.lduhtrp.net/image-101879885-17329254": "images/products/durango-3a6915baf3.jpg",
   "https://www.nflshop.com/content/assets/__0-859256003070.1062.svg": "images/partners/nfl-shop-329e91ef06.svg",
+  "https://www.relish.com/assets/relish/logo.svg": "images/products/relish-75696a240c.svg",
   "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg": "images/products/southwest-cad6cb9d6a.svg",
   "https://www.tqlkg.com/image-101879885-15859093": "images/partners/vaio-4c0777a1e5.png",
   "https://www.vans.com/favicon.ico": "images/partners/vans-6ca19a0cc1.ico",
