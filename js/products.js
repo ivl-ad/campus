@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "stub", "name": "stub", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "stub", "merchantSlug": "stub", "url": "https://stubhub.fxo.co/g/1485277/257/4611686018427395812/DxCPTgc", "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/StubHub_Logo.svg/3840px-StubHub_Logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"},
   {"id": "black", "name": "black", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "black", "merchantSlug": "black", "url": "https://blackanddecker.fxo.co/g/1485277/234710/533832/DxCPTgc", "img": "https://www.pntra.com/b/4-533832-47736-309072"},
   {"id": "relish", "name": "relish", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "relish", "merchantSlug": "relish", "url": "https://relish.fxo.co/g/1485277/232873/1/DxCPTgc", "img": "https://www.relish.com/assets/relish/logo.svg"},
   {"id": "kobo", "name": "kobo", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "kobo", "merchantSlug": "kobo", "url": "https://kobo.fxo.co/g/1485277/161439/2000001065/DxCPTgc", "img": "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=2138382.1065&type=4"},
