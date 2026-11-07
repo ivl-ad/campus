@@ -66,6 +66,7 @@ window.LOCAL_IMAGES = {
   "https://cdn3.impact.com/display-campaign-image/38448.gif": "images/products/marriot-bonvoy-7d820eb933.webp",
   "https://cdn4.impact.com/display-campaign-image/166674.gif": "images/products/gemini-crypto-trading-earn-platform-88478c53f9.png",
   "https://cdn4.impact.com/display-campaign-image/54126.gif": "images/partners/livwell-ccefe33783.webp",
+  "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158309.png": "images/partners/gilt-1a74f8cbcf.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158350.png": "images/products/ugg-boots-womens-6d5537dea7.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/159735.png": "images/products/bradford-a4bab90201.webp",
   "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/178071.png": "images/products/aveda-october-promos-06b55e63ac.webp",
