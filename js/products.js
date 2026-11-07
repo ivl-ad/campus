@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "audible", "name": "audible", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "aud", "merchantSlug": "aud", "url": "https://audible.fxo.co/g/1485277/257356/4611686018427609009/DxCPTgc", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUm8IgjfFp3zVDiuTD4eGi2O_tGdSMqBWSKTU6Ev1r9Q&s=10"},
   {"id": "gilt", "name": "gilt", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "gilt", "merchantSlug": "gilt", "url": "https://gilt.fxo.co/g/1485277/158309/1011104162/DxCPTgc", "img": "https://media.pepperjamnetwork.com/banners/9372/464176_1637094254"},
   {"id": "stub", "name": "stub", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "stub", "merchantSlug": "stub", "url": "https://stubhub.fxo.co/g/1485277/257/4611686018427395812/DxCPTgc", "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/StubHub_Logo.svg/3840px-StubHub_Logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"},
   {"id": "black", "name": "black", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "black", "merchantSlug": "black", "url": "https://blackanddecker.fxo.co/g/1485277/234710/533832/DxCPTgc", "img": "https://www.pntra.com/b/4-533832-47736-309072"},
