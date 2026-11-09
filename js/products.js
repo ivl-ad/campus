@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "godiva", "name": "godiva", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "godiva", "merchantSlug": "godiva", "url": "https://godiva.fxo.co/g/1485277/159640/1011184837/DxCPTgc", "img": "https://console.partnerize.com/upload/4f3af5cbf6fc6307281e13a85cc100c105_NEWTRUFFLE_PACK_H_92068chocjpg"},
   {"id": "tsar", "name": "tsar", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "tsar", "merchantSlug": "tsar", "url": "https://www.awin1.com/cread.php?s=4936532&v=109230&q=585527&r=3045715", "img": "https://a1.awin1.com/ads/awin/109230/imgstyle-1-1792463680613.jpg"},
   {"id": "tornado", "name": "tornado", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "tornado", "merchantSlug": "tornado", "url": "https://www.awin1.com/cread.php?s=4880499&v=129777&q=614051&r=3045715", "img": "https://a1.awin1.com/ads/awin/129777/img300x250-1787979871100.png"},
   {"id": "audible", "name": "audible", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "aud", "merchantSlug": "aud", "url": "https://audible.fxo.co/g/1485277/257356/4611686018427609009/DxCPTgc", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUm8IgjfFp3zVDiuTD4eGi2O_tGdSMqBWSKTU6Ev1r9Q&s=10"},
