@@ -19,6 +19,7 @@ window.LOCAL_IMAGES = {
   "/images/blog/tech.png": "images/blog-covers/tech-375c730a09.webp",
   "http://www.avantlink.com/gbi/22353/964913/132893/160597/image.jpg": "images/products/huffy-bikes-97cd463ff5.jpg",
   "http://www.avantlink.com/gbi/22353/964941/132893/160597/image.jpg": "images/products/huffy-womens-bikes-9c09a23f15.jpg",
+  "https://a1.awin1.com/ads/awin/109230/imgstyle-1-1792463680613.jpg": "images/products/tsar-f973d07f2f.jpg",
   "https://a1.awin1.com/ads/awin/124814/imggeneralaffiliate_biggestsale_buynow_2_1-11080x1080-1773050458401.jpg": "images/products/get-ddd92d028b.jpg",
   "https://a1.awin1.com/ads/awin/125138/imgwb61200x6283-1786974894210.jpg": "images/products/fed-dd78a75eea.jpg",
   "https://a1.awin1.com/ads/awin/129777/img300x250-1787979871100.png": "images/products/tornado-5f274103a7.png",
