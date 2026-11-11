@@ -37,4 +37,5 @@ window.PARTNERS = [
   {"name": "mm", "url": "https://www.jdoqocy.com/click-101879885-17234679", "logo": "https://members.cj.com/member/publisher/logo/10689470.gif"},
   {"name": "Gilt", "url": "https://gilt.fxo.co/g/1485277/158309/1011104162/DxCPTgc", "logo": "https://content.flexlinks.com/SharedImages/ProgramSquareLogo/158309.png"},
   {"name": "Bloomingdale's", "url": "https://bloomingdales.fxo.co/g/1485277/619/2010003382/DxCPTgc", "logo": "https://ad.linksynergy.com/fs-bin/show?id=PPkX79/c*b0&bids=1544160.10003382&type=4"},
+  {"name": "Minecraft", "url": "https://buy.minecraft.net/c/5891219/4097175/48842", "logo": "https://cdn1.impact.com/display-campaign-image/177176.gif"},
 ];
