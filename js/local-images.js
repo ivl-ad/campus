@@ -120,6 +120,7 @@ window.LOCAL_IMAGES = {
   "https://www.relish.com/assets/relish/logo.svg": "images/products/relish-75696a240c.svg",
   "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg": "images/products/southwest-cad6cb9d6a.svg",
   "https://www.tqlkg.com/image-101879885-15859093": "images/partners/vaio-4c0777a1e5.png",
+  "https://www.tqlkg.com/image-101879885-17109647": "images/products/consumer-eebd72580f.png",
   "https://www.vans.com/favicon.ico": "images/partners/vans-6ca19a0cc1.ico",
   "https://www.zulily.com/cdn/shop/files/Zulily-Logos_2000x1000_392ef5dc-5aaf-4cf7-a5f5-cf0cbac04b5a.png?v=1754076480&width=110": "images/partners/zulily-3a6b9b720e.webp"
 };
