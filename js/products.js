@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "consumer", "name": "consumer", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Consumer ", "merchantSlug": "consumer", "url": "https://www.tkqlhce.com/click-101879885-17109647", "img": "https://www.tqlkg.com/image-101879885-17109647"},
   {"id": "minecraft", "name": "minecraft", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "mine", "merchantSlug": "mine", "url": "https://buy.minecraft.net/c/5891219/4097175/48842", "img": "https://cdn1.impact.com/display-campaign-image/177176.gif"},
   {"id": "godiva", "name": "godiva", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "godiva", "merchantSlug": "godiva", "url": "https://godiva.fxo.co/g/1485277/159640/1011184837/DxCPTgc", "img": "https://console.partnerize.com/upload/4f3af5cbf6fc6307281e13a85cc100c105_NEWTRUFFLE_PACK_H_92068chocjpg"},
   {"id": "tsar", "name": "tsar", "cat": "personal-lifestyle", "catLabel": "Personal Lifestyle", "merchant": "tsar", "merchantSlug": "tsar", "url": "https://www.awin1.com/cread.php?s=4936532&v=109230&q=585527&r=3045715", "img": "https://a1.awin1.com/ads/awin/109230/imgstyle-1-1792463680613.jpg"},
