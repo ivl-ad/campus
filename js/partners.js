@@ -41,4 +41,5 @@ window.PARTNERS = [
   {"name": "Travelocity", "url": "https://www.anrdoezrs.net/click-101879885-10395452", "logo": "https://www.tqlkg.com/image-101879885-10395452"},
   {"name": "Coinbase", "url": "https://coinbase.fxo.co/g/1485277/254852/6675355/DxCPTgc", "logo": "https://static-assets.coinbase.com/ui-infra/illustration/v1/pictogram/svg/light/coinbaseLogoNavigation-4.svg"},
   {"name": "TEAC", "url": "https://www.jdoqocy.com/click-101879885-15920115", "logo": "https://www.tqlkg.com/image-101879885-15920115"},
+  {"name": "Pioneer", "url": "https://esiinternationalenterprises.sjv.io/KBbv6z", "logo": "https://cdn1.impact.com/display-campaign-image/177976.gif"},
 ];
