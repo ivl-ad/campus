@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "coinbase", "name": "coinbase", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Coinbase", "merchantSlug": "coinbase", "url": "https://coinbase.fxo.co/g/1485277/254852/6675355/DxCPTgc", "img": "https://static-assets.coinbase.com/ui-infra/illustration/v1/pictogram/svg/light/coinbaseLogoNavigation-4.svg"},
   {"id": "discount", "name": "discount", "cat": "academic-essentials", "catLabel": "Academic Essentials", "merchant": "Discount Electronics", "merchantSlug": "discount", "url": "https://www.jdoqocy.com/click-101879885-14396314", "img": "https://www.tqlkg.com/image-101879885-14396314"},
   {"id": "travel", "name": "travel", "cat": "event-tickets-travel", "catLabel": "Travel & Entertainment", "merchant": "Travelocity", "merchantSlug": "travel", "url": "https://www.anrdoezrs.net/click-101879885-10395452", "img": "https://www.tqlkg.com/image-101879885-10395452"},
   {"id": "consumer", "name": "consumer", "cat": "financial-services", "catLabel": "Financial Services", "merchant": "Consumer ", "merchantSlug": "consumer", "url": "https://www.tkqlhce.com/click-101879885-17109647", "img": "https://www.tqlkg.com/image-101879885-17109647"},
