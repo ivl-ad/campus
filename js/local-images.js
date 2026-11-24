@@ -96,6 +96,7 @@ window.LOCAL_IMAGES = {
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6b3a7d46-76a7-46a0-9a06-ea387ba51100.jpg": "images/products/fan-pillow-1770d1cbea.webp",
   "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/70cedbe1-01d0-4415-bb49-5f40e5716df2.png": "images/products/hisense-flat-screen-9ea98d2024.webp",
   "https://sharperimage.com/cdn/shop/files/si-logo.svg?height=60&v=1752157047": "images/products/sharp-16b85bcccf.svg",
+  "https://static-assets.coinbase.com/ui-infra/illustration/v1/pictogram/svg/light/coinbaseLogoNavigation-4.svg": "images/products/coinbase-5ee1964951.svg",
   "https://static.shareasale.com/image/30103/2010drawing180x150.jpg": "images/products/blick-art-supplys-da1511b228.jpg",
   "https://static.shareasale.com/image/80878/TheMusicStand_FB_Banner-Smaller.jpg": "images/products/music-87fef93093.jpg",
   "https://static.shareasale.com/image/rcc_468_60.gif": "images/products/resume-express-e6e3bb0463.gif",
