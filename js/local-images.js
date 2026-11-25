@@ -124,6 +124,7 @@ window.LOCAL_IMAGES = {
   "https://www.relish.com/assets/relish/logo.svg": "images/products/relish-75696a240c.svg",
   "https://www.southwest.com/swa-resources/images/globalnav/logos/swa_logo_dark.svg": "images/products/southwest-cad6cb9d6a.svg",
   "https://www.tqlkg.com/image-101879885-10395452": "images/products/travel-54d00bc343.gif",
+  "https://www.tqlkg.com/image-101879885-12912443": "images/products/vital-8888aebb51.jpg",
   "https://www.tqlkg.com/image-101879885-14396314": "images/products/discount-a66591526f.png",
   "https://www.tqlkg.com/image-101879885-15859093": "images/partners/vaio-4c0777a1e5.png",
   "https://www.tqlkg.com/image-101879885-15920115": "images/products/teac-dfc04ef163.jpg",
