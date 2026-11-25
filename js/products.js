@@ -23,6 +23,7 @@
  *   without asking. See functions/_shared/draft-save.js before changing it.)
  */
 window.PRODUCTS = [
+  {"id": "vital", "name": "vital", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "Vital Source", "merchantSlug": "vital", "url": "https://www.kqzyfj.com/click-101879885-12912443", "img": "https://www.tqlkg.com/image-101879885-12912443"},
   {"id": "motel6", "name": "motel6", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "Motel 6", "merchantSlug": "motel6", "url": "https://www.tkqlhce.com/click-101879885-17198208", "img": "https://www.lduhtrp.net/image-101879885-17198208"},
   {"id": "pioneer", "name": "Pioneer", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "Pioneer", "merchantSlug": "pioneer", "url": "https://esiinternationalenterprises.sjv.io/c/5891219/4102783/59089", "img": "https://cdn1.impact.com/display-campaign-image/177976.gif"},
   {"id": "teac", "name": "Teac", "cat": "dorm-living-essentials", "catLabel": "Dorm & Living Essentials", "merchant": "TEAC", "merchantSlug": "teac", "url": "https://www.jdoqocy.com/click-101879885-15920115", "img": "https://www.tqlkg.com/image-101879885-15920115"},
